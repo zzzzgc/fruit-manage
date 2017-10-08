@@ -1,0 +1,133 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.fruit.manage</groupId>
+	<artifactId>fruit-manage</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>war</packaging>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
+	<dependencies>
+		<!-- 测试使用 -->
+		<dependency>
+		    <groupId>junit</groupId>
+		    <artifactId>junit</artifactId>
+		    <version>4.12</version>
+		    <scope>test</scope>
+		</dependency>
+		<!-- 日志输出 -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>1.7.25</version>
+		</dependency>
+		<!-- 数据库连接 -->
+<!-- 		<dependency> -->
+<!-- 			<groupId>mysql</groupId> -->
+<!-- 			<artifactId>mysql-connector-java</artifactId> -->
+<!-- 			<version>6.0.6</version> -->
+<!-- 		</dependency> -->
+<!-- 		<dependency> -->
+<!-- 		    <groupId>mysql</groupId> -->
+<!-- 		    <artifactId>mysql-connector-java</artifactId> -->
+<!-- 		    <version>8.0.8-dmr</version> -->
+<!-- 		</dependency> -->
+		<dependency>
+		    <groupId>mysql</groupId>
+		    <artifactId>mysql-connector-java</artifactId>
+		    <version>5.1.44</version>
+		</dependency>
+		<!-- 阿里数据库连接池 -->
+<!-- 		<dependency> -->
+<!-- 		    <groupId>com.alibaba</groupId> -->
+<!-- 		    <artifactId>druid</artifactId> -->
+<!-- 		    <version>1.1.4</version> -->
+<!-- 		</dependency> -->
+		<!-- 性能强劲的数据库连接池 -->
+		<dependency>
+			<groupId>com.zaxxer</groupId>
+			<artifactId>HikariCP</artifactId>
+			<version>2.7.1</version>
+		</dependency>
+		<!-- jfinal web框架 -->
+		<dependency>
+			<groupId>com.jfinal</groupId>
+			<artifactId>jfinal</artifactId>
+			<version>3.2</version>
+		</dependency>
+		<!-- jfinal 事件插件 -->
+		<dependency>
+			<groupId>net.dreamlu</groupId>
+			<artifactId>JFinal-event</artifactId>
+			<version>1.5.1</version>
+		</dependency>
+		<!-- jfinal邮件插件 -->
+<!-- 		<dependency> -->
+<!-- 			<groupId>cn.fsdev</groupId> -->
+<!-- 			<artifactId>jfinal-mail-plugin</artifactId> -->
+<!-- 			<version>3.0</version> -->
+<!-- 		</dependency> -->
+		<!--jfinal上传图片 -->
+		<dependency>
+			<groupId>com.jfinal</groupId>
+			<artifactId>cos</artifactId>
+			<version>2017.5</version>
+		</dependency>
+		<!-- jfinal 依赖的定时器jar -->
+		<dependency>
+		    <groupId>it.sauronsoftware.cron4j</groupId>
+		    <artifactId>cron4j</artifactId>
+		    <version>2.2.5</version>
+		</dependency>
+		<!-- ehcache缓存插件，用于本地缓存数据（内存缓存），不具备跨服务的session共享能力 -->
+		<dependency>
+			<groupId>org.ehcache</groupId>
+			<artifactId>ehcache</artifactId>
+			<version>3.4.0</version>
+		</dependency>
+		
+		<!-- google工具类，替代apache工具集合 -->
+<!-- 		<dependency> -->
+<!-- 		    <groupId>com.google.guava</groupId> -->
+<!-- 		    <artifactId>guava</artifactId> -->
+<!-- 		    <version>23.0</version> -->
+<!-- 		</dependency> -->
+		<!-- apache工具集合 -->
+		<dependency>
+		    <groupId>org.apache.commons</groupId>
+		    <artifactId>commons-lang3</artifactId>
+		    <version>3.6</version>
+		</dependency>
+		<!-- servlet，研发测试环境使用，发布环境下，tomcat里有 -->
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<version>3.0-alpha-1</version>
+			<scope>provided</scope>
+		</dependency>
+		
+		<!-- ehcache缓存插件，用于本地缓存数据（内存缓存），不具备跨服务的session共享能力 -->
+		<dependency>
+			<groupId>net.sf.ehcache</groupId>
+			<artifactId>ehcache</artifactId>
+			<version>2.10.4</version>
+		</dependency>
+		
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>
