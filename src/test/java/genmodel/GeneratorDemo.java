@@ -54,15 +54,15 @@ public class GeneratorDemo {
 		// 设置数据库方言
 		gernerator.setDialect(new MysqlDialect());
 		// 添加不需要生成的表名
-//		String tables = "user_card_rel";
-//		gernerator.addExcludedTable(tables.split(","));
+		String tables = "old-b_classify";
+		gernerator.addExcludedTable(tables.split(","));
 		
 		// 设置是否在 Model 中生成 dao 对象
 		gernerator.setGenerateDaoInModel(true);
 		// 设置是否生成字典文件
 		gernerator.setGenerateDataDictionary(false);
 		// 设置需要被移除的表名前缀用于生成modelName。例如表名 "osc_user"，移除前缀 "osc_"后生成的model名为 "User"而非 OscUser
-		gernerator.setRemovedTableNamePrefixes("bus_", "u_");
+		gernerator.setRemovedTableNamePrefixes("b_", "a_");
 		// 生成
 		gernerator.generate();
 	}

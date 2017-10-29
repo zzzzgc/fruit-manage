@@ -41,6 +41,22 @@ public abstract class BaseUser<M extends BaseUser<M>> extends Model<M> implement
 		return getStr("pass");
 	}
 
+	public void setPhone(java.lang.String phone) {
+		set("phone", phone);
+	}
+
+	public java.lang.String getPhone() {
+		return getStr("phone");
+	}
+
+	public void setWeixinToken(java.lang.String weixinToken) {
+		set("weixin_token", weixinToken);
+	}
+
+	public java.lang.String getWeixinToken() {
+		return getStr("weixin_token");
+	}
+
 	public void setLastLoginTime(java.util.Date lastLoginTime) {
 		set("last_login_time", lastLoginTime);
 	}

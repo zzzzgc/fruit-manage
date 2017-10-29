@@ -1,6 +1,7 @@
 package com.fruit.manage.base;
 
 import com.fruit.manage.controller.IndexController;
+import com.fruit.manage.controller.ProductController;
 import com.fruit.manage.model._MappingKit;
 import com.jfinal.config.Constants;
 import com.jfinal.config.Handlers;
@@ -10,7 +11,6 @@ import com.jfinal.config.Plugins;
 import com.jfinal.config.Routes;
 import com.jfinal.kit.PropKit;
 import com.jfinal.plugin.activerecord.ActiveRecordPlugin;
-import com.jfinal.plugin.cron4j.Cron4jPlugin;
 import com.jfinal.plugin.ehcache.EhCachePlugin;
 import com.jfinal.plugin.hikaricp.HikariCpPlugin;
 import com.jfinal.template.Engine;
@@ -34,6 +34,7 @@ public class JFConfig extends JFinalConfig {
 	 */
 	public void configRoute(Routes me) {
 		me.add("/", IndexController.class);
+		me.add("/product", ProductController.class);
 //		AutoBindRoutes routeBind = new AutoBindRoutes();
 //		routeBind.autoScan(false);
 //		me.add(routeBind);
@@ -70,6 +71,7 @@ public class JFConfig extends JFinalConfig {
 		ActiveRecordPlugin arp = new ActiveRecordPlugin(dataSource);
 		// 所有映射在 MappingKit 中自动化搞定
 		_MappingKit.mapping(arp);
+
 		me.add(arp);
 		
 		me.add(new EhCachePlugin());// 初始化应用缓存插件

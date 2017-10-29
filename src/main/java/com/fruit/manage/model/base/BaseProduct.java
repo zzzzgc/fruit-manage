@@ -17,22 +17,6 @@ public abstract class BaseProduct<M extends BaseProduct<M>> extends Model<M> imp
 		return getInt("id");
 	}
 
-	public void setGroupId(java.lang.Integer groupId) {
-		set("group_id", groupId);
-	}
-
-	public java.lang.Integer getGroupId() {
-		return getInt("group_id");
-	}
-
-	public void setType(java.lang.Integer type) {
-		set("type", type);
-	}
-
-	public java.lang.Integer getType() {
-		return getInt("type");
-	}
-
 	public void setName(java.lang.String name) {
 		set("name", name);
 	}
@@ -41,68 +25,36 @@ public abstract class BaseProduct<M extends BaseProduct<M>> extends Model<M> imp
 		return getStr("name");
 	}
 
-	public void setPreviewImg(java.lang.String previewImg) {
-		set("preview_img", previewImg);
+	public void setFruitType(java.lang.Integer fruitType) {
+		set("fruit_type", fruitType);
 	}
 
-	public java.lang.String getPreviewImg() {
-		return getStr("preview_img");
+	public java.lang.Integer getFruitType() {
+		return getInt("fruit_type");
 	}
 
-	public void setTaste(java.lang.String taste) {
-		set("taste", taste);
+	public void setCountry(java.lang.String country) {
+		set("country", country);
 	}
 
-	public java.lang.String getTaste() {
-		return getStr("taste");
+	public java.lang.String getCountry() {
+		return getStr("country");
 	}
 
-	public void setDes(java.lang.String des) {
-		set("des", des);
+	public void setProvince(java.lang.String province) {
+		set("province", province);
 	}
 
-	public java.lang.String getDes() {
-		return getStr("des");
+	public java.lang.String getProvince() {
+		return getStr("province");
 	}
 
-	public void setBuyCount7(java.lang.Integer buyCount7) {
-		set("buy_count_7", buyCount7);
+	public void setSort(java.lang.Long sort) {
+		set("sort", sort);
 	}
 
-	public java.lang.Integer getBuyCount7() {
-		return getInt("buy_count_7");
-	}
-
-	public void setOriginalPrice(java.math.BigDecimal originalPrice) {
-		set("original_price", originalPrice);
-	}
-
-	public java.math.BigDecimal getOriginalPrice() {
-		return get("original_price");
-	}
-
-	public void setRealPrice(java.math.BigDecimal realPrice) {
-		set("real_price", realPrice);
-	}
-
-	public java.math.BigDecimal getRealPrice() {
-		return get("real_price");
-	}
-
-	public void setPriceUnit(java.lang.String priceUnit) {
-		set("price_unit", priceUnit);
-	}
-
-	public java.lang.String getPriceUnit() {
-		return getStr("price_unit");
-	}
-
-	public void setPlaceOrigin(java.lang.String placeOrigin) {
-		set("place_origin", placeOrigin);
-	}
-
-	public java.lang.String getPlaceOrigin() {
-		return getStr("place_origin");
+	public java.lang.Long getSort() {
+		return getLong("sort");
 	}
 
 	public void setBrand(java.lang.String brand) {
@@ -113,60 +65,92 @@ public abstract class BaseProduct<M extends BaseProduct<M>> extends Model<M> imp
 		return getStr("brand");
 	}
 
-	public void setMarketTime(java.util.Date marketTime) {
-		set("market_time", marketTime);
+	public void setMeasureUnit(java.lang.String measureUnit) {
+		set("measure_unit", measureUnit);
 	}
 
-	public java.util.Date getMarketTime() {
-		return get("market_time");
+	public java.lang.String getMeasureUnit() {
+		return getStr("measure_unit");
 	}
 
-	public void setSuggest(java.lang.String suggest) {
-		set("suggest", suggest);
+	public void setStatus(java.lang.Integer status) {
+		set("status", status);
 	}
 
-	public java.lang.String getSuggest() {
-		return getStr("suggest");
+	public java.lang.Integer getStatus() {
+		return getInt("status");
 	}
 
-	public void setHot(java.lang.String hot) {
-		set("hot", hot);
+	public void setFreshTime(java.lang.Integer freshTime) {
+		set("fresh_time", freshTime);
 	}
 
-	public java.lang.String getHot() {
-		return getStr("hot");
+	public java.lang.Integer getFreshTime() {
+		return getInt("fresh_time");
 	}
 
-	public void setSupplyQuantity(java.lang.String supplyQuantity) {
-		set("supply_quantity", supplyQuantity);
+	public void setFreshExpireTime(java.util.Date freshExpireTime) {
+		set("fresh_expire_time", freshExpireTime);
 	}
 
-	public java.lang.String getSupplyQuantity() {
-		return getStr("supply_quantity");
+	public java.util.Date getFreshExpireTime() {
+		return get("fresh_expire_time");
 	}
 
-	public void setQuality(java.lang.String quality) {
-		set("quality", quality);
+	public void setImg(java.lang.String img) {
+		set("img", img);
 	}
 
-	public java.lang.String getQuality() {
-		return getStr("quality");
+	public java.lang.String getImg() {
+		return getStr("img");
 	}
 
-	public void setServiceSupport(java.lang.String serviceSupport) {
-		set("service_support", serviceSupport);
+	public void setFruitDes(java.lang.String fruitDes) {
+		set("fruit_des", fruitDes);
 	}
 
-	public java.lang.String getServiceSupport() {
-		return getStr("service_support");
+	public java.lang.String getFruitDes() {
+		return getStr("fruit_des");
 	}
 
-	public void setExtraDes(java.lang.String extraDes) {
-		set("extra_des", extraDes);
+	public void setStoreWay(java.lang.String storeWay) {
+		set("store_way", storeWay);
 	}
 
-	public java.lang.String getExtraDes() {
-		return getStr("extra_des");
+	public java.lang.String getStoreWay() {
+		return getStr("store_way");
+	}
+
+	public void setTotalSellNum(java.lang.Integer totalSellNum) {
+		set("total_sell_num", totalSellNum);
+	}
+
+	public java.lang.Integer getTotalSellNum() {
+		return getInt("total_sell_num");
+	}
+
+	public void setWeekSellNum(java.lang.Integer weekSellNum) {
+		set("week_sell_num", weekSellNum);
+	}
+
+	public java.lang.Integer getWeekSellNum() {
+		return getInt("week_sell_num");
+	}
+
+	public void setCreateTime(java.util.Date createTime) {
+		set("create_time", createTime);
+	}
+
+	public java.util.Date getCreateTime() {
+		return get("create_time");
+	}
+
+	public void setUpdateTime(java.util.Date updateTime) {
+		set("update_time", updateTime);
+	}
+
+	public java.util.Date getUpdateTime() {
+		return get("update_time");
 	}
 
 }

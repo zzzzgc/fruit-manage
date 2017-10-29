@@ -17,12 +17,20 @@ public abstract class BaseBanner<M extends BaseBanner<M>> extends Model<M> imple
 		return getInt("id");
 	}
 
-	public void setGroup(java.lang.String group) {
-		set("group", group);
+	public void setGroupKey(java.lang.String groupKey) {
+		set("group_key", groupKey);
 	}
 
-	public java.lang.String getGroup() {
-		return getStr("group");
+	public java.lang.String getGroupKey() {
+		return getStr("group_key");
+	}
+
+	public void setKey(java.lang.String key) {
+		set("key", key);
+	}
+
+	public java.lang.String getKey() {
+		return getStr("key");
 	}
 
 	public void setName(java.lang.String name) {
@@ -33,12 +41,12 @@ public abstract class BaseBanner<M extends BaseBanner<M>> extends Model<M> imple
 		return getStr("name");
 	}
 
-	public void setWeight(java.lang.Integer weight) {
-		set("weight", weight);
+	public void setSort(java.lang.Integer sort) {
+		set("sort", sort);
 	}
 
-	public java.lang.Integer getWeight() {
-		return getInt("weight");
+	public java.lang.Integer getSort() {
+		return getInt("sort");
 	}
 
 	public void setDes(java.lang.String des) {

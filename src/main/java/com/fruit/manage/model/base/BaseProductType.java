@@ -17,20 +17,20 @@ public abstract class BaseProductType<M extends BaseProductType<M>> extends Mode
 		return getInt("id");
 	}
 
-	public void setName(java.lang.String name) {
-		set("name", name);
+	public void setProductId(java.lang.Integer productId) {
+		set("product_id", productId);
 	}
 
-	public java.lang.String getName() {
-		return getStr("name");
+	public java.lang.Integer getProductId() {
+		return getInt("product_id");
 	}
 
-	public void setDes(java.lang.String des) {
-		set("des", des);
+	public void setTypeId(java.lang.Integer typeId) {
+		set("type_id", typeId);
 	}
 
-	public java.lang.String getDes() {
-		return getStr("des");
+	public java.lang.Integer getTypeId() {
+		return getInt("type_id");
 	}
 
 	public void setCreateTime(java.util.Date createTime) {
@@ -39,14 +39,6 @@ public abstract class BaseProductType<M extends BaseProductType<M>> extends Mode
 
 	public java.util.Date getCreateTime() {
 		return get("create_time");
-	}
-
-	public void setUpdateTime(java.util.Date updateTime) {
-		set("update_time", updateTime);
-	}
-
-	public java.util.Date getUpdateTime() {
-		return get("update_time");
 	}
 
 }

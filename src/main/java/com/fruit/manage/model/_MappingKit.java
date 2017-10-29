@@ -16,13 +16,17 @@ import com.jfinal.plugin.activerecord.ActiveRecordPlugin;
 public class _MappingKit {
 
 	public static void mapping(ActiveRecordPlugin arp) {
-		arp.addMapping("bus_banner", "id", Banner.class);
-		arp.addMapping("bus_classify", "id", Classify.class);
-		arp.addMapping("bus_product", "id", Product.class);
-		arp.addMapping("bus_product_group", "id", ProductGroup.class);
-		arp.addMapping("bus_product_img", "id", ProductImg.class);
-		arp.addMapping("bus_product_type", "id", ProductType.class);
-		arp.addMapping("u_user", "id", User.class);
+		arp.addMapping("a_user", "id", User.class);
+		arp.addMapping("b_banner", "id", Banner.class);
+		arp.addMapping("b_product", "id", Product.class);
+		arp.addMapping("b_product_img", "id", ProductImg.class);
+		arp.addMapping("b_product_keyword", "id", ProductKeyword.class);
+		arp.addMapping("b_product_market", "id", ProductMarket.class);
+		arp.addMapping("b_product_recommend", "id", ProductRecommend.class);
+		arp.addMapping("b_product_standard", "id", ProductStandard.class);
+		arp.addMapping("b_product_type", "id", ProductType.class);
+		arp.addMapping("b_type", "id", Type.class);
+		arp.addMapping("b_type_group", "id", TypeGroup.class);
 	}
 }
 
