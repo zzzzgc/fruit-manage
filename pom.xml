@@ -58,6 +58,12 @@
 			<artifactId>jfinal-java8</artifactId>
 			<version>3.2</version>
 		</dependency>
+		<!-- jFinal扩展 -->
+		<dependency>
+			<groupId>com.jfinal</groupId>
+			<artifactId>jfinal-ext2</artifactId>
+			<version>2.0.8</version>
+		</dependency>
 		<!-- jfinal 事件插件 -->
 		<dependency>
 			<groupId>net.dreamlu</groupId>

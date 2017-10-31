@@ -2,6 +2,7 @@ package com.fruit.manage.base;
 
 import com.fruit.manage.controller.IndexController;
 import com.fruit.manage.controller.ProductController;
+import com.fruit.manage.interceptor.AllowCrossDomain;
 import com.fruit.manage.model._MappingKit;
 import com.jfinal.config.Constants;
 import com.jfinal.config.Handlers;
@@ -9,6 +10,7 @@ import com.jfinal.config.Interceptors;
 import com.jfinal.config.JFinalConfig;
 import com.jfinal.config.Plugins;
 import com.jfinal.config.Routes;
+import com.jfinal.ext.route.AutoBindRoutes;
 import com.jfinal.kit.PropKit;
 import com.jfinal.plugin.activerecord.ActiveRecordPlugin;
 import com.jfinal.plugin.ehcache.EhCachePlugin;
@@ -35,9 +37,9 @@ public class JFConfig extends JFinalConfig {
 	public void configRoute(Routes me) {
 		me.add("/", IndexController.class);
 		me.add("/product", ProductController.class);
-//		AutoBindRoutes routeBind = new AutoBindRoutes();
-//		routeBind.autoScan(false);
-//		me.add(routeBind);
+		AutoBindRoutes routeBind = new AutoBindRoutes();
+		routeBind.autoScan(false);
+		me.add(routeBind);
 	}
 	
 	public void configEngine(Engine me) {
@@ -83,7 +85,7 @@ public class JFConfig extends JFinalConfig {
 	 */
 	public void configInterceptor(Interceptors me) {
 		//me.add(new LoginInterceptor());
-//		me.add(new AllowCrossDomain());
+		me.add(new AllowCrossDomain());
 	}
 	
 	/**
