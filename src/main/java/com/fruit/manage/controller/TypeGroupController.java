@@ -1,6 +1,7 @@
 package com.fruit.manage.controller;
 
 import java.util.Date;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 
@@ -12,7 +13,7 @@ import com.jfinal.kit.JsonKit;
 import com.jfinal.plugin.activerecord.Page;
 
 /**
- * 资讯类型的管理
+ * 分类标签的管理
  */
 
 @ControllerBind(controllerKey="/manage/typeGroup",viewPath="/")
@@ -64,4 +65,13 @@ public class TypeGroupController extends BaseController{
 		}
 		renderErrorText(result.getMsg());
 	}
+	
+	 /**
+	   * 得到分类标签
+	   * */
+	  public void getTypeGroups(){
+		  List<TypeGroup> typeList = TypeGroup.dao.getTypeGroups();
+		  setAttr("list", typeList );
+		  renderJson();
+	  }
 }

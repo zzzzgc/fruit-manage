@@ -41,6 +41,14 @@ public abstract class BaseType<M extends BaseType<M>> extends Model<M> implement
 		return getLong("sort");
 	}
 
+	public void setStatus(java.lang.Integer status) {
+		set("status", status);
+	}
+
+	public java.lang.Integer getStatus() {
+		return getInt("status");
+	}
+	
 	public void setCreateTime(java.util.Date createTime) {
 		set("create_time", createTime);
 	}

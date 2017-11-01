@@ -19,6 +19,15 @@ import com.jfinal.plugin.activerecord.Page;
 public class TypeGroup extends BaseTypeGroup<TypeGroup> {
 	public static final TypeGroup dao = new TypeGroup().dao();
 	
+	/**
+	 * 启用
+	 */
+	public static final int STATUS_TYPE_ON = 1;  
+	/**
+	 * 禁用
+	 */
+	public static final int STATUS_TYPE_OFF = 0;  
+	
 	private Logger log = Logger.getLogger(getClass());
 	
 	/**
@@ -71,5 +80,12 @@ public class TypeGroup extends BaseTypeGroup<TypeGroup> {
 		int changeRow = Db.update("update b_type_group set status=?,update_time=now() where id in ("+sqlParams.toString()+")", params.toArray());
 		log.info("修改分类标签状态成功："+changeRow);
 		return DataResult.getSuccessData(null);
+	}
+	
+	/**
+	 * 获取分类标签
+	 * */
+	public List<TypeGroup> getTypeGroups(){
+		return dao.find("SELECT * FROM b_type_group where status = ?", STATUS_TYPE_ON);
 	}
 }
