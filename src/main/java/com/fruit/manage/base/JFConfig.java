@@ -2,6 +2,7 @@ package com.fruit.manage.base;
 
 import com.fruit.manage.controller.IndexController;
 import com.fruit.manage.controller.ProductController;
+import com.fruit.manage.controller.ProductStandardController;
 import com.fruit.manage.model._MappingKit;
 import com.jfinal.config.Constants;
 import com.jfinal.config.Handlers;
@@ -35,6 +36,7 @@ public class JFConfig extends JFinalConfig {
 	public void configRoute(Routes me) {
 		me.add("/", IndexController.class);
 		me.add("/product", ProductController.class);
+		me.add("/productStandard", ProductStandardController.class);
 //		AutoBindRoutes routeBind = new AutoBindRoutes();
 //		routeBind.autoScan(false);
 //		me.add(routeBind);

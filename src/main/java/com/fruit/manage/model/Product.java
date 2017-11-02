@@ -18,12 +18,12 @@ public class Product extends BaseProduct<Product> {
 
 	public static final Product dao = new Product().dao();
 
-	public Page<Record> find(int pageNum, int pageSize, Integer productId, Integer status, String fruitType, String recommendType, String country, Date start, Date end, String orderProp, String orderType) {
-		if(pageNum <= 0) {
-			pageNum = 0;
+	public Page<Record> page(Integer pageNum, Integer pageSize, Integer productId, Integer status, String fruitType, String recommendType, String country, Date start, Date end, String orderProp, String orderType) {
+		if(pageNum == null || pageNum <= 0) {
+			pageNum = 1;
 		}
-		if(pageSize <= 0) {
-			pageSize = 10;
+		if(pageSize == null || pageSize <= 0) {
+			pageSize = 100;
 		}
 		if(pageSize > 1000) {
 			pageSize = 1000;
@@ -64,7 +64,7 @@ public class Product extends BaseProduct<Product> {
 		if(StrKit.isBlank(orderProp)) {
 			orderProp = "update_time";
 		}
-		sql.append("ORDER BY " + orderProp + " ");
+		sql.append("ORDER BY ").append(orderProp).append(" ");
 		if("descending".equals(orderType)) {
 			sql.append("DESC ");
 		}
