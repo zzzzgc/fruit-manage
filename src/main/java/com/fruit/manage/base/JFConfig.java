@@ -38,13 +38,10 @@ public class JFConfig extends JFinalConfig {
 	public void configRoute(Routes me) {
 		me.add("/", IndexController.class);
 		me.add("/product", ProductController.class);
+		me.add("/productStandard", ProductStandardController.class);
 		AutoBindRoutes routeBind = new AutoBindRoutes();
 		routeBind.autoScan(false);
 		me.add(routeBind);
-		me.add("/productStandard", ProductStandardController.class);
-//		AutoBindRoutes routeBind = new AutoBindRoutes();
-//		routeBind.autoScan(false);
-//		me.add(routeBind);
 	}
 	
 	public void configEngine(Engine me) {
