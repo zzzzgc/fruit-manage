@@ -90,7 +90,7 @@ public class JFConfig extends JFinalConfig {
 	 */
 	public void configInterceptor(Interceptors me) {
 		//me.add(new LoginInterceptor());
-		me.add(new AllowCrossDomain());
+//		me.add(new AllowCrossDomain());
 	}
 	
 	/**
