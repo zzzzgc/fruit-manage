@@ -22,6 +22,15 @@ public class Type extends BaseType<Type> {
 	private Logger log = Logger.getLogger(getClass());
 	
 	/**
+	 * 启用
+	 */
+	public static final int STATUS_TYPE_ON = 1;  
+	/**
+	 * 禁用
+	 */
+	public static final int STATUS_TYPE_OFF = 0;
+	
+	/**
 	 * 分页获取数据
 	 * @param name
 	 * @param pageNum
@@ -33,18 +42,20 @@ public class Type extends BaseType<Type> {
 	public Page<Type> getData(int pageNum, int pageSize, String groupId, String name, String orderBy, String orderType){
 		List<Object> params = new ArrayList<Object>();
 		StringBuffer sql = new StringBuffer();
-		sql.append("from b_type t, b_type_group g where t.group_id = g.id ");
-		if(StrKit.notBlank(name)){
-			sql.append("and name like '" + Common.queryLike(name)+"' ");
-		}
+		sql.append("FROM (SELECT t.*, g.name type_group_name, COUNT(p.id) type_product_count FROM b_type t LEFT JOIN b_type_group g ON t.group_id = g.id LEFT JOIN `b_product_type` p ON t.id = p.`type_id` GROUP BY t.id ) ty WHERE 1=1 ");
+//		sql.append("from b_type t, b_type_group g where t.group_id = g.id ");
 		if(StrKit.notBlank(groupId)){
-			sql.append("and group_id = ? ");
+			sql.append("and ty.group_id = ? ");
 			params.add(groupId);
+		}
+		if(StrKit.notBlank(name)){
+			sql.append("and ty.name like '" + Common.queryLike(name)+"' ");
 		}
 		orderBy = StrKit.isBlank(orderBy)?"sort":orderBy;
 		boolean isASC = "ascending".equals(orderType);
 		sql.append("order by "+orderBy+" "+(isASC?"":"desc "));
-		return paginate(pageNum, pageSize, "select t.*, g.name type_group_name ", sql.toString(), params.toArray());
+//		return paginate(pageNum, pageSize, "select t.*, g.name type_group_name ", sql.toString(), params.toArray());
+		return paginate(pageNum, pageSize, "select * ", sql.toString(), params.toArray());
 	}
 	
 	/**

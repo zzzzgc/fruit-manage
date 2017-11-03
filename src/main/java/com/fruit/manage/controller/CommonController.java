@@ -12,7 +12,7 @@ import com.jfinal.upload.UploadFile;
 public class CommonController extends BaseController {
 	
 	/**
-	 * 上传图片公共方法，该方法需改进：用户在连续上传文件时，对之前的文件不做ftp上传，仅对最后一个上传到ftp上
+	 * 上传图片公共方法
 	 */
 	public void upload(){
 		List<UploadFile> fileList = null;
