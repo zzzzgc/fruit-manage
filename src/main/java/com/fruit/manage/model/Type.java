@@ -22,6 +22,15 @@ public class Type extends BaseType<Type> {
 	private Logger log = Logger.getLogger(getClass());
 	
 	/**
+	 * 启用
+	 */
+	public static final int STATUS_TYPE_ON = 1;  
+	/**
+	 * 禁用
+	 */
+	public static final int STATUS_TYPE_OFF = 0;
+	
+	/**
 	 * 分页获取数据
 	 * @param name
 	 * @param pageNum
