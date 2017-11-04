@@ -71,10 +71,10 @@ public class Common {
 	 * 将数组转换成sql的in查询字符串
 	 * @return '1','2',''		没有数据时返回''
 	 */
-	public static String arrayToSqlIn(String[] array){
+	public static String arrayToSqlIn(Object[] array){
 		StringBuffer sqlIn = new StringBuffer("'");
 		for(int i=0;i<array.length;i++){
-			sqlIn.append(array[i]+"','");
+			sqlIn.append(array[i].toString()+"','");
 		}
 		sqlIn.append("'");
 		return sqlIn.toString();

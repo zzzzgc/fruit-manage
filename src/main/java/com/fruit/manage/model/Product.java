@@ -1,10 +1,12 @@
 package com.fruit.manage.model;
 
 import com.fruit.manage.model.base.BaseProduct;
+import com.fruit.manage.util.Common;
 import com.jfinal.kit.StrKit;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.Record;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -18,7 +20,7 @@ public class Product extends BaseProduct<Product> {
 
 	public static final Product dao = new Product().dao();
 
-	public Page<Record> page(Integer pageNum, Integer pageSize, Integer productId, Integer status, String fruitType, String recommendType, String country, Date start, Date end, String orderProp, String orderType) {
+	public Page<Record> page(Integer pageNum, Integer pageSize, Integer productId, String productName, Integer status, Date start, Date end, String orderProp, String orderType) {
 		if(pageNum == null || pageNum <= 0) {
 			pageNum = 1;
 		}
@@ -30,35 +32,27 @@ public class Product extends BaseProduct<Product> {
 		}
 		String selectSql = "SELECT id,name,country,brand,fruit_type,sort,fresh_time,fresh_expire_time,fruit_des,store_way,create_time,update_time,total_sell_num,week_sell_num,status ";
 		List<Object> params = new ArrayList<>();
-		StringBuilder sql = new StringBuilder();
-		if(recommendType != null) {
-			sql.append("FROM b_product p JOIN b_product_recommend pr ON (pr.type=? AND p.id=pr.product_id) ");
-		} else {
-			sql.append("FROM b_product p ");
-		}
-		sql.append("WHERE 1=1 ");
+		StringBuilder sql = new StringBuilder("FROM b_product WHERE 1=1 ");
 		if(productId != null) {
-			sql.append("AND p.product_id=? ");
+			sql.append("AND id=? ");
 			params.add(productId);
 		}
+		if(StrKit.notBlank(productName)) {
+			sql.append("AND name like ? ");
+			params.add("%" + productName + "%");
+		}
 		if(status != null) {
-			sql.append("AND p.status=? ");
+			sql.append("AND status=? ");
 			params.add(status);
-		}
-		if(fruitType != null) {
-			sql.append("AND p.fruit_type=? ");
-			params.add(fruitType);
-		}
-		if(country != null) {
-			sql.append("AND p.country=? ");
-			params.add(country);
+		} else {
+			sql.append("AND status!=-1 ");
 		}
 		if(start != null) {
-			sql.append("AND p.update_time>=? ");
+			sql.append("AND create_time>=? ");
 			params.add(start);
 		}
 		if(end != null) {
-			sql.append("AND p.end_time<=? ");
+			sql.append("AND create_time<=? ");
 			params.add(end);
 		}
 		if(StrKit.isBlank(orderProp)) {
@@ -69,5 +63,14 @@ public class Product extends BaseProduct<Product> {
 			sql.append("DESC ");
 		}
 		return Db.paginate(pageNum, pageSize, selectSql, sql.toString(), params.toArray());
+	}
+
+	public boolean changeStatus(Integer[] ids, int status) {
+		Db.update("update b_product set status=? where id in (" + Common.arrayToSqlIn(ids) + ")", status);
+		if(status != 1) {// 如果不为上架，则修改该商品下所有规格的状态
+			ProductStandard.dao.changeStatus(ids, status);
+		}
+		return true;
+
 	}
 }
