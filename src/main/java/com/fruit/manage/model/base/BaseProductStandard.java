@@ -73,12 +73,12 @@ public abstract class BaseProductStandard<M extends BaseProductStandard<M>> exte
 		return get("cost_price");
 	}
 
-	public void setShippingFee(java.lang.String shippingFee) {
+	public void setShippingFee(java.math.BigDecimal shippingFee) {
 		set("shipping_fee", shippingFee);
 	}
 
-	public java.lang.String getShippingFee() {
-		return getStr("shipping_fee");
+	public java.math.BigDecimal getShippingFee() {
+		return get("shipping_fee");
 	}
 
 	public void setCartonWeight(java.lang.Double cartonWeight) {

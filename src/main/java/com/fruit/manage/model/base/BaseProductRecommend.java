@@ -25,20 +25,12 @@ public abstract class BaseProductRecommend<M extends BaseProductRecommend<M>> ex
 		return getInt("product_id");
 	}
 
-	public void setGroupType(java.lang.String groupType) {
-		set("group_type", groupType);
-	}
-
-	public java.lang.String getGroupType() {
-		return getStr("group_type");
-	}
-
-	public void setType(java.lang.String type) {
+	public void setType(java.lang.Integer type) {
 		set("type", type);
 	}
 
-	public java.lang.String getType() {
-		return getStr("type");
+	public java.lang.Integer getType() {
+		return getInt("type");
 	}
 
 	public void setCreateTime(java.util.Date createTime) {

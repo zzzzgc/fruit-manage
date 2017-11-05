@@ -33,12 +33,12 @@ public abstract class BaseProductImg<M extends BaseProductImg<M>> extends Model<
 		return getInt("type");
 	}
 
-	public void setWeight(java.lang.Integer weight) {
-		set("weight", weight);
+	public void setSort(java.lang.Integer sort) {
+		set("sort", sort);
 	}
 
-	public java.lang.Integer getWeight() {
-		return getInt("weight");
+	public java.lang.Integer getSort() {
+		return getInt("sort");
 	}
 
 	public void setImgUrl(java.lang.String imgUrl) {

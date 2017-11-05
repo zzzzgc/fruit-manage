@@ -1,9 +1,10 @@
 package com.fruit.manage.controller;
 
 import com.fruit.manage.base.BaseController;
-import com.fruit.manage.model.Product;
+import com.fruit.manage.model.*;
 import com.fruit.manage.util.DataResult;
 import com.jfinal.core.paragetter.Para;
+import com.jfinal.kit.JsonKit;
 import com.jfinal.kit.StrKit;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -29,5 +30,54 @@ public class ProductController extends BaseController {
 			productIds[i] = ids[i].intValue();
 		}
 		renderResult(Product.dao.changeStatus(ids, status));
+	}
+
+	public void info(Integer id) {
+		if(id == null) {
+			renderErrorText("商品ID不能为null");
+			return;
+		}
+	    Product product = Product.dao.getById(id);
+		if(product == null) {
+			renderErrorText("商品不存在");
+			return;
+		}
+		List<String> produceArea = new ArrayList<>();
+		produceArea.add(product.getCountry());
+		if(StrKit.notBlank(product.getProvince())) {
+			produceArea.add(product.getProvince());
+		}
+		product.put("produceArea", produceArea.toArray(new String[]{}));
+		product.put("types", ProductType.dao.getProductTypes(id));
+		product.put("keywords", ProductKeyword.dao.getProductKeyword(id));
+		product.put("recommendTypes", ProductRecommend.dao.getProductRecommend(id));
+		product.put("imgs", ProductImg.dao.getProductImg(id, 1));
+		renderJson(product);
+	}
+
+	public void save() {
+		Product product = getModel(Product.class, "", true);
+		if(product == null) {
+			renderErrorText("保存的商品不能为空");
+			return;
+		}
+		String[] imgs = getParaValues("imgs");
+		if(imgs == null || imgs.length == 0) {
+			renderErrorText("必须上传至少一张图片");
+			return;
+		}
+		product.setImg(imgs[0]);
+		product.setUpdateTime(new Date());
+		if(product.getId() == null) {
+			product.setCreateTime(new Date());
+		}
+		String[] keywords = getParaValues("keywords");
+		Integer[] typesId = getParaValuesToInt("types");
+		Integer[] recommends = getParaValuesToInt("recommendTypes");
+
+		log.info(String.format("保存商品：product=%s，imgs=%s，keywords=?，typesId=?，recommends=?",
+				JsonKit.toJson(product), StringUtils.join(imgs, ","), StringUtils.join(keywords, ","),
+				StringUtils.join(typesId, ","), StringUtils.join(recommends, ",")));
+		renderResult(Product.dao.save(product, imgs, keywords, typesId, recommends));
 	}
 }

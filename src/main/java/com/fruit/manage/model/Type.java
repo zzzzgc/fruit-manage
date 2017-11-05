@@ -87,4 +87,9 @@ public class Type extends BaseType<Type> {
 		log.info("修改分类状态成功："+changeRow);
 		return DataResult.getSuccessData(null);
 	}
+
+	public List<Type> getTypes() {
+		return find("select id,name from b_type where status=1 order by sort");
+	}
+
 }

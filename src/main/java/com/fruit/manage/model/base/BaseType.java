@@ -48,7 +48,7 @@ public abstract class BaseType<M extends BaseType<M>> extends Model<M> implement
 	public java.lang.Integer getStatus() {
 		return getInt("status");
 	}
-	
+
 	public void setCreateTime(java.util.Date createTime) {
 		set("create_time", createTime);
 	}

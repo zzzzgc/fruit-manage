@@ -4,10 +4,12 @@ import com.fruit.manage.model.base.BaseProduct;
 import com.fruit.manage.util.Common;
 import com.jfinal.kit.StrKit;
 import com.jfinal.plugin.activerecord.Db;
+import com.jfinal.plugin.activerecord.IAtom;
 import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.Record;
 import org.apache.commons.lang3.StringUtils;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -30,7 +32,7 @@ public class Product extends BaseProduct<Product> {
 		if(pageSize > 1000) {
 			pageSize = 1000;
 		}
-		String selectSql = "SELECT id,name,country,brand,fruit_type,sort,fresh_time,fresh_expire_time,fruit_des,store_way,create_time,update_time,total_sell_num,week_sell_num,status ";
+		String selectSql = "SELECT id,name,country,brand,fruit_type,sort,fresh_time,fruit_des,store_way,create_time,update_time,total_sell_num,week_sell_num,status ";
 		List<Object> params = new ArrayList<>();
 		StringBuilder sql = new StringBuilder("FROM b_product WHERE 1=1 ");
 		if(productId != null) {
@@ -65,6 +67,10 @@ public class Product extends BaseProduct<Product> {
 		return Db.paginate(pageNum, pageSize, selectSql, sql.toString(), params.toArray());
 	}
 
+	public Product getById(int productId) {
+		return findFirst("select id,name,fruit_type,country,province,sort,brand,measure_unit,status,fresh_time,fruit_des,store_way from b_product where id=?", productId);
+	}
+
 	public boolean changeStatus(Integer[] ids, int status) {
 		Db.update("update b_product set status=? where id in (" + Common.arrayToSqlIn(ids) + ")", status);
 		if(status != 1) {// 如果不为上架，则修改该商品下所有规格的状态
@@ -73,4 +79,39 @@ public class Product extends BaseProduct<Product> {
 		return true;
 
 	}
+
+	public boolean save(Product product, String[] imgs, String[] keywords, Integer[] typesId, Integer[] recommends) {
+		return Db.tx(new IAtom() {
+			@Override
+			public boolean run() throws SQLException {
+				boolean result =false;
+				if(product.getId() != null) {
+					result = product.update();
+				} else {
+					result = product.save();
+				}
+				if(!result) {
+					return false;
+				}
+				result = ProductImg.dao.saveProductImg(true, product.getId(), 1, imgs);
+				if(!result) {
+					return false;
+				}
+				result = ProductKeyword.dao.saveProductKeyword(true, product.getId(), keywords);
+				if(!result) {
+					return false;
+				}
+				result = ProductType.dao.saveProductType(true, product.getId(), typesId);
+				if(!result) {
+					return false;
+				}
+				result = ProductRecommend.dao.saveProductRecommend(true, product.getId(), recommends);
+				if(!result) {
+					return false;
+				}
+				return true;
+			}
+		});
+	}
+
 }

@@ -63,4 +63,11 @@ public class TypeController extends BaseController{
 		}
 		renderErrorText(result.getMsg());
 	}
+
+	/**
+	 * 获取所有可用的类型
+	 */
+	public void getTypes(){
+		renderJson(Type.dao.getTypes());
+	}
 }

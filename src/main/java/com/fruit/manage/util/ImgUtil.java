@@ -67,6 +67,7 @@ public class ImgUtil {
 			File savePath = new File(path + newPath + filename);
 			if (!savePath.isDirectory())
 				savePath.createNewFile();
+			System.err.println(savePath.getAbsolutePath());
 			fis = new FileInputStream(file);
 			fos = new FileOutputStream(savePath);
 			byte[] bt = new byte[300];

@@ -25,12 +25,12 @@ public abstract class BaseProduct<M extends BaseProduct<M>> extends Model<M> imp
 		return getStr("name");
 	}
 
-	public void setFruitType(java.lang.Integer fruitType) {
+	public void setFruitType(java.lang.String fruitType) {
 		set("fruit_type", fruitType);
 	}
 
-	public java.lang.Integer getFruitType() {
-		return getInt("fruit_type");
+	public java.lang.String getFruitType() {
+		return getStr("fruit_type");
 	}
 
 	public void setCountry(java.lang.String country) {

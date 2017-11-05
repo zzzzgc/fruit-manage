@@ -9,12 +9,12 @@ import com.jfinal.plugin.activerecord.IBean;
 @SuppressWarnings("serial")
 public abstract class BaseTypeGroup<M extends BaseTypeGroup<M>> extends Model<M> implements IBean {
 
-	public void setId(java.lang.Integer id) {
+	public void setId(java.lang.Long id) {
 		set("id", id);
 	}
 
-	public java.lang.Integer getId() {
-		return getInt("id");
+	public java.lang.Long getId() {
+		return getLong("id");
 	}
 
 	public void setName(java.lang.String name) {
@@ -25,14 +25,14 @@ public abstract class BaseTypeGroup<M extends BaseTypeGroup<M>> extends Model<M>
 		return getStr("name");
 	}
 
-	public void setSort(java.lang.Integer sort) {
+	public void setSort(java.lang.Long sort) {
 		set("sort", sort);
 	}
 
-	public java.lang.Integer getSort() {
-		return getInt("sort");
+	public java.lang.Long getSort() {
+		return getLong("sort");
 	}
-	
+
 	public void setStatus(java.lang.Integer status) {
 		set("status", status);
 	}
