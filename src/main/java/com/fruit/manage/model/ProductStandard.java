@@ -3,8 +3,11 @@ package com.fruit.manage.model;
 import com.fruit.manage.model.base.BaseProductStandard;
 import com.fruit.manage.util.Common;
 import com.jfinal.plugin.activerecord.Db;
+import com.jfinal.plugin.activerecord.IAtom;
 import org.apache.commons.lang3.StringUtils;
 
+import java.sql.SQLException;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -14,8 +17,18 @@ import java.util.List;
 public class ProductStandard extends BaseProductStandard<ProductStandard> {
 	public static final ProductStandard dao = new ProductStandard().dao();
 
-	public List<ProductStandard> list(int productId) {
-		return find("SELECT * FROM b_product_standard WHERE product_id=?", productId);
+	public List<ProductStandard> list(int productId, String prop, boolean desc) {
+		StringBuilder sql = new StringBuilder();
+		sql.append("SELECT id,name,original_price,sell_price,");
+		sql.append("weight_price,shipping_fee,purchase_quantity_min,purchase_quantity_max,");
+		sql.append("buy_start_time,buy_end_time,status,is_default ");
+		sql.append("FROM b_product_standard WHERE product_id=? and status!=-1 ");
+		sql.append("order by ");
+		sql.append(prop);
+		if(desc) {
+			sql.append(" desc ");
+		}
+		return find(sql.toString(), productId);
 	}
 
 	public boolean changeStatus(Integer[] productIds, int status) {
@@ -23,8 +36,36 @@ public class ProductStandard extends BaseProductStandard<ProductStandard> {
 		return true;
 	}
 
-	public boolean changeStatusOne(int standardId, int status) {
-		Db.update("update b_product_standard set status=? where id=? ", status, standardId);
+	public boolean changeStatusOne(Integer[] ids, int status) {
+		Db.update("update b_product_standard set status=? where id in (" + Common.arrayToSqlIn(ids) + ")", status);
 		return true;
 	}
+
+	public boolean save(ProductStandard productStandard) {
+		return Db.tx(new IAtom() {
+			@Override
+			public boolean run() throws SQLException {
+				productStandard.setUpdateTime(new Date());
+				if(productStandard.getIsDefault() == 1) {// 将其他默认规格去除
+					Db.update("update b_product_standard set is_default=0 where product_id=?", productStandard.getProductId());
+				}
+				boolean result = false;
+				if(productStandard.getId() != null) {
+					result = productStandard.update();
+				} else {
+					productStandard.setCreateTime(new Date());
+					result = productStandard.save();
+				}
+				if(!result) {
+					return false;
+				}
+				Product product = Product.dao.getById(productStandard.getProductId());
+				product.setUpdateTime(new Date());
+				return product.update();
+			}
+		});
+	}
+
+
+
 }

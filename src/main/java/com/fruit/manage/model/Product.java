@@ -77,7 +77,6 @@ public class Product extends BaseProduct<Product> {
 			ProductStandard.dao.changeStatus(ids, status);
 		}
 		return true;
-
 	}
 
 	public boolean save(Product product, String[] imgs, String[] keywords, Integer[] typesId, Integer[] recommends) {

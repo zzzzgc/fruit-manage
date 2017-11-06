@@ -56,7 +56,7 @@ public class ProductController extends BaseController {
 	}
 
 	public void save() {
-		Product product = getModel(Product.class, "", true);
+		Product product = getModel(Product.class, "", true);// 针对model的参数，放到参数中不能完全注入属性，bug
 		if(product == null) {
 			renderErrorText("保存的商品不能为空");
 			return;
