@@ -2,6 +2,7 @@ package com.fruit.manage.base;
 
 import com.fruit.manage.controller.IndexController;
 import com.fruit.manage.controller.ProductController;
+import com.fruit.manage.controller.ProductMarketController;
 import com.fruit.manage.controller.ProductStandardController;
 import com.fruit.manage.interceptor.AllowCrossDomain;
 import com.fruit.manage.model._MappingKit;
@@ -39,6 +40,7 @@ public class JFConfig extends JFinalConfig {
 		me.add("/", IndexController.class);
 		me.add("/product", ProductController.class);
 		me.add("/productStandard", ProductStandardController.class);
+		me.add("/productMarket", ProductMarketController.class);
 		AutoBindRoutes routeBind = new AutoBindRoutes();
 		routeBind.autoScan(false);
 		me.add(routeBind);

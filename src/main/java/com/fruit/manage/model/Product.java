@@ -84,9 +84,11 @@ public class Product extends BaseProduct<Product> {
 			@Override
 			public boolean run() throws SQLException {
 				boolean result =false;
+				product.setUpdateTime(new Date());
 				if(product.getId() != null) {
 					result = product.update();
 				} else {
+					product.setCreateTime(new Date());
 					result = product.save();
 				}
 				if(!result) {

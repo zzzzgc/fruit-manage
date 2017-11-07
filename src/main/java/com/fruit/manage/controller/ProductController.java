@@ -67,10 +67,7 @@ public class ProductController extends BaseController {
 			return;
 		}
 		product.setImg(imgs[0]);
-		product.setUpdateTime(new Date());
-		if(product.getId() == null) {
-			product.setCreateTime(new Date());
-		}
+
 		String[] keywords = getParaValues("keywords");
 		Integer[] typesId = getParaValuesToInt("types");
 		Integer[] recommends = getParaValuesToInt("recommendTypes");
