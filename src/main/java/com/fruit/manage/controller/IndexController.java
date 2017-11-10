@@ -1,11 +1,16 @@
 package com.fruit.manage.controller;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.fruit.manage.base.BaseController;
 import com.fruit.manage.util.DataResult;
 
-import java.util.*;
-
 public class IndexController extends BaseController {
+	
 	public void index() {
 		renderJson(new DataResult<String>(-100, "测试"));
 	}

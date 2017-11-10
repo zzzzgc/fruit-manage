@@ -13,10 +13,10 @@
 	<dependencies>
 		<!-- 测试使用 -->
 		<dependency>
-		    <groupId>junit</groupId>
-		    <artifactId>junit</artifactId>
-		    <version>4.12</version>
-		    <scope>test</scope>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
 		</dependency>
 		<!-- 日志输出 -->
 		<dependency>
@@ -25,27 +25,27 @@
 			<version>1.7.25</version>
 		</dependency>
 		<!-- 数据库连接 -->
-<!-- 		<dependency> -->
-<!-- 			<groupId>mysql</groupId> -->
-<!-- 			<artifactId>mysql-connector-java</artifactId> -->
-<!-- 			<version>6.0.6</version> -->
-<!-- 		</dependency> -->
-<!-- 		<dependency> -->
-<!-- 		    <groupId>mysql</groupId> -->
-<!-- 		    <artifactId>mysql-connector-java</artifactId> -->
-<!-- 		    <version>8.0.8-dmr</version> -->
-<!-- 		</dependency> -->
+		<!-- <dependency> -->
+		<!-- <groupId>mysql</groupId> -->
+		<!-- <artifactId>mysql-connector-java</artifactId> -->
+		<!-- <version>6.0.6</version> -->
+		<!-- </dependency> -->
+		<!-- <dependency> -->
+		<!-- <groupId>mysql</groupId> -->
+		<!-- <artifactId>mysql-connector-java</artifactId> -->
+		<!-- <version>8.0.8-dmr</version> -->
+		<!-- </dependency> -->
 		<dependency>
-		    <groupId>mysql</groupId>
-		    <artifactId>mysql-connector-java</artifactId>
-		    <version>5.1.44</version>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>5.1.44</version>
 		</dependency>
 		<!-- 阿里数据库连接池 -->
-<!-- 		<dependency> -->
-<!-- 		    <groupId>com.alibaba</groupId> -->
-<!-- 		    <artifactId>druid</artifactId> -->
-<!-- 		    <version>1.1.4</version> -->
-<!-- 		</dependency> -->
+		<!-- <dependency> -->
+		<!-- <groupId>com.alibaba</groupId> -->
+		<!-- <artifactId>druid</artifactId> -->
+		<!-- <version>1.1.4</version> -->
+		<!-- </dependency> -->
 		<!-- 性能强劲的数据库连接池 -->
 		<dependency>
 			<groupId>com.zaxxer</groupId>
@@ -71,11 +71,11 @@
 			<version>2.0.2</version>
 		</dependency>
 		<!-- jfinal邮件插件 -->
-<!-- 		<dependency> -->
-<!-- 			<groupId>cn.fsdev</groupId> -->
-<!-- 			<artifactId>jfinal-mail-plugin</artifactId> -->
-<!-- 			<version>3.0</version> -->
-<!-- 		</dependency> -->
+		<!-- <dependency> -->
+		<!-- <groupId>cn.fsdev</groupId> -->
+		<!-- <artifactId>jfinal-mail-plugin</artifactId> -->
+		<!-- <version>3.0</version> -->
+		<!-- </dependency> -->
 		<!--jfinal上传图片 -->
 		<dependency>
 			<groupId>com.jfinal</groupId>
@@ -84,9 +84,9 @@
 		</dependency>
 		<!-- jfinal 依赖的定时器jar -->
 		<dependency>
-		    <groupId>it.sauronsoftware.cron4j</groupId>
-		    <artifactId>cron4j</artifactId>
-		    <version>2.2.5</version>
+			<groupId>it.sauronsoftware.cron4j</groupId>
+			<artifactId>cron4j</artifactId>
+			<version>2.2.5</version>
 		</dependency>
 		<!-- ehcache缓存插件，用于本地缓存数据（内存缓存），不具备跨服务的session共享能力 -->
 		<dependency>
@@ -94,18 +94,18 @@
 			<artifactId>ehcache</artifactId>
 			<version>3.4.0</version>
 		</dependency>
-		
+
 		<!-- google工具类，替代apache工具集合 -->
-<!-- 		<dependency> -->
-<!-- 		    <groupId>com.google.guava</groupId> -->
-<!-- 		    <artifactId>guava</artifactId> -->
-<!-- 		    <version>23.0</version> -->
-<!-- 		</dependency> -->
+		<!-- <dependency> -->
+		<!-- <groupId>com.google.guava</groupId> -->
+		<!-- <artifactId>guava</artifactId> -->
+		<!-- <version>23.0</version> -->
+		<!-- </dependency> -->
 		<!-- apache工具集合 -->
 		<dependency>
-		    <groupId>org.apache.commons</groupId>
-		    <artifactId>commons-lang3</artifactId>
-		    <version>3.6</version>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.6</version>
 		</dependency>
 		<!-- servlet，研发测试环境使用，发布环境下，tomcat里有 -->
 		<dependency>
@@ -114,7 +114,7 @@
 			<version>3.0-alpha-1</version>
 			<scope>provided</scope>
 		</dependency>
-		
+
 		<!-- ehcache缓存插件，用于本地缓存数据（内存缓存），不具备跨服务的session共享能力 -->
 		<dependency>
 			<groupId>net.sf.ehcache</groupId>
@@ -123,15 +123,23 @@
 		</dependency>
 
 		<!-- shiro授权认证 -->
-        <dependency>
-            <groupId>org.apache.shiro</groupId>
-            <artifactId>shiro-core</artifactId>
-            <version>1.4.0</version>
-        </dependency>
+		<dependency>
+			<groupId>org.apache.shiro</groupId>
+			<artifactId>shiro-core</artifactId>
+			<version>1.4.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.shiro</groupId>
+			<artifactId>shiro-web</artifactId>
+			<version>1.4.0</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-logging</groupId>
+			<artifactId>commons-logging</artifactId>
+			<version>1.2</version>
+		</dependency>
 
-
-
-    </dependencies>
+	</dependencies>
 
 	<build>
 		<plugins>
