@@ -23,14 +23,15 @@ public class ProductStandardController extends BaseController {
 		renderJson(ProductStandard.dao.list(productId, prop, "descending".equals(order)));
 	}
 
-	public void changeStatus(int status, Integer[] ids) {
+	public void changeStatus(int productId, int status) {
+		Integer[] ids = getParaValuesToInt("ids");
 		log.info("修改商品规格("+ StringUtils.join(ids, ",") +")状态为:" + status);// TODO 获取当前登录用户
 		if(ids == null || ids.length == 0) {
 			renderErrorText("商品规格ID不能为空");
 			return;
 		}
 
-		renderResult(ProductStandard.dao.changeStatusOne(ids, status));
+		renderResult(ProductStandard.dao.changeStatusOne(productId, ids, status));
 	}
 
 	public void info(Integer id) {

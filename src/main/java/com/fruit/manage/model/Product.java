@@ -19,8 +19,10 @@ import java.util.List;
  */
 @SuppressWarnings("serial")
 public class Product extends BaseProduct<Product> {
-
 	public static final Product dao = new Product().dao();
+	public static final int STATUS_USE = 1;
+	public static final int STATUS_UNUSED = 0;
+	public static final int STATUS_DELETE = -1;
 
 	public Page<Record> page(Integer pageNum, Integer pageSize, Integer productId, String productName, Integer status, Date start, Date end, String orderProp, String orderType) {
 		if(pageNum == null || pageNum <= 0) {
@@ -72,11 +74,16 @@ public class Product extends BaseProduct<Product> {
 	}
 
 	public boolean changeStatus(Integer[] ids, int status) {
-		Db.update("update b_product set status=? where id in (" + Common.arrayToSqlIn(ids) + ")", status);
-		if(status != 1) {// 如果不为上架，则修改该商品下所有规格的状态
-			ProductStandard.dao.changeStatus(ids, status);
-		}
-		return true;
+		return Db.tx(new IAtom() {
+			@Override
+			public boolean run() throws SQLException {
+				Db.update("update b_product set status=? where id in (" + Common.arrayToSqlIn(ids) + ")", status);
+				if(status != 1) {// 如果不为上架，则修改该商品下所有规格的状态
+					ProductStandard.dao.changeStatus(ids, status);
+				}
+				return true;
+			}
+		});
 	}
 
 	public boolean save(Product product, String[] imgs, String[] keywords, Integer[] typesId, Integer[] recommends) {
