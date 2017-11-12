@@ -31,4 +31,11 @@ public abstract class BaseController extends Controller{
 		render(new ErrorTextRender(errorCode, errorText));
 //		throw new ActionException(errorCode, new ErrorTextRender(errorCode, errorText));
 	}
+	
+	/**
+	 * 身份认证失败跳登录
+	 */
+	protected void renderLogin(String errorText) {
+		render(new ErrorTextRender(410, errorText));
+	}
 }

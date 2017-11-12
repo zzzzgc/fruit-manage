@@ -1,5 +1,7 @@
 package com.fruit.manage.model;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.fruit.manage.model.base.BaseUser;
 
 /**
@@ -8,4 +10,29 @@ import com.fruit.manage.model.base.BaseUser;
 @SuppressWarnings("serial")
 public class User extends BaseUser<User> {
 	public static final User dao = new User().dao();
+	
+	/**
+	 * 根据用户登录名+密码查询用户（用于验证登录）
+	 * @param userName 非空
+	 * @param password	非空
+	 * @return
+	 */
+	public User getUser(String userName, String password){
+		if(StringUtils.isAllBlank(userName, password)){
+			return null;
+		}
+		return dao.findFirst("select * from a_user where name = ? and pass = ?", userName, password);
+	}
+	
+	/**
+	 * 根据用户登录名查询用户
+	 * @param userName 非空
+	 * @return
+	 */
+	public User getUser(String userName){
+		if(StringUtils.isBlank(userName)){
+			return null;
+		}
+		return dao.findFirst("select * from a_user where name = ?", userName);
+	}
 }

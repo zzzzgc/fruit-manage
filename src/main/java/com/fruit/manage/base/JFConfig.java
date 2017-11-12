@@ -1,11 +1,8 @@
 package com.fruit.manage.base;
 
-import com.fruit.manage.controller.IndexController;
-import com.fruit.manage.controller.ProductController;
-import com.fruit.manage.controller.ProductMarketController;
-import com.fruit.manage.controller.ProductStandardController;
-import com.fruit.manage.interceptor.AllowCrossDomain;
 import com.fruit.manage.model._MappingKit;
+import com.fruit.manage.plugin.shiro.ShiroInterceptor;
+import com.fruit.manage.plugin.shiro.ShiroPlugin;
 import com.jfinal.config.Constants;
 import com.jfinal.config.Handlers;
 import com.jfinal.config.Interceptors;
@@ -23,6 +20,9 @@ import com.jfinal.template.Engine;
  * API引导式配置
  */
 public class JFConfig extends JFinalConfig {
+	
+	Routes routes = null;
+	
 	/**
 	 * 配置常量
 	 */
@@ -37,10 +37,8 @@ public class JFConfig extends JFinalConfig {
 	 * 配置路由
 	 */
 	public void configRoute(Routes me) {
-		me.add("/", IndexController.class);
-		me.add("/product", ProductController.class);
-		me.add("/productStandard", ProductStandardController.class);
-		me.add("/productMarket", ProductMarketController.class);
+		this.routes = new BaseRoutesConfig();
+		me.add(routes);
 		AutoBindRoutes routeBind = new AutoBindRoutes();
 		routeBind.autoScan(false);
 		me.add(routeBind);
@@ -82,6 +80,7 @@ public class JFConfig extends JFinalConfig {
 		
 		me.add(new EhCachePlugin());// 初始化应用缓存插件
 //		me.add(new Cron4jPlugin("job.properties"));// 初始化定时任务插件
+		me.add(new ShiroPlugin(routes));	//权限控制插件
 	}
 	
 	/**
@@ -90,6 +89,7 @@ public class JFConfig extends JFinalConfig {
 	public void configInterceptor(Interceptors me) {
 		//me.add(new LoginInterceptor());
 //		me.add(new AllowCrossDomain());
+		me.add(new ShiroInterceptor());
 	}
 	
 	/**
