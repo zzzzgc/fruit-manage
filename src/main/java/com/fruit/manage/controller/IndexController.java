@@ -11,9 +11,9 @@ import com.fruit.manage.util.DataResult;
 
 public class IndexController extends BaseController {
 	
-	public void index() {
-		renderJson(new DataResult<String>(-100, "测试"));
-	}
+//	public void index() {
+//		renderJson(new DataResult<String>(-100, "测试"));
+//	}
 
 	public void getType() {
 		List<String> list = Arrays.asList(new String[]{"type1", "type2", "type3"});

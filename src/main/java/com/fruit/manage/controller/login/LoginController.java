@@ -18,7 +18,7 @@ public class LoginController extends BaseController {
 	/**
 	 * 登录操作
 	 */
-	public void index(){
+	public void auth(){
 		Object uid = getSessionAttr(Constant.SESSION_UID);
 		if(uid != null){
 			renderJson(new DataResult<>(DataResult.CODE_SUCCESS, "登录成功"));
