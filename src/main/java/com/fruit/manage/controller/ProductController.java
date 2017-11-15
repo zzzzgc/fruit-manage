@@ -25,7 +25,7 @@ public class ProductController extends BaseController {
 	}
 
 	public void setStatus(int status) {
-		Integer[] ids = getParaValuesToInt("idss");
+		Integer[] ids = getParaValuesToInt("ids");
 		log.info("修改商品("+ StringUtils.join(ids, ",") +")状态为:" + status);// TODO 获取当前登录用户
 		if(ids == null || ids.length == 0) {
 			renderErrorText("商品ID不能为空");
