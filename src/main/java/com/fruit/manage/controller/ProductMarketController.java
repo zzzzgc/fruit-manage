@@ -1,15 +1,13 @@
 package com.fruit.manage.controller;
 
-import com.fruit.manage.base.BaseController;
-import com.fruit.manage.model.*;
-import com.jfinal.kit.JsonKit;
-import com.jfinal.kit.StrKit;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import com.fruit.manage.base.BaseController;
+import com.fruit.manage.model.Product;
+import com.fruit.manage.model.ProductImg;
+import com.fruit.manage.model.ProductMarket;
+import com.jfinal.kit.JsonKit;
 
 public class ProductMarketController extends BaseController {
 	private static Logger log = Logger.getLogger(ProductMarketController.class);

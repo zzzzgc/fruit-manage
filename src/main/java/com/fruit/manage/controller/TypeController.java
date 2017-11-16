@@ -3,18 +3,20 @@ package com.fruit.manage.controller;
 import java.util.Date;
 
 import org.apache.log4j.Logger;
+import org.apache.shiro.authz.annotation.Logical;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.apache.shiro.authz.annotation.RequiresRoles;
 
 import com.fruit.manage.base.BaseController;
 import com.fruit.manage.model.Type;
 import com.fruit.manage.util.DataResult;
-import com.jfinal.ext.route.ControllerBind;
 import com.jfinal.kit.JsonKit;
 import com.jfinal.plugin.activerecord.Page;
 
 /**
  * 分类的管理
  */
-@ControllerBind(controllerKey="/manage/type",viewPath="/")
+@RequiresRoles(value = {"shopAdmin","supAdmin"}, logical = Logical.OR)
 public class TypeController extends BaseController{
 	
 	private Logger log = Logger.getLogger(getClass());
@@ -22,6 +24,7 @@ public class TypeController extends BaseController{
 	/**
 	 * 查看所有信息
 	 * */
+	@RequiresPermissions("type:query")
 	public void getData(){
 		Page<Type> datas = Type.dao.getData(getParaToInt("pageNum"), getParaToInt("pageSize"), getPara("group_id"), getPara("name"), getPara("prop"), getPara("order"));
 		renderJson(datas);
@@ -29,6 +32,7 @@ public class TypeController extends BaseController{
 	/**
 	 * 保存类型信息
 	 * */
+	@RequiresPermissions("type:save")
 	public void save(){
 		log.info("保存数据："+JsonKit.toJson(getParaMap()));
 		Type model = getModel(Type.class, "", true);
@@ -45,6 +49,7 @@ public class TypeController extends BaseController{
 	/**
 	 * 修改类型状态
 	 */
+	@RequiresPermissions("type:edit")
 	public void changeStatus(){
 		String[] ids  = getParaValues("ids");
 		if(ids == null || ids.length == 0){

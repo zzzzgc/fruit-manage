@@ -45,15 +45,20 @@ public class LoginController extends BaseController {
 	/**
 	 * 退出登录操作
 	 */
-//	public void logout(){
-//		Object uid = getSessionAttr(Constant.SESSION_UID);
-//		if(null != uid){
-//			logger.info("登出系统：uid="+uid.toString());
-//		}
-//		getSession().invalidate();
-//		//TODO:shiro登出
-//		SecurityUtils.getSubject().logout();
+	public void logout(){
+		Object uid = getSessionAttr(Constant.SESSION_UID);
+		if(null != uid){
+			logger.info("登出系统：uid="+uid.toString());
+		}
+		getSession().invalidate();
+		//TODO:shiro登出
+		try {
+			SecurityUtils.getSubject().logout();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		renderNull();
 //		redirect(Constant.MANAGE_URL_HOME);
-//	}
+	}
 
 }

@@ -9,7 +9,6 @@ import com.jfinal.config.Interceptors;
 import com.jfinal.config.JFinalConfig;
 import com.jfinal.config.Plugins;
 import com.jfinal.config.Routes;
-import com.jfinal.ext.route.AutoBindRoutes;
 import com.jfinal.kit.PropKit;
 import com.jfinal.plugin.activerecord.ActiveRecordPlugin;
 import com.jfinal.plugin.ehcache.EhCachePlugin;
@@ -30,7 +29,10 @@ public class JFConfig extends JFinalConfig {
 		PropKit.use("setting.properties");
 		me.setDevMode(PropKit.getBoolean("devMode", false));
 //		me.setFreeMarkerTemplateUpdateDelay(0);
-//		me.setError404View("index.html");
+		me.setErrorView(401, "/login.html");//没有身份认证
+		me.setErrorView(403, "/login.html");//没有权限
+//		me.setError404View("/404.html");
+//		me.setError500View("/500.html");
 	}
 	
 	/**
@@ -39,9 +41,9 @@ public class JFConfig extends JFinalConfig {
 	public void configRoute(Routes me) {
 		this.routes = new BaseRoutesConfig();
 		me.add(routes);
-		AutoBindRoutes routeBind = new AutoBindRoutes();
-		routeBind.autoScan(false);
-		me.add(routeBind);
+//		AutoBindRoutes routeBind = new AutoBindRoutes();
+//		routeBind.autoScan(false);
+//		me.add(routeBind);
 	}
 	
 	public void configEngine(Engine me) {
@@ -80,7 +82,11 @@ public class JFConfig extends JFinalConfig {
 		
 		me.add(new EhCachePlugin());// 初始化应用缓存插件
 //		me.add(new Cron4jPlugin("job.properties"));// 初始化定时任务插件
-		me.add(new ShiroPlugin(routes));	//权限控制插件
+		ShiroPlugin shiroPlugin = new ShiroPlugin(routes);//权限控制插件
+		shiroPlugin.setLoginUrl("/login");
+		shiroPlugin.setSuccessUrl("/");
+		shiroPlugin.setUnauthorizedUrl("/unauthorized.jsp");//没有权限提示页
+		me.add(shiroPlugin);
 	}
 	
 	/**
@@ -89,6 +95,7 @@ public class JFConfig extends JFinalConfig {
 	public void configInterceptor(Interceptors me) {
 		//me.add(new LoginInterceptor());
 //		me.add(new AllowCrossDomain());
+//		me.add(new UrlShiroInterceptor());
 		me.add(new ShiroInterceptor());
 	}
 	
