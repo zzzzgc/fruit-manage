@@ -28,4 +28,13 @@ public class Permission extends BasePermission<Permission> {
 	public List<String> getPermissionList() {
 		return Db.query("SELECT permission_name from `a_permission`");
 	}
+
+	/**
+	 * 根据角色id查询对应的权限id列表
+	 * @param roleId
+	 * @return
+	 */
+	public List<Integer> getPermissionIdsByRoleId(int roleId) {
+		return Db.query("SELECT p.id FROM `a_role` r, `a_role_permission` rp, `a_permission` p WHERE r.`id` = rp.`role_id` AND p.`id` = rp.`permission_id` AND r.`id` = ?", roleId);
+	}
 }

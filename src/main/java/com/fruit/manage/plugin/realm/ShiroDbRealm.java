@@ -77,7 +77,7 @@ public class ShiroDbRealm extends AuthorizingRealm {
 		List<Role> roleList = Role.dao.getRoleByUid(id);
 		if (roleList != null && roleList.size() > 0) {
 			for (Role role : roleList) {
-				info.addRole(role.getRoleName());
+				info.addRole(role.getRoleKey());
 				authUrl(role.getId(), info);
 			}
 		}
@@ -93,7 +93,7 @@ public class ShiroDbRealm extends AuthorizingRealm {
 		List<Permission> permissions = Permission.dao.getPermissionByRoleId(id);
 		if (permissions != null && permissions.size() > 0) {
 			for (Permission permission : permissions) {
-				info.addStringPermission(permission.getPermissionName());//设置角色可以访问的地址或操作
+				info.addStringPermission(permission.getPermissionKey());//设置角色可以访问的地址或操作
 			}
 		}
 	}

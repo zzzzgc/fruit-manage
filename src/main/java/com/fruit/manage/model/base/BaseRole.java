@@ -17,6 +17,14 @@ public abstract class BaseRole<M extends BaseRole<M>> extends Model<M> implement
 		return getInt("id");
 	}
 
+	public void setRoleKey(java.lang.String roleKey) {
+		set("role_key", roleKey);
+	}
+
+	public java.lang.String getRoleKey() {
+		return getStr("role_key");
+	}
+
 	public void setRoleName(java.lang.String roleName) {
 		set("role_name", roleName);
 	}

@@ -8,6 +8,8 @@ import com.fruit.manage.controller.ProductStandardController;
 import com.fruit.manage.controller.TypeController;
 import com.fruit.manage.controller.TypeGroupController;
 import com.fruit.manage.controller.login.LoginController;
+import com.fruit.manage.controller.user.PermissionController;
+import com.fruit.manage.controller.user.RolesController;
 import com.jfinal.config.Routes;
 
 /**
@@ -27,6 +29,8 @@ public class BaseRoutesConfig extends Routes {
 		add("/manage/banner", BannerController.class);
 		add("/manage/type", TypeController.class);
 		add("/manage/typeGroup", TypeGroupController.class);
+		add("/manage/role", RolesController.class);
+		add("/manage/permission", PermissionController.class);
 	}
 
 }

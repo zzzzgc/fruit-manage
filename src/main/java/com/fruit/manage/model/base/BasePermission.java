@@ -17,6 +17,14 @@ public abstract class BasePermission<M extends BasePermission<M>> extends Model<
 		return getInt("id");
 	}
 
+	public void setPermissionKey(java.lang.String permissionKey) {
+		set("permission_key", permissionKey);
+	}
+
+	public java.lang.String getPermissionKey() {
+		return getStr("permission_key");
+	}
+
 	public void setPermissionName(java.lang.String permissionName) {
 		set("permission_name", permissionName);
 	}
