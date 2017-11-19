@@ -32,7 +32,7 @@ public class ErrorTextRender extends Render {
 			response.setHeader("Pragma", "no-cache");
 	        response.setHeader("Cache-Control", "no-cache");
 	        response.setDateHeader("Expires", 0);
-			response.addHeader("Errror-Text", encodeText);
+			response.addHeader("Error-Text", encodeText);
 
 			response.setContentType(contentType);
 	        writer = response.getWriter();
