@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.fruit.manage.base.BaseController;
-import com.fruit.manage.util.DataResult;
 
 public class IndexController extends BaseController {
 	

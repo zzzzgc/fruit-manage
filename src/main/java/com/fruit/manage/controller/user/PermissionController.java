@@ -1,29 +1,27 @@
-package com.fruit.manage.controller;
+package com.fruit.manage.controller.user;
 
 import java.util.Date;
+import java.util.List;
 
 import org.apache.log4j.Logger;
-import org.apache.shiro.authz.annotation.Logical;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
-import org.apache.shiro.authz.annotation.RequiresRoles;
 
 import com.fruit.manage.base.BaseController;
-import com.fruit.manage.model.Banner;
+import com.fruit.manage.model.Permission;
+import com.fruit.manage.model.Role;
 import com.fruit.manage.util.DataResult;
 import com.jfinal.kit.JsonKit;
 
-@RequiresRoles(value = {"shopAdmin","supAdmin"}, logical = Logical.OR)
-public class BannerController extends BaseController {
+public class PermissionController extends BaseController{
 
 	private Logger log = Logger.getLogger(getClass());
 	
 	/**
 	 * 获取列表数据
 	 */
-	@RequiresPermissions("banner:query")
+	@RequiresPermissions("permission:query")
 	public void getData(){
-		String groupKey = getPara("groupKey");
-		String key = getPara("key");
+		String permissionName = getPara("permissionName");
 		
 		int pageNum = getParaToInt("pageNum", 1);
 		int pageSize = getParaToInt("pageSize", 10);
@@ -31,16 +29,16 @@ public class BannerController extends BaseController {
 		String orderBy = getPara("prop");
 		boolean isASC = "ascending".equals(getPara("order"));// ascending为升序，其他为降序
 		
-		renderJson(Banner.dao.getData(groupKey, key, pageNum, pageSize, orderBy, isASC));
+		renderJson(Role.dao.getData(permissionName, pageNum, pageSize, orderBy, isASC));
 	}
 	
 	/**
 	 * 编辑记录
 	 */
-	@RequiresPermissions("banner:edit")
+	@RequiresPermissions("permission:edit")
 	public void info(){
 		int id = getParaToInt("id");
-		Banner model = Banner.dao.findById(id);
+		Role model = Role.dao.findById(id);
 		if(model == null){
 			renderErrorText("该记录不存在，无法编辑");
 		}else{
@@ -51,10 +49,10 @@ public class BannerController extends BaseController {
 	/**
 	 * 保存修改或者添加的数据
 	 */
-	@RequiresPermissions("banner:save")
+	@RequiresPermissions("permission:save")
 	public void save(){
 		log.info("保存配置数据："+JsonKit.toJson(getParaMap()));
-		Banner model = getModel(Banner.class, "", true);
+		Role model = getModel(Role.class, "", true);
 		if(model.getId() == null){
 			model.setCreateTime(new Date());
 		}
@@ -69,19 +67,26 @@ public class BannerController extends BaseController {
 	/**
 	 * 删除记录
 	 */
-	@RequiresPermissions("banner:delete")
-	public void delete(){
-		String[] ids  = getParaValues("ids");
-		if(ids == null || ids.length == 0){
-			renderErrorText("参数错误");
-			return;
-		}
-		DataResult<Object> result = Banner.dao.delete(ids);
-		if(result.isSuccessCode()){
-			renderNull();
-		}else{
-			renderErrorText(result.getMsg());
-		}
+	@RequiresPermissions("permission:delete")
+//	public void delete(){
+//		String[] ids  = getParaValues("ids");
+//		if(ids == null || ids.length == 0){
+//			renderErrorText("参数错误");
+//			return;
+//		}
+//		DataResult<Object> result = Role.dao.delete(ids);
+//		if(result.isSuccessCode()){
+//			renderNull();
+//		}else{
+//			renderErrorText(result.getMsg());
+//		}
+//	}
+	
+	/**
+	 * 获取所有权限列表
+	 */
+	public void getPermissionList(){
+		List<Permission> list = Permission.dao.find("select * from a_permission");
+		renderJson(list);
 	}
-
 }

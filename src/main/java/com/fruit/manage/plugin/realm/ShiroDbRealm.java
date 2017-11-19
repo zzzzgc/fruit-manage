@@ -1,5 +1,7 @@
 package com.fruit.manage.plugin.realm;
 
+import java.util.List;
+
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.AuthenticationToken;
@@ -12,15 +14,17 @@ import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.apache.shiro.subject.SimplePrincipalCollection;
 
+import com.fruit.manage.model.Permission;
+import com.fruit.manage.model.Role;
 import com.fruit.manage.model.User;
 
 public class ShiroDbRealm extends AuthorizingRealm {
 
-//	@Override
-//	public void setCacheManager(CacheManager cacheManager) {
-//		super.setCacheManager(cacheManager);
-////		ShiroCache.setCacheManager(cacheManager);
-//	}
+	// @Override
+	// public void setCacheManager(CacheManager cacheManager) {
+	// super.setCacheManager(cacheManager);
+	// // ShiroCache.setCacheManager(cacheManager);
+	// }
 
 	/**
 	 * 身份证认证
@@ -55,16 +59,11 @@ public class ShiroDbRealm extends AuthorizingRealm {
 	protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) {
 		User user = (User) principals.getPrimaryPrincipal();
 		SimpleAuthorizationInfo info = new SimpleAuthorizationInfo();
-		if (user != null) {
+		if (user == null) {
 			return info;
 		}
-
-		info.addRole("admin");
-		info.addStringPermission("admin:create");//设置权限
-		
-		int id = user.get("id");
+		int id = user.getId();
 		authRole(id, info);
-
 		return info;
 	}
 
@@ -75,13 +74,13 @@ public class ShiroDbRealm extends AuthorizingRealm {
 	 * @param info
 	 */
 	protected void authRole(int id, SimpleAuthorizationInfo info) {
-		// List<Role> roleList = Role.dao.getRoleByUid(id);
-		// if (roleList != null && roleList.size() > 0) {
-		// for (Record role : roleList) {
-		// info.addRole(role.getName());
-		// authUrl(role.getId(), info);
-		// }
-		// }
+		List<Role> roleList = Role.dao.getRoleByUid(id);
+		if (roleList != null && roleList.size() > 0) {
+			for (Role role : roleList) {
+				info.addRole(role.getRoleKey());
+				authUrl(role.getId(), info);
+			}
+		}
 	}
 
 	/**
@@ -91,12 +90,12 @@ public class ShiroDbRealm extends AuthorizingRealm {
 	 * @param info
 	 */
 	protected void authUrl(int id, SimpleAuthorizationInfo info) {
-		// List<Record> resourceList = ResourceService.me.byRid(id);
-		// if (!sl.isEmpty(resourceList)) {
-		// for (Record resource : resourceList) {
-		// info.addStringPermission(resource.get("url"));
-		// }
-		// }
+		List<Permission> permissions = Permission.dao.getPermissionByRoleId(id);
+		if (permissions != null && permissions.size() > 0) {
+			for (Permission permission : permissions) {
+				info.addStringPermission(permission.getPermissionKey());//设置角色可以访问的地址或操作
+			}
+		}
 	}
 
 	public void clearCacheAuth(Object principal) {
