@@ -5,10 +5,8 @@ import java.util.List;
 
 import com.fruit.manage.base.BaseController;
 import com.fruit.manage.util.ImgUtil;
-import com.jfinal.ext.route.ControllerBind;
 import com.jfinal.upload.UploadFile;
 
-@ControllerBind(controllerKey="/manage/common",viewPath="/")
 public class CommonController extends BaseController {
 	
 	/**
