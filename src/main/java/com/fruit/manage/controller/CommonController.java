@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fruit.manage.base.BaseController;
+import com.fruit.manage.model.Menu;
+import com.fruit.manage.model.Permission;
 import com.fruit.manage.util.ImgUtil;
 import com.jfinal.upload.UploadFile;
 
@@ -33,6 +35,21 @@ public class CommonController extends BaseController {
 		renderJson(uploadText);
 	}
 	
+	/**
+	 * 获取所有权限列表
+	 */
+	public void getPermissionList(){
+		List<Permission> list = Permission.dao.find("select * from a_permission");
+		renderJson(list);
+	}
+	
+	/**
+	 * 获取所有菜单列表
+	 */
+	public void getMenuList(){
+		List<Menu> list = Menu.dao.find("select * from a_menu");
+		renderJson(list);
+	}
 }
 
 

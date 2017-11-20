@@ -54,16 +54,4 @@ public class UserController extends BaseController{
 		renderResult(User.dao.save(model, roleIds));
 	}
 	
-//	/**
-//	 * 删除记录
-//	 */
-//	@RequiresPermissions("user:delete")
-//	public void delete(){
-//		String id = getPara("ids");
-//		if(StringUtils.isBlank(id)){
-//			renderErrorText("参数错误");
-//			return;
-//		}
-//		renderResult(User.dao.delete(id));
-//	}
 }

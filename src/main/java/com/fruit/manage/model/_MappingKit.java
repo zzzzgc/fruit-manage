@@ -16,8 +16,12 @@ import com.jfinal.plugin.activerecord.ActiveRecordPlugin;
 public class _MappingKit {
 
 	public static void mapping(ActiveRecordPlugin arp) {
+		// Composite Primary Key order: create_time,id
+		arp.addMapping("a_menu", "create_time,id", Menu.class);
 		arp.addMapping("a_permission", "id", Permission.class);
 		arp.addMapping("a_role", "id", Role.class);
+		// Composite Primary Key order: menu_id,role_id
+		arp.addMapping("a_role_menu", "menu_id,role_id", RoleMenu.class);
 		// Composite Primary Key order: permission_id,role_id
 		arp.addMapping("a_role_permission", "permission_id,role_id", RolePermission.class);
 		arp.addMapping("a_user", "id", User.class);

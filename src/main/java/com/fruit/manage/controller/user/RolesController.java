@@ -1,10 +1,13 @@
 package com.fruit.manage.controller.user;
 
+import java.util.List;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 
 import com.fruit.manage.base.BaseController;
+import com.fruit.manage.model.Menu;
 import com.fruit.manage.model.Permission;
 import com.fruit.manage.model.Role;
 import com.jfinal.kit.JsonKit;
@@ -39,6 +42,7 @@ public class RolesController extends BaseController{
 		if(model == null){
 			renderErrorText("该记录不存在，无法编辑");
 		}else{
+			model.put("menuIds", Menu.dao.getMenuIdsByRoleId(id));
 			model.put("permissionIds", Permission.dao.getPermissionIdsByRoleId(id));
 			renderJson(model);
 		}
@@ -52,7 +56,8 @@ public class RolesController extends BaseController{
 		log.info("保存配置数据："+JsonKit.toJson(getParaMap()));
 		Role model = getModel(Role.class, "", true);
 		String[] permissionIds = getParaValues("permissionIds");
-		renderResult(Role.dao.save(model, permissionIds));
+		String[] menuIds = getParaValues("menuIds");
+		renderResult(Role.dao.save(model, menuIds, permissionIds));
 	}
 	
 	/**
@@ -66,5 +71,13 @@ public class RolesController extends BaseController{
 			return;
 		}
 		renderResult(Role.dao.delete(id));
+	}
+	
+	/**
+	 * 获取所有角色列表
+	 */
+	public void getRoleList(){
+		List<Role> list = Role.dao.find("select * from a_role");
+		renderJson(list);
 	}
 }

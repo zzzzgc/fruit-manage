@@ -9,7 +9,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.fruit.manage.model.base.BaseUser;
 import com.fruit.manage.util.Common;
-import com.fruit.manage.util.DataResult;
 import com.jfinal.kit.StrKit;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.IAtom;
@@ -48,7 +47,7 @@ public class User extends BaseUser<User> {
 	}
 	
 	/**
-	 * 分页查询角色列表
+	 * 分页查询用户列表
 	 * @param userName
 	 * @param pageNum
 	 * @param pageSize

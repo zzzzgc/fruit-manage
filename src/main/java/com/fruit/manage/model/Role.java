@@ -68,9 +68,10 @@ public class Role extends BaseRole<Role> {
 	/**
 	 * 保存角色（如果关联的权限不为空，会同时保存关联的权限）
 	 * @param model
+	 * @param menuIds
 	 * @param permissionIds
 	 */
-	public boolean save(Role model, String[] permissionIds) {
+	public boolean save(Role model, String[] menuIds, String[] permissionIds) {
 		return Db.tx(new IAtom() {
 			@Override
 			public boolean run() throws SQLException {
@@ -83,7 +84,16 @@ public class Role extends BaseRole<Role> {
 				}else{
 					model.update();//更新角色
 				}
+				Db.update("delete from a_role_menu where role_id = ?", model.getId());
 				Db.update("delete from a_role_permission where role_id = ?", model.getId());
+				if(menuIds != null && menuIds.length > 0){
+					List<Object[]> params = new ArrayList<>();
+					for(String menuId : menuIds) {
+						params.add(new Object[]{model.getId(), menuId});
+					}
+					String sql = "insert into a_role_menu(role_id, menu_id) values(?,?)";
+					Db.batch(sql, Common.listTo2Array(params), params.size());
+				}
 				if(permissionIds != null && permissionIds.length > 0){
 					List<Object[]> params = new ArrayList<>();
 					for(String permissionId : permissionIds) {
