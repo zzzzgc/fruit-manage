@@ -6,6 +6,7 @@ import java.util.List;
 import com.fruit.manage.base.BaseController;
 import com.fruit.manage.model.Menu;
 import com.fruit.manage.model.Permission;
+import com.fruit.manage.util.Constant;
 import com.fruit.manage.util.ImgUtil;
 import com.jfinal.upload.UploadFile;
 
@@ -49,6 +50,13 @@ public class CommonController extends BaseController {
 	public void getMenuList(){
 		List<Menu> list = Menu.dao.find("select * from a_menu");
 		renderJson(list);
+	}
+	
+	/**
+	 * 根据uid，获取菜单列表
+	 */
+	public void getMenuListByUid(){
+		renderJson(Menu.dao.getMenuListByUid(getSessionAttr(Constant.SESSION_UID)));
 	}
 }
 

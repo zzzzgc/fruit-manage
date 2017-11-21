@@ -3,16 +3,13 @@ package com.fruit.manage.controller;
 import java.util.Date;
 
 import org.apache.log4j.Logger;
-import org.apache.shiro.authz.annotation.Logical;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
-import org.apache.shiro.authz.annotation.RequiresRoles;
 
 import com.fruit.manage.base.BaseController;
 import com.fruit.manage.model.Banner;
 import com.fruit.manage.util.DataResult;
 import com.jfinal.kit.JsonKit;
 
-@RequiresRoles(value = {"shopAdmin","supAdmin"}, logical = Logical.OR)
 public class BannerController extends BaseController {
 
 	private Logger log = Logger.getLogger(getClass());
