@@ -20,4 +20,20 @@ public class Menu extends BaseMenu<Menu> {
 	public List<Integer> getMenuIdsByRoleId(int roleId) {
 		return Db.query("SELECT p.id FROM `a_role` r, `a_role_menu` rp, `a_menu` p WHERE r.`id` = rp.`role_id` AND p.`id` = rp.`menu_id` AND r.`id` = ?", roleId);
 	}
+	
+	/**
+	 * 获取菜单列表
+	 * @param uid
+	 * @return
+	 */
+	public List<Menu> getMenuListByUid(int uid) {
+		StringBuffer sql = new StringBuffer();
+		sql.append("SELECT m.* FROM `a_user` u ");
+		sql.append("INNER JOIN `a_user_role` ur ON u.`id` = ur.user_id ");
+		sql.append("INNER JOIN `a_role` r ON ur.role_id = r.`id` ");
+		sql.append("INNER JOIN `a_role_menu` rm ON rm.role_id = r.`id` ");
+		sql.append("INNER JOIN `a_menu` m ON rm.menu_id = m.`id` ");
+		sql.append("AND u.id = ? ");
+		return find(sql.toString(), uid);
+	}
 }

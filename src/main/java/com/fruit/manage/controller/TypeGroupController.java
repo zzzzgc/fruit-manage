@@ -4,9 +4,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.apache.log4j.Logger;
-import org.apache.shiro.authz.annotation.Logical;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
-import org.apache.shiro.authz.annotation.RequiresRoles;
 
 import com.fruit.manage.base.BaseController;
 import com.fruit.manage.model.TypeGroup;
@@ -17,7 +15,6 @@ import com.jfinal.plugin.activerecord.Page;
 /**
  * 分类标签的管理
  */
-@RequiresRoles(value = {"shopAdmin","supAdmin"}, logical = Logical.OR)
 public class TypeGroupController extends BaseController{
 	
 	private Logger log = Logger.getLogger(getClass());

@@ -10,7 +10,6 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
-import com.google.common.base.Strings;
 import com.jfinal.upload.UploadFile;
 
 /**
@@ -35,7 +34,7 @@ public class ImgUtil {
 				src.delete();
 			}
 		}
-		return Strings.nullToEmpty(imagePath);
+		return imagePath;
 	}
 
 	public static String uploadpic(File file, HttpServletRequest request) {

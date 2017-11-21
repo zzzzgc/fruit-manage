@@ -8,6 +8,7 @@ import org.apache.shiro.session.Session;
 import org.apache.shiro.subject.Subject;
 
 import com.fruit.manage.base.BaseController;
+import com.fruit.manage.model.User;
 import com.fruit.manage.util.Constant;
 import com.fruit.manage.util.DataResult;
 
@@ -31,7 +32,7 @@ public class LoginController extends BaseController {
 		try{
 			subject.login(token);
 			Session session = subject.getSession();
-			session.setAttribute(Constant.SESSION_UID, userName);
+			session.setAttribute(Constant.SESSION_UID, User.dao.getUser(userName).getId());
 			renderNull();
 		}catch(Exception e){
 			if(StringUtils.isAllBlank(userName, password)){
@@ -51,14 +52,13 @@ public class LoginController extends BaseController {
 			logger.info("登出系统：uid="+uid.toString());
 		}
 		getSession().invalidate();
-		//TODO:shiro登出
+		// shiro登出
 		try {
 			SecurityUtils.getSubject().logout();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		renderNull();
-//		redirect(Constant.MANAGE_URL_HOME);
 	}
 
 }

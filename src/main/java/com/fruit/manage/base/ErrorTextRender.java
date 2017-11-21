@@ -2,7 +2,6 @@ package com.fruit.manage.base;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
 import com.jfinal.render.Render;

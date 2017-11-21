@@ -3,9 +3,7 @@ package com.fruit.manage.controller;
 import java.util.Date;
 
 import org.apache.log4j.Logger;
-import org.apache.shiro.authz.annotation.Logical;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
-import org.apache.shiro.authz.annotation.RequiresRoles;
 
 import com.fruit.manage.base.BaseController;
 import com.fruit.manage.model.Type;
@@ -16,7 +14,6 @@ import com.jfinal.plugin.activerecord.Page;
 /**
  * 分类的管理
  */
-@RequiresRoles(value = {"shopAdmin","supAdmin"}, logical = Logical.OR)
 public class TypeController extends BaseController{
 	
 	private Logger log = Logger.getLogger(getClass());

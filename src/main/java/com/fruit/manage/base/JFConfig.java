@@ -29,8 +29,8 @@ public class JFConfig extends JFinalConfig {
 		PropKit.use("setting.properties");
 		me.setDevMode(PropKit.getBoolean("devMode", false));
 //		me.setFreeMarkerTemplateUpdateDelay(0);
-		me.setErrorView(401, "/login.html");//没有身份认证
-		me.setErrorView(403, "/login.html");//没有权限
+		me.setErrorView(401, "/login");//没有身份认证
+//		me.setErrorView(403, "/login");//没有权限
 //		me.setError404View("/404.html");
 //		me.setError500View("/500.html");
 	}
@@ -85,7 +85,7 @@ public class JFConfig extends JFinalConfig {
 		ShiroPlugin shiroPlugin = new ShiroPlugin(routes);//权限控制插件
 		shiroPlugin.setLoginUrl("/login");
 		shiroPlugin.setSuccessUrl("/");
-		shiroPlugin.setUnauthorizedUrl("/unauthorized.jsp");//没有权限提示页
+		shiroPlugin.setUnauthorizedUrl("");//没有权限提示页
 		me.add(shiroPlugin);
 	}
 	
