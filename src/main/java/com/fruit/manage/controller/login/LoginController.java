@@ -11,6 +11,7 @@ import com.fruit.manage.base.BaseController;
 import com.fruit.manage.model.User;
 import com.fruit.manage.util.Constant;
 import com.fruit.manage.util.DataResult;
+import com.jfinal.kit.HashKit;
 
 public class LoginController extends BaseController {
 	
@@ -25,7 +26,7 @@ public class LoginController extends BaseController {
 			renderJson(new DataResult<>(DataResult.CODE_SUCCESS, "登录成功"));
 		}
 		String userName = getPara("username");
-		String password = getPara("password");
+		String password = StringUtils.isNotBlank(getPara("password")) ? HashKit.md5(getPara("password")) : getPara("password");
 		
 		Subject subject=SecurityUtils.getSubject();
 		UsernamePasswordToken token=new UsernamePasswordToken(userName, password);
