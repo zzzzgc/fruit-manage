@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fruit.manage.base.BaseController;
+import com.fruit.manage.constant.OrderConstant;
 import com.fruit.manage.model.Menu;
 import com.fruit.manage.model.Permission;
 import com.fruit.manage.util.Constant;
@@ -57,6 +58,13 @@ public class CommonController extends BaseController {
 	 */
 	public void getMenuListByUid(){
 		renderJson(Menu.dao.getMenuListByUid(getSessionAttr(Constant.SESSION_UID)));
+	}
+	
+	/**
+	 * 获取所有订单状态
+	 */
+	public void getAllOrderStatus(){
+		renderJson(OrderConstant.ORDER_STATUS_MAP);
 	}
 }
 

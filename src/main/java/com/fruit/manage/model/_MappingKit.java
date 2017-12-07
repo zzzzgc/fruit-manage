@@ -28,6 +28,7 @@ public class _MappingKit {
 		// Composite Primary Key order: role_id,user_id
 		arp.addMapping("a_user_role", "role_id,user_id", UserRole.class);
 		arp.addMapping("b_banner", "id", Banner.class);
+		arp.addMapping("b_order", "id", Order.class);
 		arp.addMapping("b_product", "id", Product.class);
 		arp.addMapping("b_product_img", "id", ProductImg.class);
 		arp.addMapping("b_product_keyword", "id", ProductKeyword.class);
