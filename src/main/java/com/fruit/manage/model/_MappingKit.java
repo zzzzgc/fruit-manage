@@ -18,6 +18,7 @@ public class _MappingKit {
 	public static void mapping(ActiveRecordPlugin arp) {
 		// Composite Primary Key order: create_time,id
 		arp.addMapping("a_menu", "create_time,id", Menu.class);
+		arp.addMapping("a_param", "id", Param.class);
 		arp.addMapping("a_permission", "id", Permission.class);
 		arp.addMapping("a_role", "id", Role.class);
 		// Composite Primary Key order: menu_id,role_id
@@ -28,7 +29,12 @@ public class _MappingKit {
 		// Composite Primary Key order: role_id,user_id
 		arp.addMapping("a_user_role", "role_id,user_id", UserRole.class);
 		arp.addMapping("b_banner", "id", Banner.class);
+		arp.addMapping("b_business_auth", "id", BusinessAuth.class);
+		arp.addMapping("b_business_info", "id", BusinessInfo.class);
+		arp.addMapping("b_business_user", "id", BusinessUser.class);
+		arp.addMapping("b_cart_product", "id", CartProduct.class);
 		arp.addMapping("b_order", "id", Order.class);
+		arp.addMapping("b_order_detail", "id", OrderDetail.class);
 		arp.addMapping("b_product", "id", Product.class);
 		arp.addMapping("b_product_img", "id", ProductImg.class);
 		arp.addMapping("b_product_keyword", "id", ProductKeyword.class);
@@ -36,8 +42,10 @@ public class _MappingKit {
 		arp.addMapping("b_product_recommend", "id", ProductRecommend.class);
 		arp.addMapping("b_product_standard", "id", ProductStandard.class);
 		arp.addMapping("b_product_type", "id", ProductType.class);
+		arp.addMapping("b_test", "id", Test.class);
 		arp.addMapping("b_type", "id", Type.class);
 		arp.addMapping("b_type_group", "id", TypeGroup.class);
+		arp.addMapping("test", "id", Test.class);
 	}
 }
 

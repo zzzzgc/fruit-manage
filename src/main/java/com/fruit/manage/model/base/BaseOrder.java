@@ -17,6 +17,14 @@ public abstract class BaseOrder<M extends BaseOrder<M>> extends Model<M> impleme
 		return getInt("id");
 	}
 
+	public void setUId(java.lang.Integer uId) {
+		set("u_id", uId);
+	}
+
+	public java.lang.Integer getUId() {
+		return getInt("u_id");
+	}
+
 	public void setOrderId(java.lang.String orderId) {
 		set("order_id", orderId);
 	}
@@ -25,20 +33,12 @@ public abstract class BaseOrder<M extends BaseOrder<M>> extends Model<M> impleme
 		return getStr("order_id");
 	}
 
-	public void setOrderTime(java.util.Date orderTime) {
-		set("order_time", orderTime);
+	public void setPayId(java.lang.String payId) {
+		set("pay_id", payId);
 	}
 
-	public java.util.Date getOrderTime() {
-		return get("order_time");
-	}
-
-	public void setModifyTime(java.util.Date modifyTime) {
-		set("modify_time", modifyTime);
-	}
-
-	public java.util.Date getModifyTime() {
-		return get("modify_time");
+	public java.lang.String getPayId() {
+		return getStr("pay_id");
 	}
 
 	public void setOrderStatus(java.lang.Integer orderStatus) {
@@ -49,100 +49,68 @@ public abstract class BaseOrder<M extends BaseOrder<M>> extends Model<M> impleme
 		return getInt("order_status");
 	}
 
-	public void setOrderFinishTime(java.util.Date orderFinishTime) {
-		set("order_finish_time", orderFinishTime);
+	public void setPayStatus(java.lang.Integer payStatus) {
+		set("pay_status", payStatus);
 	}
 
-	public java.util.Date getOrderFinishTime() {
-		return get("order_finish_time");
+	public java.lang.Integer getPayStatus() {
+		return getInt("pay_status");
 	}
 
-	public void setOrderAmount(java.math.BigDecimal orderAmount) {
-		set("order_amount", orderAmount);
+	public void setPayNeedMoney(java.math.BigDecimal payNeedMoney) {
+		set("pay_need_money", payNeedMoney);
 	}
 
-	public java.math.BigDecimal getOrderAmount() {
-		return get("order_amount");
+	public java.math.BigDecimal getPayNeedMoney() {
+		return get("pay_need_money");
 	}
 
-	public void setOrderPayAmount(java.math.BigDecimal orderPayAmount) {
-		set("order_pay_amount", orderPayAmount);
+	public void setPayTotalMoney(java.math.BigDecimal payTotalMoney) {
+		set("pay_total_money", payTotalMoney);
 	}
 
-	public java.math.BigDecimal getOrderPayAmount() {
-		return get("order_pay_amount");
+	public java.math.BigDecimal getPayTotalMoney() {
+		return get("pay_total_money");
 	}
 
-	public void setOrderIspay(java.lang.Integer orderIspay) {
-		set("order_ispay", orderIspay);
+	public void setPayCallback(java.lang.String payCallback) {
+		set("pay_callback", payCallback);
 	}
 
-	public java.lang.Integer getOrderIspay() {
-		return getInt("order_ispay");
+	public java.lang.String getPayCallback() {
+		return getStr("pay_callback");
 	}
 
-	public void setOrderIsrefund(java.lang.Integer orderIsrefund) {
-		set("order_isrefund", orderIsrefund);
+	public void setPaySuccess(java.lang.Integer paySuccess) {
+		set("pay_success", paySuccess);
 	}
 
-	public java.lang.Integer getOrderIsrefund() {
-		return getInt("order_isrefund");
+	public java.lang.Integer getPaySuccess() {
+		return getInt("pay_success");
 	}
 
-	public void setOrderPaySuccessTime(java.util.Date orderPaySuccessTime) {
-		set("order_pay_success_time", orderPaySuccessTime);
+	public void setBuyUserName(java.lang.String buyUserName) {
+		set("buy_user_name", buyUserName);
 	}
 
-	public java.util.Date getOrderPaySuccessTime() {
-		return get("order_pay_success_time");
+	public java.lang.String getBuyUserName() {
+		return getStr("buy_user_name");
 	}
 
-	public void setRemark(java.lang.String remark) {
-		set("remark", remark);
+	public void setBuyPhone(java.lang.String buyPhone) {
+		set("buy_phone", buyPhone);
 	}
 
-	public java.lang.String getRemark() {
-		return getStr("remark");
+	public java.lang.String getBuyPhone() {
+		return getStr("buy_phone");
 	}
 
-	public void setBuyuserUid(java.lang.Integer buyuserUid) {
-		set("buyuser_uid", buyuserUid);
+	public void setBuyAddress(java.lang.String buyAddress) {
+		set("buy_address", buyAddress);
 	}
 
-	public java.lang.Integer getBuyuserUid() {
-		return getInt("buyuser_uid");
-	}
-
-	public void setConsigneePhone(java.lang.String consigneePhone) {
-		set("consignee_phone", consigneePhone);
-	}
-
-	public java.lang.String getConsigneePhone() {
-		return getStr("consignee_phone");
-	}
-
-	public void setConsignee(java.lang.String consignee) {
-		set("consignee", consignee);
-	}
-
-	public java.lang.String getConsignee() {
-		return getStr("consignee");
-	}
-
-	public void setConsigneeAddress(java.lang.String consigneeAddress) {
-		set("consignee_address", consigneeAddress);
-	}
-
-	public java.lang.String getConsigneeAddress() {
-		return getStr("consignee_address");
-	}
-
-	public void setDeliveryTime(java.lang.String deliveryTime) {
-		set("delivery_time", deliveryTime);
-	}
-
-	public java.lang.String getDeliveryTime() {
-		return getStr("delivery_time");
+	public java.lang.String getBuyAddress() {
+		return getStr("buy_address");
 	}
 
 	public void setDeliveryType(java.lang.Integer deliveryType) {
@@ -153,20 +121,28 @@ public abstract class BaseOrder<M extends BaseOrder<M>> extends Model<M> impleme
 		return getInt("delivery_type");
 	}
 
-	public void setSendProductTime(java.util.Date sendProductTime) {
-		set("send_product_time", sendProductTime);
+	public void setPayTime(java.util.Date payTime) {
+		set("pay_time", payTime);
 	}
 
-	public java.util.Date getSendProductTime() {
-		return get("send_product_time");
+	public java.util.Date getPayTime() {
+		return get("pay_time");
 	}
 
-	public void setGetProductTime(java.util.Date getProductTime) {
-		set("get_product_time", getProductTime);
+	public void setRefundStatus(java.lang.Integer refundStatus) {
+		set("refund_status", refundStatus);
 	}
 
-	public java.util.Date getGetProductTime() {
-		return get("get_product_time");
+	public java.lang.Integer getRefundStatus() {
+		return getInt("refund_status");
+	}
+
+	public void setDeliveryTime(java.util.Date deliveryTime) {
+		set("delivery_time", deliveryTime);
+	}
+
+	public java.util.Date getDeliveryTime() {
+		return get("delivery_time");
 	}
 
 	public void setRefundTime(java.util.Date refundTime) {
@@ -177,140 +153,20 @@ public abstract class BaseOrder<M extends BaseOrder<M>> extends Model<M> impleme
 		return get("refund_time");
 	}
 
-	public void setRefundAmount(java.math.BigDecimal refundAmount) {
-		set("refund_amount", refundAmount);
+	public void setCreateTime(java.util.Date createTime) {
+		set("create_time", createTime);
 	}
 
-	public java.math.BigDecimal getRefundAmount() {
-		return get("refund_amount");
+	public java.util.Date getCreateTime() {
+		return get("create_time");
 	}
 
-	public void setCancelTime(java.util.Date cancelTime) {
-		set("cancel_time", cancelTime);
+	public void setUpdateTime(java.util.Date updateTime) {
+		set("update_time", updateTime);
 	}
 
-	public java.util.Date getCancelTime() {
-		return get("cancel_time");
-	}
-
-	public void setCancelReason(java.lang.String cancelReason) {
-		set("cancel_reason", cancelReason);
-	}
-
-	public java.lang.String getCancelReason() {
-		return getStr("cancel_reason");
-	}
-
-	public void setPayFailMsg(java.lang.String payFailMsg) {
-		set("pay_fail_msg", payFailMsg);
-	}
-
-	public java.lang.String getPayFailMsg() {
-		return getStr("pay_fail_msg");
-	}
-
-	public void setProductId(java.lang.String productId) {
-		set("product_id", productId);
-	}
-
-	public java.lang.String getProductId() {
-		return getStr("product_id");
-	}
-
-	public void setProductName(java.lang.String productName) {
-		set("product_name", productName);
-	}
-
-	public java.lang.String getProductName() {
-		return getStr("product_name");
-	}
-
-	public void setProductSinglePrice(java.math.BigDecimal productSinglePrice) {
-		set("product_single_price", productSinglePrice);
-	}
-
-	public java.math.BigDecimal getProductSinglePrice() {
-		return get("product_single_price");
-	}
-
-	public void setProductSingleNumber(java.lang.Long productSingleNumber) {
-		set("product_single_number", productSingleNumber);
-	}
-
-	public java.lang.Long getProductSingleNumber() {
-		return getLong("product_single_number");
-	}
-
-	public void setProductOriginalPrice(java.math.BigDecimal productOriginalPrice) {
-		set("product_original_price", productOriginalPrice);
-	}
-
-	public java.math.BigDecimal getProductOriginalPrice() {
-		return get("product_original_price");
-	}
-
-	public void setProductCount(java.lang.Integer productCount) {
-		set("product_count", productCount);
-	}
-
-	public java.lang.Integer getProductCount() {
-		return getInt("product_count");
-	}
-
-	public void setProductRemark(java.lang.String productRemark) {
-		set("product_remark", productRemark);
-	}
-
-	public java.lang.String getProductRemark() {
-		return getStr("product_remark");
-	}
-
-	public void setProductOnsaleTime(java.util.Date productOnsaleTime) {
-		set("product_onsale_time", productOnsaleTime);
-	}
-
-	public java.util.Date getProductOnsaleTime() {
-		return get("product_onsale_time");
-	}
-
-	public void setProductPosition(java.lang.Integer productPosition) {
-		set("product_position", productPosition);
-	}
-
-	public java.lang.Integer getProductPosition() {
-		return getInt("product_position");
-	}
-
-	public void setZhifuPlatformWayId(java.lang.Integer zhifuPlatformWayId) {
-		set("zhifu_platform_way_id", zhifuPlatformWayId);
-	}
-
-	public java.lang.Integer getZhifuPlatformWayId() {
-		return getInt("zhifu_platform_way_id");
-	}
-
-	public void setZhifuPlatformWayName(java.lang.String zhifuPlatformWayName) {
-		set("zhifu_platform_way_name", zhifuPlatformWayName);
-	}
-
-	public java.lang.String getZhifuPlatformWayName() {
-		return getStr("zhifu_platform_way_name");
-	}
-
-	public void setZhifuStrategyId(java.lang.Integer zhifuStrategyId) {
-		set("zhifu_strategy_id", zhifuStrategyId);
-	}
-
-	public java.lang.Integer getZhifuStrategyId() {
-		return getInt("zhifu_strategy_id");
-	}
-
-	public void setOrderIp(java.lang.String orderIp) {
-		set("order_ip", orderIp);
-	}
-
-	public java.lang.String getOrderIp() {
-		return getStr("order_ip");
+	public java.util.Date getUpdateTime() {
+		return get("update_time");
 	}
 
 }
