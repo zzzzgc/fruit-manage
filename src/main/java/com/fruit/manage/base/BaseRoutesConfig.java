@@ -8,6 +8,7 @@ import com.fruit.manage.controller.ProductMarketController;
 import com.fruit.manage.controller.ProductStandardController;
 import com.fruit.manage.controller.TypeController;
 import com.fruit.manage.controller.TypeGroupController;
+import com.fruit.manage.controller.customer.CustomerController;
 import com.fruit.manage.controller.login.LoginController;
 import com.fruit.manage.controller.order.OrderController;
 import com.fruit.manage.controller.user.RolesController;
@@ -35,6 +36,7 @@ public class BaseRoutesConfig extends Routes {
 		add("/manage/typeGroup", TypeGroupController.class);
 		add("/manage/role", RolesController.class);
 		add("/manage/user", UserController.class);
+		add("/manage/customer", CustomerController.class);
 	}
 
 }
