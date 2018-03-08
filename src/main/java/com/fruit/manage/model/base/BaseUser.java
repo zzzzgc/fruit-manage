@@ -49,6 +49,14 @@ public abstract class BaseUser<M extends BaseUser<M>> extends Model<M> implement
 		return getStr("phone");
 	}
 
+	public void setIsSales(java.lang.Integer isSales) {
+		set("is_sales", isSales);
+	}
+
+	public java.lang.Integer getIsSales() {
+		return getInt("is_sales");
+	}
+
 	public void setWeixinToken(java.lang.String weixinToken) {
 		set("weixin_token", weixinToken);
 	}
