@@ -38,7 +38,7 @@ public class CustomerController extends BaseController{
 
 
     /**
-     * 获取商户数据
+     * 获取商户数据a
      */
     public void getData(){
 
