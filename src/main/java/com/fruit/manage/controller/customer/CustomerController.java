@@ -6,6 +6,7 @@ import com.fruit.manage.model.BusinessInfo;
 import com.fruit.manage.model.BusinessUser;
 import com.fruit.manage.model.User;
 import com.jfinal.aop.Before;
+import com.jfinal.kit.HashKit;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import org.apache.log4j.Logger;
 
@@ -20,20 +21,37 @@ public class CustomerController extends BaseController{
         Integer businessAuthExtID = getParaToInt("businessAuthExtID");
         businessAuth.setId(businessAuthExtID);
         Integer saleUserId =getParaToInt("saleUserId");
+       // 给用户信息进行赋值
+        BusinessUser businessUser=new BusinessUser();
+        if(businessInfo.getPhone()!=null){
+            String pwd ="xiguo"+businessInfo.getPhone().substring(7,businessInfo.getPhone().length());
+            pwd=HashKit.md5(pwd); // 进行MD5加密
+            businessUser.setPass(pwd);
+        }
+        if(businessInfo.getUId()!=null && businessInfo.getUId()>0){
+            businessUser.setId(businessInfo.getUId());
+        }
+        businessUser.setPhone(businessInfo.getPhone());
+        businessUser.setAUserSalesId(saleUserId);
+        businessUser.setUpdateTime(new Date());
+        businessUser.setCreateTime(new Date());
+        // 判断是添加还是修改
         if(businessInfo.getId()!=null && businessInfo.getId()>0){
             businessAuth.setUpdateTime(new Date());
             businessInfo.setUpdateTime(new Date());
             businessAuth.update();
             businessInfo.update();
+            businessUser.update();
         }else{
             // 给店铺认证赋值
             businessAuth.setCreateTime(new Date());
             businessAuth.setUpdateTime(new Date());
             businessAuth.setAudit(2);
-            // TODO 获取用户ID并赋值
-            businessAuth.setUId(1);
+            businessUser.save();
+            //设置商户ID
+            businessAuth.setUId(businessUser.get("id"));
             // 给店铺信息
-            businessInfo.setUId(1);
+            businessInfo.setUId(businessUser.get("id"));
             businessInfo.setCreateTime(new Date());
             businessInfo.setUpdateTime(new Date());
             businessInfo.save(); //添加商户信息
