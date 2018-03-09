@@ -17,6 +17,8 @@ public class CustomerController extends BaseController{
     public void save() {
         BusinessAuth businessAuth=getModel(BusinessAuth.class,"",true);
         BusinessInfo businessInfo=getModel(BusinessInfo.class,"",true);
+        Integer businessAuthExtID = getParaToInt("businessAuthExtID");
+        businessAuth.setId(businessAuthExtID);
         Integer saleUserId =getParaToInt("saleUserId");
         if(businessInfo.getId()!=null && businessInfo.getId()>0){
             businessAuth.setUpdateTime(new Date());
