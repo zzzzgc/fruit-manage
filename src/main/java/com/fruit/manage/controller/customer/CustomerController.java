@@ -3,6 +3,8 @@ package com.fruit.manage.controller.customer;
 import com.fruit.manage.base.BaseController;
 import com.fruit.manage.model.BusinessAuth;
 import com.fruit.manage.model.BusinessInfo;
+import com.fruit.manage.model.BusinessUser;
+import com.fruit.manage.model.User;
 import com.jfinal.aop.Before;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import org.apache.log4j.Logger;
@@ -15,6 +17,7 @@ public class CustomerController extends BaseController{
     public void save() {
         BusinessAuth businessAuth=getModel(BusinessAuth.class,"",true);
         BusinessInfo businessInfo=getModel(BusinessInfo.class,"",true);
+        Integer saleUserId =getParaToInt("saleUserId");
         if(businessInfo.getId()!=null && businessInfo.getId()>0){
             businessAuth.setUpdateTime(new Date());
             businessInfo.setUpdateTime(new Date());
@@ -34,6 +37,7 @@ public class CustomerController extends BaseController{
             businessInfo.save(); //添加商户信息
             businessAuth.save(); //添加商户认证
         }
+        BusinessUser.dao.updateBusinessUserSaleIDByUid(1, saleUserId);
     }
 
 
@@ -69,5 +73,12 @@ public class CustomerController extends BaseController{
         map.put("businessInfo",BusinessInfo.dao.getByID(id));
         map.put("businessAuth",BusinessAuth.dao.getBusinessAuthByBusinessInfoID(id));
         renderJson(map);
+    }
+
+    /**
+     * 获取所有的销售人员信息
+     */
+    public void getAllSaleUser(){
+        renderJson(User.dao.getAllUserByRoleKey());
     }
 }

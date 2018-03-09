@@ -97,4 +97,14 @@ public class User extends BaseUser<User> {
 			}
 		});
 	}
+
+	/**
+	 * 通过Roke_key获取所有销售人员信息
+	 * @return
+	 */
+	public List<User> getAllUserByRoleKey(){
+		String sql="SELECT u.id,u.`name`,u.nick_name,u.phone from a_user_role ur,a_user u,a_role r " +
+					" where ur.user_id=u.id and ur.role_id=r.id and role_key='salesAdmin'";
+		return find(sql);
+	}
 }
