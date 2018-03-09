@@ -33,7 +33,7 @@ public class BusinessInfo extends BaseBusinessInfo<BusinessInfo> {
     public Page<BusinessInfo> getData(String searchProvince,String searchCity,String salesName,String business_name,String[] createTime,int pageNum, int pageSize, String orderBy, boolean isASC) {
         ArrayList<Object> params = new ArrayList<Object>();
         StringBuffer sql = new StringBuffer();
-        String select = "SELECT buser.id,buser.phone,binfo.business_name,binfo.address_province,binfo.address_city,binfo.address_shop,binfo.address_detail,auser.`name` AS sales_name,auser.phone AS asles_phone,buser.create_time ";
+        String select = "SELECT binfo.id,buser.phone,binfo.business_name,binfo.address_province,binfo.address_city,binfo.address_shop,binfo.address_detail,auser.`name` AS sales_name,auser.phone AS asles_phone,buser.create_time ";
         sql.append("FROM a_user auser JOIN b_business_user buser ON buser.a_user_sales_id = auser.id JOIN b_business_info binfo ON binfo.u_id = buser.id WHERE 1 = 1 ");
         String noStr = "全部";
         if (StrKit.notBlank(searchProvince) && !searchProvince.equals(noStr)) {
