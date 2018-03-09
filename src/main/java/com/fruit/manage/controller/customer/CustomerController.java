@@ -51,16 +51,21 @@ public class CustomerController extends BaseController{
         int pageNum = getParaToInt("pageNum", 1);
         int pageSize = getParaToInt("pageSize", 10);
 
+        BusinessInfo model = getModel(BusinessInfo.class);
+
         String searchProvince = getPara("search_province");
         String searchCity = getPara("search_city");
         String salesName = getPara("sales_name");
+        String business_id = getPara("business_id");
         String business_name = getPara("business_name");
+        String business_phone = getPara("business_phone");
+        String sales_phone = getPara("sales_phone");
         String[] create_time = getParaValues("format_create_time");
 
         String orderBy = getPara("prop");
         // ascending为升序，其他为降序
         boolean isASC = "ascending".equals(getPara("order"));
-        renderJson(BusinessInfo.dao.getData(searchProvince,searchCity,salesName,business_name,create_time,pageNum, pageSize, orderBy, isASC));
+        renderJson(BusinessInfo.dao.getData(searchProvince,searchCity,salesName,sales_phone,business_id,business_name,business_phone,create_time,pageNum, pageSize, orderBy, isASC));
     }
 
     /**

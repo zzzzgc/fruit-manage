@@ -30,10 +30,10 @@ public class BusinessInfo extends BaseBusinessInfo<BusinessInfo> {
 		return findFirst(sql,id);
 	}
 
-    public Page<BusinessInfo> getData(String searchProvince,String searchCity,String salesName,String business_name,String[] createTime,int pageNum, int pageSize, String orderBy, boolean isASC) {
+    public Page<BusinessInfo> getData(String searchProvince,String searchCity,String salesName,String sales_phone,String business_id,String business_name,String business_phone,String[] createTime,int pageNum, int pageSize, String orderBy, boolean isASC) {
         ArrayList<Object> params = new ArrayList<Object>();
         StringBuffer sql = new StringBuffer();
-        String select = "SELECT binfo.id,buser.phone,binfo.business_name,binfo.address_province,binfo.address_city,binfo.address_shop,binfo.address_detail,auser.`name` AS sales_name,auser.phone AS asles_phone,buser.create_time ";
+        String select = "SELECT binfo.id AS business_id,binfo.phone AS business_phone,binfo.business_name,binfo.address_province,binfo.address_city,binfo.address_shop,binfo.address_detail,auser.`name` AS sales_name,auser.phone AS sales_phone,buser.create_time ";
         sql.append("FROM a_user auser JOIN b_business_user buser ON buser.a_user_sales_id = auser.id JOIN b_business_info binfo ON binfo.u_id = buser.id WHERE 1 = 1 ");
         String noStr = "全部";
         if (StrKit.notBlank(searchProvince) && !searchProvince.equals(noStr)) {
@@ -48,9 +48,21 @@ public class BusinessInfo extends BaseBusinessInfo<BusinessInfo> {
             sql.append("and auser.`name` LIKE ? ");
             params.add("%"+salesName+"%");
         }
+        if (StrKit.notBlank(sales_phone)) {
+            sql.append("and auser.phone = ? ");
+            params.add(sales_phone);
+        }
         if (StrKit.notBlank(business_name)) {
             sql.append("and binfo.business_name LIKE ? ");
             params.add("%"+business_name+"%");
+        }
+        if (StrKit.notBlank(business_id)) {
+            sql.append("and binfo.id = ? ");
+            params.add(business_id);
+        }
+        if (StrKit.notBlank(business_phone)) {
+            sql.append("and binfo.phone = ? ");
+            params.add(business_phone);
         }
         if(ArrayUtils.isNotEmpty(createTime) && createTime.length == 2){
             sql.append("and buser.create_time BETWEEN ? and ? ");
@@ -59,7 +71,7 @@ public class BusinessInfo extends BaseBusinessInfo<BusinessInfo> {
         }
         orderBy = StrKit.isBlank(orderBy) ? "sort" : orderBy;
         sql.append("ORDER BY " + orderBy + " " + (isASC ? "" : "DESC "));
-        System.out.println("sql:" + sql.toString());
+        System.out.println("sql:"+ select + sql.toString());
         return paginate(pageNum, pageSize, select, sql.toString(),params.toArray());
     }
 }
