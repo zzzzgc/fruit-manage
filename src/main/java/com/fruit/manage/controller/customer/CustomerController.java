@@ -37,8 +37,16 @@ public class CustomerController extends BaseController{
         }
     }
 
+    /**
+     * 获取商户数据
+     */
     public void getData(){
-        System.out.println("getData");
+        int pageNum = getParaToInt("pageNum", 1);
+        int pageSize = getParaToInt("pageSize", 10);
+
+        String orderBy = getPara("prop");
+        boolean isASC = "ascending".equals(getPara("order"));// ascending为升序，其他为降序
+        renderJson(BusinessInfo.dao.getData(pageNum, pageSize, orderBy, isASC));
     }
 
     /**
