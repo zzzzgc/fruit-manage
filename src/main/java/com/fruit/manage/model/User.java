@@ -107,4 +107,19 @@ public class User extends BaseUser<User> {
 					" where ur.user_id=u.id and ur.role_id=r.id and role_key='salesAdmin'";
 		return find(sql);
 	}
+
+	/**
+	 * 根据商户ID获取销售ID
+	 * @param businessInfoID
+	 * @return
+	 */
+	public User getSaleUserIDByBusinessInfoID(Integer businessInfoID){
+		StringBuilder sql=new StringBuilder();
+		sql.append("SELECT u.id ");
+		sql.append("from a_user_role ur,a_user u,a_role r ");
+		sql.append("where ur.user_id=u.id and ur.role_id=r.id and role_key='salesAdmin' ");
+		sql.append("and u.id = ( ");
+		sql.append("select bu.a_user_sales_id from b_business_user bu,b_business_info bi where bu.id=bi.u_id and bi.id=?)");
+		return dao.findFirst(sql.toString(),businessInfoID);
+	}
 }

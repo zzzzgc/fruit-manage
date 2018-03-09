@@ -67,11 +67,12 @@ public class CustomerController extends BaseController{
     public void info(){
         Integer id =getParaToInt("id");
         if (id==null || id<=0){
-            renderErrorText("商品ID不能为空");
+            renderErrorText("商户ID不能为空");
         }
         Map map =new HashMap();
         map.put("businessInfo",BusinessInfo.dao.getByID(id));
         map.put("businessAuth",BusinessAuth.dao.getBusinessAuthByBusinessInfoID(id));
+        map.put("saleUser",User.dao.getSaleUserIDByBusinessInfoID(id));
         renderJson(map);
     }
 
