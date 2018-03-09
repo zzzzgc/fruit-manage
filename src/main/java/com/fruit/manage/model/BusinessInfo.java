@@ -27,7 +27,6 @@ public class BusinessInfo extends BaseBusinessInfo<BusinessInfo> {
 				"bi.shipments_type from b_business_info bi where bi.id=?";
 		return findFirst(sql,id);
 	}
-    public static final BusinessInfo dao = new BusinessInfo().dao();
 
     public Page<BusinessInfo> getData(int pageNum, int pageSize, String orderBy, boolean isASC) {
         List<Object> params = new ArrayList<Object>();
