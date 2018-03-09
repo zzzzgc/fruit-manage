@@ -46,7 +46,6 @@ public class Order extends BaseOrder<Order> {
 			sql.append("and o.order_status  = ? ");
 			params.add(order.getOrderStatus());
 		}
-		
 		if(ArrayUtils.isNotEmpty(createTime) && createTime.length == 2){
 			sql.append("and o.create_time BETWEEN ? and ? ");
 			params.add(createTime[0] + " 00:00:00");
