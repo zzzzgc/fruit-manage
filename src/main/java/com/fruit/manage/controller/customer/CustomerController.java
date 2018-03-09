@@ -3,7 +3,6 @@ package com.fruit.manage.controller.customer;
 import com.fruit.manage.base.BaseController;
 import com.fruit.manage.model.BusinessAuth;
 import com.fruit.manage.model.BusinessInfo;
-import com.fruit.manage.util.Constant;
 import com.jfinal.aop.Before;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import org.apache.log4j.Logger;
@@ -34,11 +33,19 @@ public class CustomerController extends BaseController{
      * 获取商户数据
      */
     public void getData(){
+
         int pageNum = getParaToInt("pageNum", 1);
         int pageSize = getParaToInt("pageSize", 10);
 
+        String searchProvince = getPara("search_province");
+        String searchCity = getPara("search_city");
+        String salesName = getPara("sales_name");
+        String business_name = getPara("business_name");
+        String[] create_time = getParaValues("format_create_time");
+
         String orderBy = getPara("prop");
-        boolean isASC = "ascending".equals(getPara("order"));// ascending为升序，其他为降序
-        renderJson(BusinessInfo.dao.getData(pageNum, pageSize, orderBy, isASC));
+        // ascending为升序，其他为降序
+        boolean isASC = "ascending".equals(getPara("order"));
+        renderJson(BusinessInfo.dao.getData(searchProvince,searchCity,salesName,business_name,create_time,pageNum, pageSize, orderBy, isASC));
     }
 }
