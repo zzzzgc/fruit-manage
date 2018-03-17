@@ -1,34 +1,149 @@
 package com.fruit.manage.controller.order;
 
+import com.fruit.manage.base.BaseController;
+import com.fruit.manage.constant.OrderConstant;
+import com.fruit.manage.constant.OrderStatusCode;
+import com.fruit.manage.model.BusinessUser;
+import com.fruit.manage.model.Order;
+import com.fruit.manage.model.OrderDetail;
+import com.fruit.manage.model.User;
+import com.fruit.manage.util.Constant;
+import com.jfinal.aop.Before;
+import com.jfinal.plugin.activerecord.Page;
+import com.jfinal.plugin.activerecord.tx.Tx;
 import org.apache.log4j.Logger;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 
-import com.fruit.manage.base.BaseController;
-import com.fruit.manage.model.Order;
+import java.util.List;
+import java.util.Map;
 
+/**
+ * @author ZGC
+ * @date Created in 17:59 2018/3/16
+ */
 public class OrderController extends BaseController {
 
-	private Logger log = Logger.getLogger(getClass());
+    private Logger log = Logger.getLogger(getClass());
 
-	/**
-	 * 获取列表数据
-	 */
-	@RequiresPermissions("order:query")
-	public void getData(){
-		Order order = getModel(Order.class, "", true);
-		log.info("订单搜索参数order=" + order);
-		int pageNum = getParaToInt("pageNum", 1);
-		int pageSize = getParaToInt("pageSize", 10);
+    /**
+     * 获取所有订单的列表数据
+     */
+    @RequiresPermissions("order:query")
+    public void getData() {
+        Order order = getModel(Order.class, "", true);
+        log.info("订单搜索参数order=" + order);
+        int pageNum = getParaToInt("pageNum", 1);
+        int pageSize = getParaToInt("pageSize", 10);
 
-		String orderBy = getPara("prop");
+        String orderBy = getPara("prop");
 
-		// ascending为升序，其他为降序
-		boolean isASC = "ascending".equals(getPara("order"));
+        // ascending为升序，其他为降序
+        boolean isASC = "ascending".equals(getPara("order"));
 
-		// 下单时间
-		String[] orderTime = getParaValues("order_time");
+        // 下单时间
+        String[] orderTime = getParaValues("order_time");
 
-		renderJson(Order.dao.getData(order, orderTime, pageNum, pageSize, orderBy, isASC));
-	}
+        renderJson(Order.dao.getData(order, orderTime, pageNum, pageSize, orderBy, isASC));
+    }
 
+    /**
+     * 获取订单的列表数据
+     */
+    @RequiresPermissions("order:query")
+    public void getOtherData() {
+        int pageNum = getParaToInt("pageNum", 1);
+        int pageSize = getParaToInt("pageSize", 10);
+
+        String orderBy = getPara("prop");
+
+        String orderStatus = "0";
+
+        // ascending为升序，其他为降序
+        boolean isASC = "ascending".equals(getPara("order"));
+
+        Page<Order> orderPage = Order.dao.getOtherData(orderStatus, pageNum, pageSize, orderBy, isASC);
+
+        for (Order order : orderPage.getList()) {
+            String orderId = order.getOrderId();
+            List<OrderDetail> products = OrderDetail.dao.getOrderDetails(orderId);
+            order.put("products", products);
+            // 格式化订单状态
+            order.put("order_status", OrderConstant.ORDER_STATUS_MAP.get(order.getOrderStatus()));
+        }
+        renderJson(orderPage);
+    }
+
+    /**
+     * 修改订单状态(0删除 1进入下一个订单流程)
+     */
+    @Before(Tx.class)
+    public void setStatus() {
+        Integer isNext = getParaToInt("isNext");
+        String orderId = getPara("orderId");
+        Order order = Order.dao.getOrder(orderId);
+        if (isNext.equals(1)) {
+            // 进入下一个流程
+            Integer orderStatus = order.getOrderStatus();
+            order.setOrderStatus(OrderConstant.nextStatus(orderStatus));
+            order.update();
+        } else {
+            // 删除
+            order.setOrderStatus(OrderStatusCode.DELETED.getStatus());
+            order.update();
+        }
+        renderNull();
+    }
+
+    /**
+     * 获取单笔订单信息(编辑)
+     */
+    public void getOtherDataInfo() {
+        String orderId = getPara("orderId");
+        Order order = Order.dao.getOtherDataInfo(orderId);
+        List<OrderDetail> orderDetails = OrderDetail.dao.getOtherOrderDetail(orderId);
+        order.put("products",orderDetails);
+        renderJson(order);
+    }
+
+    /**
+     * 保存添加的新订单
+     */
+    public void save () {
+        Order order = getModel(Order.class);
+        Map<String, String[]> paraMap = getParaMap();
+    }
+
+    public void setStatusAll() {
+        renderErrorText("目前不做该功能,避免出现没有订单操作的情况");
+    }
+
+
+    /**
+     * 获取商户信息(添加)
+     */
+    public void getCustomers() {
+        Integer uid = getSessionAttr(Constant.SESSION_UID);
+        // 销售只能获取自己的客户,其他人能获取全部,但是其他人除了超级管理员都不能调用这个方法,因为权限控制.
+        // name必须为value ,是获取该值的关键(前端)
+        String sql = "SELECT\n" +
+                "\tu.`name` AS value,\n" +
+                "\tu.id,\n" +
+                "\tu.phone,\n" +
+                "\tu.nick_name,\n" +
+                "\tu.a_user_sales_id AS sales_id\n" +
+                "FROM\n" +
+                "\tb_business_user AS u ";
+        if (!User.dao.isSales(uid)) {
+            renderJson(BusinessUser.dao.find(sql));
+            return;
+        }
+        // 销售只能获取自己的客户
+        renderJson(BusinessUser.dao.find(sql + " WHERE u.a_user_sales_id = ? ", uid));
+        return;
+    }
+
+    public void getCustomerInfo() {
+        String businessUserName = getPara("businessUserName");
+        renderJson(Order.dao.getCustomerInfo(businessUserName));
+    }
 }

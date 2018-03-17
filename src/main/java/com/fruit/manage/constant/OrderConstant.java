@@ -1,22 +1,57 @@
 package com.fruit.manage.constant;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.LinkedHashMap;
 
+/**
+ * @author ZGC and LZZ
+ * @date Created in 16:38 2018/3/16
+ */
 public class OrderConstant {
 
-	public static Map<Integer, String> ORDER_STATUS_MAP;
-	static {
-		ORDER_STATUS_MAP = new HashMap<Integer, String>();
-//		ORDER_STATUS_MAP.put(-1, "已删除");
-		ORDER_STATUS_MAP.put(0, "等待付款");
-		ORDER_STATUS_MAP.put(1, "审核中");
-		ORDER_STATUS_MAP.put(2, "已审核");
-		ORDER_STATUS_MAP.put(3, "等待发货");
-		ORDER_STATUS_MAP.put(4, "待确认收货");
-		ORDER_STATUS_MAP.put(5, "交易成功");
-		ORDER_STATUS_MAP.put(6, "交易取消");
-		ORDER_STATUS_MAP.put(7, "已退费");
-	}
-	
+    /**
+     * LinkedHashMap可以按存入顺序输出是获取下一个状态码的关键.   声明规范:该流程必须按流程顺序排列,且尽量从不去更改
+     * 订单状态常量集合
+     */
+    public static LinkedHashMap<Integer, String> ORDER_STATUS_MAP;
+
+    static {
+        ORDER_STATUS_MAP = new LinkedHashMap<>();
+
+        // 商品状态，0-待确认；5-已确认；10-未配送；15-已配送；20-待付款；25-已完成(已配送 + 支付状态为=>已付款); 30-已退款; 40-已删除
+
+        ORDER_STATUS_MAP.put(0, "待确认");
+        ORDER_STATUS_MAP.put(5, "已确认");
+        ORDER_STATUS_MAP.put(10, "未配送");
+        ORDER_STATUS_MAP.put(15, "已配送");
+        ORDER_STATUS_MAP.put(20, "待付款");
+        ORDER_STATUS_MAP.put(25, "已完成");
+        ORDER_STATUS_MAP.put(30, "已退款");
+        ORDER_STATUS_MAP.put(40, "已删除");
+    }
+
+    /**
+     * 获取下一个流程的状态
+     * @return 下一个流程的状态码
+     */
+    public static Integer nextStatus(Integer status) {
+        boolean isNextData = false;
+        for (Integer integer : ORDER_STATUS_MAP.keySet()) {
+            if (isNextData) {
+                return integer;
+            }
+            if (integer.equals(status)) {
+                isNextData = true;
+            }
+        }
+        if (isNextData) {
+            throw new RuntimeException("这是最后一个订单状态码了");
+        } else {
+            throw new RuntimeException("订单状态码不存在");
+        }
+    }
+
+    public static void main(String[] args) {
+        System.out.println(nextStatus(15));
+    }
+
 }

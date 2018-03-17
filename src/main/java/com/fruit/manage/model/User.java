@@ -122,4 +122,17 @@ public class User extends BaseUser<User> {
 		sql.append("select bu.a_user_sales_id from b_business_user bu,b_business_info bi where bu.id=bi.u_id and bi.id=?)");
 		return dao.findFirst(sql.toString(),businessInfoID);
 	}
+
+	/**
+	 * 判断是否是销售人员
+	 * @return 是不是销售 true 是  false 不是
+	 */
+	public boolean isSales(Integer uid) {
+		User user = dao.findById(uid);
+		Integer isSales = user.getIsSales();
+		if (isSales == 0) {
+			return false;
+		}
+		return true;
+	}
 }

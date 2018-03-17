@@ -14,48 +14,151 @@ import com.jfinal.plugin.activerecord.Page;
  */
 @SuppressWarnings("serial")
 public class Order extends BaseOrder<Order> {
-	public static final Order dao = new Order().dao();
+    public static final Order dao = new Order().dao();
 
-	/**
-	 * 分页获取数据
-	 * @param order
-	 * @param createTime
-	 * @param pageNum
-	 * @param pageSize
-	 * @param orderBy
-	 * @param isASC
-	 * @return
-	 */
-	public Page<Order> getData(Order order, String[] createTime, int pageNum, int pageSize, String orderBy, boolean isASC){
-		List<Object> params = new ArrayList<Object>();
-		StringBuffer sql = new StringBuffer();
-		sql.append("FROM b_order_detail AS od INNER JOIN b_order AS o ON od.order_id = o.order_id WHERE 1 = 1 ");
-		if(StrKit.notBlank(order.getOrderId())){
-			sql.append("and o.order_id = ? ");
-			params.add(order.getOrderId());
-		}
-		if(order.get("product_id")!=null && StrKit.notBlank(order.get("product_id").toString())){
-			sql.append("and od.product_id = ? ");
-			params.add(order.get("productId"));
-		}
-		if(order.getUId() != null && order.getUId() > 0){
-			sql.append("and od.buy_uid = ? ");
-			params.add(order.getUId());
-		}
-		if(order.getOrderStatus() != null && order.getOrderStatus() >= 0){
-			sql.append("and o.order_status  = ? ");
-			params.add(order.getOrderStatus());
-		}
-		if(ArrayUtils.isNotEmpty(createTime) && createTime.length == 2){
-			sql.append("and o.create_time BETWEEN ? and ? ");
-			params.add(createTime[0] + " 00:00:00");
-			params.add(createTime[1] + " 23:59:59");
-		}
-		orderBy = StrKit.isBlank(orderBy)?"o.create_time":orderBy;
-		sql.append("order by "+orderBy+" "+(isASC?"":"desc "));
 
-		System.out.println("select * "+sql.toString());
-		
-		return paginate(pageNum, pageSize, "select * ", sql.toString(), params.toArray());
-	}
+    /**
+     * 获取订单
+     *
+     * @param orderId
+     * @return
+     */
+    public Order getOrder(String orderId) {
+        String sql = "SELECT * FROM b_order o WHERE o.order_id = ? ";
+        return dao.findFirst(sql, orderId);
+    }
+
+    /**
+     * 分页获取数据
+     *
+     * @param order
+     * @param createTime
+     * @param pageNum
+     * @param pageSize
+     * @param orderBy
+     * @param isASC
+     * @return
+     */
+    public Page<Order> getData(Order order, String[] createTime, int pageNum, int pageSize, String orderBy, boolean isASC) {
+        List<Object> params = new ArrayList<Object>();
+        StringBuffer sql = new StringBuffer();
+        sql.append("FROM b_order_detail AS od INNER JOIN b_order AS o ON od.order_id = o.order_id WHERE 1 = 1 ");
+        if (StrKit.notBlank(order.getOrderId())) {
+            sql.append("and o.order_id = ? ");
+            params.add(order.getOrderId());
+        }
+        if (order.get("product_id") != null && StrKit.notBlank(order.get("product_id").toString())) {
+            sql.append("and od.product_id = ? ");
+            params.add(order.get("productId"));
+        }
+        if (order.getUId() != null && order.getUId() > 0) {
+            sql.append("and od.buy_uid = ? ");
+            params.add(order.getUId());
+        }
+        if (order.getOrderStatus() != null && order.getOrderStatus() >= 0) {
+            sql.append("and o.order_status  = ? ");
+            params.add(order.getOrderStatus());
+        }
+        if (ArrayUtils.isNotEmpty(createTime) && createTime.length == 2) {
+            sql.append("and o.create_time BETWEEN ? and ? ");
+            params.add(createTime[0] + " 00:00:00");
+            params.add(createTime[1] + " 23:59:59");
+        }
+        orderBy = StrKit.isBlank(orderBy) ? "o.create_time" : orderBy;
+        sql.append("order by " + orderBy + " " + (isASC ? "" : "desc "));
+
+        System.out.println("select * " + sql.toString());
+        return paginate(pageNum, pageSize, "select * ", sql.toString(), params.toArray());
+    }
+
+    /**
+     * 不同状态订单的展示
+     * @param orderStatus
+     * @param pageNum
+     * @param pageSize
+     * @param orderBy
+     * @param isASC
+     * @return
+     */
+    public Page<Order> getOtherData(String orderStatus, int pageNum, int pageSize, String orderBy, boolean isASC) {
+        StringBuffer sql = new StringBuffer();
+        String selectStr = "SELECT\n" +
+                "\to.order_status,\n" +
+                "\to.pay_need_money,\n" +
+                "\to.pay_total_money,\n" +
+                "\to.pay_status,\n" +
+                "\to.pay_success,\n" +
+                "\to.create_time,\n" +
+                "\to.update_time,\n" +
+                "\to.order_id,\n" +
+                "\tau.`name` AS a_user_sales,\n" +
+                "\tinfo.business_name,\n" +
+                "\tinfo.id AS business_info_id,\n" +
+                "\tCONCAT(\n" +
+                "\t\tinfo.address_province,\n" +
+                "\t\tinfo.address_city,\n" +
+                "\t\tinfo.address_detail\n" +
+                "\t) AS address ";
+        sql.append("FROM\n" +
+                "\tb_order AS o\n" +
+                "INNER JOIN b_business_user AS u ON o.u_id = u.id\n" +
+                "INNER JOIN b_business_info AS info ON u.id = info.u_id\n" +
+                "INNER JOIN a_user AS au ON u.a_user_sales_id = au.id WHERE 1 = 1 ");
+        sql.append("AND o.order_status = ? ");
+        orderBy = StrKit.isBlank(orderBy) ? "o.create_time" : orderBy;
+        sql.append("order by " + orderBy + " " + (isASC ? "" : "desc "));
+        System.out.println(selectStr + sql.toString());
+        return paginate(pageNum, pageSize, selectStr, sql.toString(), orderStatus);
+    }
+
+    /**
+     * 订单编辑或订单详细
+     * @param orderId
+     * @return
+     */
+    public Order getOtherDataInfo(String orderId) {
+        String selectStr = "SELECT\n" +
+                "info.id AS business_info_id,\n" +
+                "\tau.`name` AS a_user_sales,\n" +
+                "\to.order_id,\n" +
+                "\to.order_status,\n" +
+                "\to.create_time,\n" +
+                "\to.pay_need_money,\n" +
+                "\tinfo.business_name,\n" +
+                "\to.buy_address,\n" +
+                "\to.buy_phone,\n" +
+                "\to.buy_user_name,\n" +
+                "\to.delivery_type ";
+
+        StringBuffer sql = new StringBuffer();
+        sql.append("FROM\n" +
+                "\tb_order AS o\n" +
+                "INNER JOIN b_business_user AS u ON o.u_id = u.id\n" +
+                "INNER JOIN b_business_info AS info ON u.id = info.u_id\n" +
+                "INNER JOIN a_user AS au ON u.a_user_sales_id = au.id WHERE 1 = 1 ");
+        sql.append("AND o.order_id = ? ");
+        System.out.println(selectStr + sql.toString());
+        return dao.findFirst(selectStr+sql,orderId);
+    }
+
+    public Order getCustomerInfo(String businessUserName){
+        StringBuffer sql = new StringBuffer();
+        String selectStr = "SELECT\n" +
+                "\tCONCAT(\n" +
+                "\t\tinfo.address_province,\n" +
+                "\t\tinfo.address_city,\n" +
+                "\t\tinfo.address_detail\n" +
+                "\t) AS buy_address,\n" +
+                "\tau.`name` AS a_user_sales,\n" +
+                "\tinfo.phone AS buy_phone,\n" +
+                "\tu.`name` AS buy_user_name,\n" +
+                "\tinfo.shipments_type AS delivery_type,\n" +
+                "\tDATE_FORMAT(NOW(), '%Y %T') AS create_time ";
+        sql.append("FROM\n" +
+                "\tb_business_user AS u\n" +
+                "INNER JOIN b_business_info AS info ON u.id = info.u_id\n" +
+                "INNER JOIN a_user AS au ON u.a_user_sales_id = au.id WHERE 1 = 1 ");
+        sql.append("AND u.`name` = ? ");
+        return dao.findFirst(selectStr + sql,businessUserName);
+    }
 }

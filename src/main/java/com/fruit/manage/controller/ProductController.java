@@ -29,7 +29,9 @@ public class ProductController extends BaseController {
 	@RequiresPermissions("product:edit")
 	public void setStatus(int status) {
 		Integer[] ids = getParaValuesToInt("ids");
-		log.info("修改商品("+ StringUtils.join(ids, ",") +")状态为:" + status);// TODO 获取当前登录用户
+
+		// TODO 获取当前登录用户
+		log.info("修改商品("+ StringUtils.join(ids, ",") +")状态为:" + status);
 		if(ids == null || ids.length == 0) {
 			renderErrorText("商品ID不能为空");
 			return;

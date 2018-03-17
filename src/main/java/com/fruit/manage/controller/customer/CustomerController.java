@@ -5,6 +5,7 @@ import com.fruit.manage.model.BusinessAuth;
 import com.fruit.manage.model.BusinessInfo;
 import com.fruit.manage.model.BusinessUser;
 import com.fruit.manage.model.User;
+import com.fruit.manage.util.Constant;
 import com.jfinal.aop.Before;
 import com.jfinal.kit.HashKit;
 import com.jfinal.plugin.activerecord.tx.Tx;
@@ -60,9 +61,8 @@ public class CustomerController extends BaseController{
         BusinessUser.dao.updateBusinessUserSaleIDByUid(1, saleUserId);
     }
 
-
     /**
-     * 获取商户数据a
+     * 获取商户数据
      */
     public void getData(){
 
@@ -99,6 +99,24 @@ public class CustomerController extends BaseController{
         map.put("businessAuth",BusinessAuth.dao.getBusinessAuthByBusinessInfoID(id));
         map.put("saleUser",User.dao.getSaleUserIDByBusinessInfoID(id));
         renderJson(map);
+    }
+
+    /**
+     * 销售角色和订单管理权限的用户获取商户的部分信息
+     */
+    public void  getCustomerInfo() {
+        Integer uid = getSessionAttr(Constant.SESSION_UID);
+        renderJson(BusinessUser.dao.getBusinessUsersByUid(uid));
+    }
+
+    /**
+     * 销售角色和订单管理权限的用户获取商户的部分信息
+     * 只能去服务器查(更保密)
+     */
+    public void  getCustomerInfoByQuery() {
+        Integer uid = getSessionAttr(Constant.SESSION_UID);
+        String queryString = getPara("QueryString", " ");
+        renderJson(BusinessUser.dao.getBusinessUsersByUidAndQuery(uid,queryString));
     }
 
     /**
