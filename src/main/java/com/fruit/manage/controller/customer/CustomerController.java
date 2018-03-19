@@ -125,4 +125,12 @@ public class CustomerController extends BaseController{
     public void getAllSaleUser(){
         renderJson(User.dao.getAllUserByRoleKey());
     }
+
+    /**
+     * 根据手机号码判断是否存在该商户
+     */
+    public void getBusinessUserByPhone(){
+        String phone =getPara("phone");
+        renderJson(BusinessUser.dao.getBusinessUserByPhone(phone));
+    }
 }

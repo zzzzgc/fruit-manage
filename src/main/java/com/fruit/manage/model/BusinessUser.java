@@ -67,4 +67,14 @@ public class BusinessUser extends BaseBusinessUser<BusinessUser> {
         // 销售只能获取自己的客户
         return dao.find(sql + " WHERE u.a_user_sales_id = ? AND u.`name` LIKE CONCAT('%','?,'%')", uid,queryString);
     }
+
+    /**
+     * 根据手机号码获取商户信息
+     * @param phone 手机号码
+     * @return 返回一个商户信息
+     */
+    public BusinessUser getBusinessUserByPhone(String phone){
+        String sql="select * from b_business_user bu where bu.phone = ?";
+        return dao.findFirst(sql,phone);
+    }
 }
