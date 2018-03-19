@@ -69,6 +69,16 @@ public class BusinessUser extends BaseBusinessUser<BusinessUser> {
     }
 
     /**
+     * 根据手机号码获取商户信息
+     * @param phone 手机号码
+     * @return 返回一个商户信息
+     */
+    public BusinessUser getBusinessUserByPhone(String phone){
+        String sql="select * from b_business_user bu where bu.phone = ?";
+        return dao.findFirst(sql,phone);
+    }
+
+    /**
      * 获取商户必要信息
      * @param customerId
      * @return

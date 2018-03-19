@@ -4,6 +4,7 @@ import java.util.*;
 
 import com.fruit.manage.base.BaseController;
 import com.fruit.manage.constant.OrderConstant;
+import com.fruit.manage.constant.ShipmentConstant;
 import com.fruit.manage.model.Menu;
 import com.fruit.manage.model.Permission;
 import com.fruit.manage.util.Constant;
@@ -95,6 +96,13 @@ public class CommonController extends BaseController {
      */
     public void getAllOrderStatus() {
         renderJson(OrderConstant.ORDER_STATUS_MAP);
+    }
+
+    /**
+     * 获取所有物流发送方式
+     */
+    public void getAllShipmentType(){
+        renderJson(ShipmentConstant.SHIPMENT_TYPE);
     }
 }
 
