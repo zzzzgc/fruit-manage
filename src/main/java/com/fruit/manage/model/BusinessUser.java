@@ -67,4 +67,30 @@ public class BusinessUser extends BaseBusinessUser<BusinessUser> {
         // 销售只能获取自己的客户
         return dao.find(sql + " WHERE u.a_user_sales_id = ? AND u.`name` LIKE CONCAT('%','?,'%')", uid,queryString);
     }
+
+    /**
+     * 获取商户必要信息
+     * @param customerId
+     * @return
+     */
+    public BusinessUser getCustomerInfo(String customerId){
+        StringBuffer sql = new StringBuffer();
+        String selectStr = "SELECT\n" +
+                "\tCONCAT(\n" +
+                "\t\tinfo.address_province,\n" +
+                "\t\tinfo.address_city,\n" +
+                "\t\tinfo.address_detail\n" +
+                "\t) AS buy_address,\n" +
+                "\tau.`name` AS a_user_sales,\n" +
+                "\tinfo.phone AS buy_phone,\n" +
+                "\tu.`name` AS buy_user_name,\n" +
+                "\tinfo.shipments_type AS delivery_type,\n" +
+                "\tDATE_FORMAT(NOW(), '%Y %T') AS create_time ";
+        sql.append("FROM\n" +
+                "\tb_business_user AS u\n" +
+                "INNER JOIN b_business_info AS info ON u.id = info.u_id\n" +
+                "INNER JOIN a_user AS au ON u.a_user_sales_id = au.id WHERE 1 = 1 ");
+        sql.append("AND u.id = ? ");
+        return dao.findFirst(selectStr + sql,customerId);
+    }
 }

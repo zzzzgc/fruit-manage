@@ -3,10 +3,7 @@ package com.fruit.manage.controller.order;
 import com.fruit.manage.base.BaseController;
 import com.fruit.manage.constant.OrderConstant;
 import com.fruit.manage.constant.OrderStatusCode;
-import com.fruit.manage.model.BusinessUser;
-import com.fruit.manage.model.Order;
-import com.fruit.manage.model.OrderDetail;
-import com.fruit.manage.model.User;
+import com.fruit.manage.model.*;
 import com.fruit.manage.util.Constant;
 import com.jfinal.aop.Before;
 import com.jfinal.plugin.activerecord.Page;
@@ -95,7 +92,7 @@ public class OrderController extends BaseController {
     }
 
     /**
-     * 获取单笔订单信息(编辑)
+     * 获取单笔订单信息(编辑订单)
      */
     public void getOtherDataInfo() {
         String orderId = getPara("orderId");
@@ -119,7 +116,7 @@ public class OrderController extends BaseController {
 
 
     /**
-     * 获取商户信息(添加)
+     * 获取商户信息(添加订单)
      */
     public void getCustomers() {
         Integer uid = getSessionAttr(Constant.SESSION_UID);
@@ -142,8 +139,36 @@ public class OrderController extends BaseController {
         return;
     }
 
+    /**
+     * 获取商户信息(添加订单)
+     */
     public void getCustomerInfo() {
-        String businessUserName = getPara("businessUserName");
-        renderJson(Order.dao.getCustomerInfo(businessUserName));
+        String customerId = getPara("customerId");
+        renderJson(BusinessUser.dao.getCustomerInfo(customerId));
     }
+
+    /**
+     * 服务器查询商品信息,并返回供用户选择的商品信息[value字段](编辑)
+     */
+    public void getProductInfoByQuery() {
+        String queryString = getPara("queryString");
+        renderJson(Product.dao.getProductNameByQueryString(queryString));
+    }
+
+    /**
+     * 获取商品信息(添加/修改订单)
+     */
+    public void getProductInfo() {
+        String businessUserName = getPara("businessUserName");
+        renderJson(BusinessUser.dao.getCustomerInfo(businessUserName));
+    }
+
+    /**
+     * 获取商品规格信息(添加/修改订单)
+     */
+    public void getProductIdStandardsInfo() {
+        String productId = getPara("productId");
+        renderJson(ProductStandard.dao.getProductIdStandardsInfo(productId));
+    }
+
 }
