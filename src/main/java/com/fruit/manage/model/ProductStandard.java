@@ -87,6 +87,28 @@ public class ProductStandard extends BaseProductStandard<ProductStandard> {
 		});
 	}
 
+    /**
+     * 获取商品的必要的规格信息
+     * @param productId
+     * @return
+     */
+	public List<ProductStandard> getProductIdStandardsInfo(String productId) {
+	    String sql = "SELECT\n" +
+                "\tps.gross_weight,\n" +
+                "\tps.sell_price,\n" +
+                "\tps.sell_price AS original_price,\n" +
+                "\tps.id AS product_standard_id,\n" +
+                "\tps.`name` AS product_standard_name,\n" +
+                "\tps.product_id,\n" +
+                "\tp.`name` AS product_name,\n" +
+                "\tp.brand\n" +
+                "FROM\n" +
+                "\tb_product_standard AS ps\n" +
+                "INNER JOIN b_product AS p ON ps.product_id = p.id\n" +
+                "AND p.id = ? ";
+		return dao.find(sql,productId);
+	}
+
 // 修改完状态，刷新商品列表
 	// 保存完也刷新列表
 

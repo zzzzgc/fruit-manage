@@ -121,4 +121,13 @@ public class Product extends BaseProduct<Product> {
 		});
 	}
 
+	/**
+	 * 用于获取用户模糊查询商品的商品列表
+	 * @param queryString
+	 * @return
+	 */
+	public List<Product> getProductNameByQueryString(String queryString) {
+		String sql = "SELECT p.`name` AS product_name,p.brand,p.id AS product_id FROM b_product p  WHERE p.`name` LIKE CONCAT('%',?,'%')";
+		return dao.find(sql,queryString);
+	}
 }
