@@ -265,5 +265,14 @@ public class OrderController extends BaseController {
         return orderId;
     }
 
+    /**
+     * 编辑订单的时候,删除商品(修改)
+     */
+    public void deleteProductForEdit(){
+        String orderDetailId = getPara("orderDetailId");
+        OrderDetail.dao.deleteById(orderDetailId);
+        renderNull();
+    }
+
 
 }
