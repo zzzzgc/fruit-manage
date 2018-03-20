@@ -6,6 +6,8 @@ import com.fruit.manage.constant.OrderStatusCode;
 import com.fruit.manage.model.*;
 import com.fruit.manage.util.Constant;
 import com.jfinal.aop.Before;
+import com.jfinal.json.FastJson;
+import com.jfinal.kit.JsonKit;
 import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import org.apache.log4j.Logger;
@@ -106,7 +108,23 @@ public class OrderController extends BaseController {
      * 保存添加的新订单
      */
     public void save () {
-        Order order = getModel(Order.class);
+        Order order = getModel(Order.class, "", true);
+        Object[] products = (Object[])getParaValues("products");
+
+        OrderDetail[] products1 = JsonKit.parse(getPara("products"), OrderDetail[].class);
+        // TODO 未完成
+        for (Object product : products) {
+
+        }
+        if (order.getOrderId() != null) {
+
+            // 编辑 TODO 需要重新计算金额
+            order.update();
+        } else {
+            //添加
+            // 生成订单号
+            //
+        }
         Map<String, String[]> paraMap = getParaMap();
     }
 
