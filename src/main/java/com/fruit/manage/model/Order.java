@@ -114,10 +114,11 @@ public class Order extends BaseOrder<Order> {
                 "INNER JOIN b_product as p on p.id = od.product_id "+
                 "inner join b_product_standard ps  on ps.product_id=p.id "+
                 "WHERE 1 = 1 ");
+        // 必须添加订单订单状态
         sql.append("AND o.order_status = ? ");
+        params.add(orderStatus);
 
         String noStr = "全部";
-        params.add(orderStatus);
         if(StrKit.notBlank((String)map.get("searchProvince")) && !noStr.equals(map.get("searchProvince"))){
             sql.append("and info.address_province LIKE ? ");
             params.add("%"+map.get("searchProvince")+"%");
