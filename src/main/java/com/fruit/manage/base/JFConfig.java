@@ -11,6 +11,8 @@ import com.jfinal.config.Plugins;
 import com.jfinal.config.Routes;
 import com.jfinal.kit.PropKit;
 import com.jfinal.plugin.activerecord.ActiveRecordPlugin;
+import com.jfinal.plugin.activerecord.tx.Tx;
+import com.jfinal.plugin.activerecord.tx.TxByActionKeyRegex;
 import com.jfinal.plugin.ehcache.EhCachePlugin;
 import com.jfinal.plugin.hikaricp.HikariCpPlugin;
 import com.jfinal.template.Engine;
@@ -25,6 +27,7 @@ public class JFConfig extends JFinalConfig {
 	/**
 	 * 配置常量
 	 */
+	@Override
 	public void configConstant(Constants me) {
 		PropKit.use("setting.properties");
 		me.setDevMode(PropKit.getBoolean("devMode", false));
@@ -38,6 +41,7 @@ public class JFConfig extends JFinalConfig {
 	/**
 	 * 配置路由
 	 */
+	@Override
 	public void configRoute(Routes me) {
 		this.routes = new BaseRoutesConfig();
 		me.add(routes);
@@ -45,7 +49,8 @@ public class JFConfig extends JFinalConfig {
 //		routeBind.autoScan(false);
 //		me.add(routeBind);
 	}
-	
+
+	@Override
 	public void configEngine(Engine me) {
 		//me.addSharedFunction("/common/_layout.html");
 		//me.addSharedFunction("/common/_paginate.html");
@@ -54,6 +59,7 @@ public class JFConfig extends JFinalConfig {
 	/**
 	 * 配置插件
 	 */
+	@Override
 	public void configPlugin(Plugins me) {
 		// 配置数据库连接池插件
 //		DruidPlugin dataSource = new DruidPlugin(PropKit.get("db.url"), PropKit.get("db.user"), 
@@ -92,16 +98,19 @@ public class JFConfig extends JFinalConfig {
 	/**
 	 * 配置全局拦截器
 	 */
+	@Override
 	public void configInterceptor(Interceptors me) {
 		//me.add(new LoginInterceptor());
 //		me.add(new AllowCrossDomain());
 //		me.add(new UrlShiroInterceptor());
 		me.add(new ShiroInterceptor());
+//		me.add(new Tx());
 	}
 	
 	/**
 	 * 配置处理器
 	 */
+	@Override
 	public void configHandler(Handlers me) {
 //		me.add(new PageHandler());
 	}

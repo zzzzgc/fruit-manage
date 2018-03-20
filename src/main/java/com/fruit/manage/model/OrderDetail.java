@@ -23,6 +23,7 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
 	public List<OrderDetail> getOtherOrderDetail(String orderid) {
 		String sql = "SELECT\n" +
 				"\to.product_name,\n" +
+				"\to.id,\n" +
 				"\to.product_standard_name,\n" +
 				"\to.num,\n" +
 				"\to.original_price,\n" +

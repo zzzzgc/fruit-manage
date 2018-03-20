@@ -1,18 +1,21 @@
 package com.fruit.manage.controller.order;
 
+import com.alibaba.fastjson.JSON;
 import com.fruit.manage.base.BaseController;
 import com.fruit.manage.constant.OrderConstant;
 import com.fruit.manage.constant.OrderStatusCode;
 import com.fruit.manage.model.*;
 import com.fruit.manage.util.Constant;
 import com.jfinal.aop.Before;
-import com.jfinal.json.FastJson;
-import com.jfinal.kit.JsonKit;
+import com.jfinal.ext2.kit.DateTimeKit;
+import com.jfinal.ext2.kit.RandomKit;
 import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import org.apache.log4j.Logger;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 
+import java.math.BigDecimal;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +27,8 @@ import java.util.Map;
 public class OrderController extends BaseController {
 
     private Logger log = Logger.getLogger(getClass());
+
+    private static long PAY_COUNT = 10000L;
 
     /**
      * 获取所有订单的列表数据
@@ -55,26 +60,26 @@ public class OrderController extends BaseController {
         int pageSize = getParaToInt("pageSize", 10);
 
         String orderBy = getPara("prop");
-        Map paramMap=new HashMap();
-        paramMap.put("searchProvince",getPara("search_province")); // 省份
-        paramMap.put("searchCity",getPara("search_city")); // 城市
-        paramMap.put("customerName",getPara("customer_name")); // 客户名称
-        paramMap.put("customerPhone",getPara("customer_phone")); // 客户电话
-        paramMap.put("customerID",getPara("customer_id")); //客户编号
-        paramMap.put("productName",getPara("product_name")); // 商品名称
-        paramMap.put("productID",getPara("product_id")); //商品编号
-        paramMap.put("standardName",getPara("standard_name")); //规格名称
-        paramMap.put("standardID",getPara("standard_id")); //规格编号
-        paramMap.put("createTime",getParaValues("format_create_time"));//开始时间和结束时间
-        paramMap.put("businessInfoName",getPara("businessInfo_name")); //商铺名称
-        paramMap.put("businessInfoID",getPara("businessInfo_id")); // 商铺ID
+        Map paramMap = new HashMap(20);
+        paramMap.put("searchProvince", getPara("search_province")); // 省份
+        paramMap.put("searchCity", getPara("search_city")); // 城市
+        paramMap.put("customerName", getPara("customer_name")); // 客户名称
+        paramMap.put("customerPhone", getPara("customer_phone")); // 客户电话
+        paramMap.put("customerID", getPara("customer_id")); //客户编号
+        paramMap.put("productName", getPara("product_name")); // 商品名称
+        paramMap.put("productID", getPara("product_id")); //商品编号
+        paramMap.put("standardName", getPara("standard_name")); //规格名称
+        paramMap.put("standardID", getPara("standard_id")); //规格编号
+        paramMap.put("createTime", getParaValues("format_create_time"));//开始时间和结束时间
+        paramMap.put("businessInfoName", getPara("businessInfo_name")); //商铺名称
+        paramMap.put("businessInfoID", getPara("businessInfo_id")); // 商铺ID
 
         String orderStatus = "0";
 
         // ascending为升序，其他为降序
         boolean isASC = "ascending".equals(getPara("order"));
 
-        Page<Order> orderPage = Order.dao.getOtherData(orderStatus, pageNum, pageSize, orderBy, isASC,paramMap);
+        Page<Order> orderPage = Order.dao.getOtherData(orderStatus, pageNum, pageSize, orderBy, isASC, paramMap);
 
         for (Order order : orderPage.getList()) {
             String orderId = order.getOrderId();
@@ -114,32 +119,64 @@ public class OrderController extends BaseController {
         String orderId = getPara("orderId");
         Order order = Order.dao.getOtherDataInfo(orderId);
         List<OrderDetail> orderDetails = OrderDetail.dao.getOtherOrderDetail(orderId);
-        order.put("products",orderDetails);
+        order.put("products", orderDetails);
         renderJson(order);
     }
 
     /**
      * 保存添加的新订单
      */
-    public void save () {
+    @Before(Tx.class)
+    public void save() {
         Order order = getModel(Order.class, "", true);
-        Object[] products = (Object[])getParaValues("products");
+        String products = getPara("products");
+        Integer business_user_id = getParaToInt("business_user_id");
+        List<OrderDetail> orderDetails = JSON.parseArray(products, OrderDetail.class);
+        BigDecimal payNeedMoney = new BigDecimal(0);
 
-        OrderDetail[] products1 = JsonKit.parse(getPara("products"), OrderDetail[].class);
-        // TODO 未完成
-        for (Object product : products) {
-
-        }
         if (order.getOrderId() != null) {
-
-            // 编辑 TODO 需要重新计算金额
+            for (OrderDetail orderDetail : orderDetails) {
+                Integer num = orderDetail.getNum();
+                BigDecimal sellPrice = orderDetail.getSellPrice();
+                // 该商品的真实支付总价
+                BigDecimal totalPay = sellPrice.multiply(new BigDecimal(num));
+                orderDetail.setTotalPay(totalPay);
+                payNeedMoney = payNeedMoney.add(totalPay);
+                if (orderDetail.getId() != null) {
+                    orderDetail.update();
+                } else {
+                    orderDetail.setOrderId(order.getOrderId());
+                    orderDetail.save();
+                }
+            }
+            order.setPayNeedMoney(payNeedMoney);
             order.update();
         } else {
             //添加
-            // 生成订单号
-            //
+            order.setOrderId(getNewOrderId());
+            Date now = new Date();
+            for (OrderDetail orderDetail : orderDetails) {
+                Integer num = orderDetail.getNum();
+                BigDecimal sellPrice = orderDetail.getSellPrice();
+                // 该商品的真实支付总价
+                BigDecimal totalPay = sellPrice.multiply(new BigDecimal(num));
+                orderDetail.setTotalPay(totalPay);
+                payNeedMoney = payNeedMoney.add(totalPay);
+                orderDetail.setUpdateTime(now);
+                orderDetail.setCreateTime(now);
+                orderDetail.setBuyUid(business_user_id);
+                orderDetail.setOrderId(order.getOrderId());
+                orderDetail.save();
+            }
+            order.setUpdateTime(now);
+            order.setCreateTime(now);
+            order.setPayNeedMoney(payNeedMoney);
+            order.setPayTotalMoney(new BigDecimal(0));
+            order.setUId(business_user_id);
+            order.save();
         }
-        Map<String, String[]> paraMap = getParaMap();
+        // 成功
+        renderNull();
     }
 
     public void setStatusAll() {
@@ -156,7 +193,7 @@ public class OrderController extends BaseController {
         // name必须为value ,是获取该值的关键(前端)
         String sql = "SELECT\n" +
                 "\tu.`name` AS value,\n" +
-                "\tu.id,\n" +
+                "\tu.id AS business_user_id,\n" +
                 "\tu.phone,\n" +
                 "\tu.nick_name,\n" +
                 "\tu.a_user_sales_id AS sales_id\n" +
@@ -180,7 +217,7 @@ public class OrderController extends BaseController {
     }
 
     /**
-     * 服务器查询商品信息,并返回供用户选择的商品信息[value字段](编辑)
+     * 服务器查询商品信息,并返回供用户选择的商品信息(编辑)
      */
     public void getProductInfoByQuery() {
         String queryString = getPara("queryString");
@@ -202,5 +239,19 @@ public class OrderController extends BaseController {
         String productId = getPara("productId");
         renderJson(ProductStandard.dao.getProductIdStandardsInfo(productId));
     }
+
+    /**
+     * 支付id生成规则
+     *
+     * @return 新的订单id
+     */
+    private String getNewOrderId() {
+        String orderId;
+        synchronized (OrderController.class) {
+            orderId = DateTimeKit.formatDateToStyle("yyMMddhhmmss", new Date()) + "-" + PAY_COUNT++ + RandomKit.random(1000, 9999);
+        }
+        return orderId;
+    }
+
 
 }

@@ -92,6 +92,7 @@ public class BusinessUser extends BaseBusinessUser<BusinessUser> {
                 "\t\tinfo.address_detail\n" +
                 "\t) AS buy_address,\n" +
                 "\tau.`name` AS a_user_sales,\n" +
+                "\tu.id AS business_user_id,\n" +
                 "\tinfo.phone AS buy_phone,\n" +
                 "\tu.`name` AS buy_user_name,\n" +
                 "\tinfo.shipments_type AS delivery_type,\n" +

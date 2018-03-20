@@ -99,6 +99,7 @@ public class Order extends BaseOrder<Order> {
                 "\tau.`name` AS a_user_sales,\n" +
                 "\tinfo.business_name,\n" +
                 "\tinfo.id AS business_info_id,\n" +
+                "\tu.id AS business_user_id,\n" +
                 "\tCONCAT(\n" +
                 "\t\tinfo.address_province,\n" +
                 "\t\tinfo.address_city,\n" +
@@ -183,8 +184,9 @@ public class Order extends BaseOrder<Order> {
      */
     public Order getOtherDataInfo(String orderId) {
         String selectStr = "SELECT\n" +
-                "info.id AS business_info_id,\n" +
+                "o.id AS business_user_id,\n" +
                 "\tau.`name` AS a_user_sales,\n" +
+                "\to.id,\n" +
                 "\to.order_id,\n" +
                 "\to.order_status,\n" +
                 "\to.create_time,\n" +

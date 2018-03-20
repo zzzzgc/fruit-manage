@@ -100,6 +100,7 @@ public class ProductStandard extends BaseProductStandard<ProductStandard> {
                 "\tps.id AS product_standard_id,\n" +
                 "\tps.`name` AS product_standard_name,\n" +
                 "\tps.product_id,\n" +
+                "\tp.measure_unit,\n" +
                 "\tp.`name` AS product_name,\n" +
                 "\tp.brand\n" +
                 "FROM\n" +

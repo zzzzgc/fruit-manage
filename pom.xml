@@ -59,11 +59,11 @@
 			<version>3.2</version>
 		</dependency>
 		<!-- jFinal扩展 -->
-		<!-- <dependency>
+		 <dependency>
 			<groupId>com.jfinal</groupId>
 			<artifactId>jfinal-ext2</artifactId>
 			<version>2.0.8</version>
-		</dependency> -->
+		</dependency>
 		<!-- jfinal 事件插件 -->
 		<dependency>
 			<groupId>net.dreamlu</groupId>
@@ -137,6 +137,13 @@
 			<groupId>commons-logging</groupId>
 			<artifactId>commons-logging</artifactId>
 			<version>1.2</version>
+		</dependency>
+
+		<!--JSON解析-->
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>fastjson</artifactId>
+			<version>1.2.45</version>
 		</dependency>
 
 	</dependencies>
