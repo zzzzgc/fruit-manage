@@ -14,6 +14,7 @@ import com.jfinal.plugin.activerecord.tx.Tx;
 import org.apache.log4j.Logger;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -55,13 +56,26 @@ public class OrderController extends BaseController {
         int pageSize = getParaToInt("pageSize", 10);
 
         String orderBy = getPara("prop");
+        Map paramMap=new HashMap();
+        paramMap.put("searchProvince",getPara("search_province")); // 省份
+        paramMap.put("searchCity",getPara("search_city")); // 城市
+        paramMap.put("customerName",getPara("customer_name")); // 客户名称
+        paramMap.put("customerPhone",getPara("customer_phone")); // 客户电话
+        paramMap.put("customerID",getPara("customer_id")); //客户编号
+        paramMap.put("productName",getPara("product_name")); // 商品名称
+        paramMap.put("productID",getPara("product_id")); //商品编号
+        paramMap.put("standardName",getPara("standard_name")); //规格名称
+        paramMap.put("standardID",getPara("standard_id")); //规格编号
+        paramMap.put("createTime",getParaValues("format_create_time"));//开始时间和结束时间
+        paramMap.put("businessInfoName",getPara("businessInfo_name")); //商铺名称
+        paramMap.put("businessInfoID",getPara("businessInfo_id")); // 商铺ID
 
         String orderStatus = "0";
 
         // ascending为升序，其他为降序
         boolean isASC = "ascending".equals(getPara("order"));
 
-        Page<Order> orderPage = Order.dao.getOtherData(orderStatus, pageNum, pageSize, orderBy, isASC);
+        Page<Order> orderPage = Order.dao.getOtherData(orderStatus, pageNum, pageSize, orderBy, isASC,paramMap);
 
         for (Order order : orderPage.getList()) {
             String orderId = order.getOrderId();

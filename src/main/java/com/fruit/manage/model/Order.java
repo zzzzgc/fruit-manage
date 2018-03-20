@@ -1,7 +1,11 @@
 package com.fruit.manage.model;
 
+import java.text.ParsePosition;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -80,7 +84,8 @@ public class Order extends BaseOrder<Order> {
      * @param isASC
      * @return
      */
-    public Page<Order> getOtherData(String orderStatus, int pageNum, int pageSize, String orderBy, boolean isASC) {
+    public Page<Order> getOtherData(String orderStatus, int pageNum, int pageSize, String orderBy, boolean isASC,Map map) {
+        ArrayList<Object> params = new ArrayList<Object>();
         StringBuffer sql = new StringBuffer();
         String selectStr = "SELECT\n" +
                 "\to.order_status,\n" +
@@ -103,12 +108,72 @@ public class Order extends BaseOrder<Order> {
                 "\tb_order AS o\n" +
                 "INNER JOIN b_business_user AS u ON o.u_id = u.id\n" +
                 "INNER JOIN b_business_info AS info ON u.id = info.u_id\n" +
-                "INNER JOIN a_user AS au ON u.a_user_sales_id = au.id WHERE 1 = 1 ");
+                "INNER JOIN a_user AS au ON u.a_user_sales_id = au.id " +
+                "INNER JOIN b_order_detail as od on od.order_id = o.order_id "+
+                "INNER JOIN b_product as p on p.id = od.product_id "+
+                "inner join b_product_standard ps  on ps.product_id=p.id "+
+                "WHERE 1 = 1 ");
         sql.append("AND o.order_status = ? ");
+
+        String noStr = "全部";
+        params.add(orderStatus);
+        if(StrKit.notBlank((String)map.get("searchProvince")) && !noStr.equals(map.get("searchProvince"))){
+            sql.append("and info.address_province LIKE ? ");
+            params.add("%"+map.get("searchProvince")+"%");
+        }
+        if(StrKit.notBlank((String)map.get("searchCity")) && !noStr.equals(map.get("searchCity"))){
+            sql.append("and info.address_city LIKE ? ");
+            params.add("%"+map.get("searchCity")+"%");
+        }
+        if(StrKit.notBlank((String)map.get("customerName"))){
+            sql.append("and u.`name` LIKE ? ");
+            params.add("%"+map.get("customerName")+"%");
+        }
+        if(StrKit.notBlank((String)map.get("customerPhone"))){
+            sql.append("and u.phone LIKE ? ");
+            params.add("%"+map.get("customerPhone")+"%");
+        }
+
+        if(StrKit.notBlank((String)map.get("customerID"))){
+            sql.append("and u.id LIKE ? ");
+            params.add("%"+map.get("customerID")+"%");
+        }
+        if(StrKit.notBlank((String)map.get("productName"))){
+            sql.append("and p.`name` LIKE ? ");
+            params.add("%"+map.get("productName")+"%");
+        }
+        if(StrKit.notBlank((String)map.get("productID"))){
+            sql.append("and p.id LIKE ? ");
+            params.add("%"+map.get("productID")+"%");
+        }
+        if(StrKit.notBlank((String)map.get("standardName"))){
+            sql.append("and ps.`name` LIKE ? ");
+            params.add("%"+map.get("standardName")+"%");
+        }
+        if(StrKit.notBlank((String)map.get("standardID"))){
+            sql.append("and ps.id LIKE ? ");
+            params.add("%"+map.get("standardID")+"%");
+        }
+        if(StrKit.notBlank((String)map.get("businessInfoName"))){
+            sql.append("and info.business_name like ? ");
+            params.add("%"+map.get("businessInfoName")+"%");
+        }
+        if(StrKit.notBlank((String)map.get("businessInfoID"))){
+            sql.append("and info.id like ? ");
+            params.add("%"+map.get("businessInfoID")+"%");
+        }
+        if(ArrayUtils.isNotEmpty((String [])map.get("createTime")) && ((String [])map.get("createTime")).length == 2){
+            sql.append("and o.create_time BETWEEN ? and ? ");
+            String startDate = ((String [])map.get("createTime"))[0] + " 00:00:00";
+            String endDate= ((String [])map.get("createTime"))[1] + " 23:59:59";
+            params.add(startDate);
+            params.add(endDate);
+        }
+        sql.append("GROUP BY o.order_id ");
         orderBy = StrKit.isBlank(orderBy) ? "o.create_time" : orderBy;
         sql.append("order by " + orderBy + " " + (isASC ? "" : "desc "));
         System.out.println(selectStr + sql.toString());
-        return paginate(pageNum, pageSize, selectStr, sql.toString(), orderStatus);
+        return paginate(pageNum, pageSize, selectStr, sql.toString(),params.toArray());
     }
 
     /**
