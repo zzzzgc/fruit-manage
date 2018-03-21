@@ -33,8 +33,12 @@ public class _MappingKit {
 		arp.addMapping("b_business_info", "id", BusinessInfo.class);
 		arp.addMapping("b_business_user", "id", BusinessUser.class);
 		arp.addMapping("b_cart_product", "id", CartProduct.class);
+		arp.addMapping("b_info", "id", Info.class);
 		arp.addMapping("b_order", "id", Order.class);
 		arp.addMapping("b_order_detail", "id", OrderDetail.class);
+		arp.addMapping("b_order_log", "id", OrderLog.class);
+		arp.addMapping("b_procurement_plan", "id", ProcurementPlan.class);
+		arp.addMapping("b_procurement_plan_detail", "id", ProcurementPlanDetail.class);
 		arp.addMapping("b_product", "id", Product.class);
 		arp.addMapping("b_product_img", "id", ProductImg.class);
 		arp.addMapping("b_product_keyword", "id", ProductKeyword.class);
@@ -45,6 +49,7 @@ public class _MappingKit {
 		arp.addMapping("b_test", "id", Test.class);
 		arp.addMapping("b_type", "id", Type.class);
 		arp.addMapping("b_type_group", "id", TypeGroup.class);
+		arp.addMapping("newtable", "id", Newtable.class);
 		arp.addMapping("test", "id", Test.class);
 	}
 }

@@ -11,6 +11,18 @@
 	</properties>
 
 	<dependencies>
+		<!-- Excel-->
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi</artifactId>
+			<version>3.17</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-ooxml</artifactId>
+			<version>3.17</version>
+		</dependency>
+
 		<!-- 测试使用 -->
 		<dependency>
 			<groupId>junit</groupId>

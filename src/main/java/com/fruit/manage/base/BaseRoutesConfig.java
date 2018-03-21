@@ -3,6 +3,7 @@ package com.fruit.manage.base;
 import com.fruit.manage.controller.BannerController;
 import com.fruit.manage.controller.CommonController;
 import com.fruit.manage.controller.IndexController;
+import com.fruit.manage.controller.Procurement.ProcurementPlanController;
 import com.fruit.manage.controller.ProductController;
 import com.fruit.manage.controller.ProductMarketController;
 import com.fruit.manage.controller.ProductStandardController;
@@ -37,6 +38,7 @@ public class BaseRoutesConfig extends Routes {
 		add("/manage/role", RolesController.class);
 		add("/manage/user", UserController.class);
 		add("/manage/customer", CustomerController.class);
+		add("/manage/procurement/plan", ProcurementPlanController.class);
 	}
 
 }
