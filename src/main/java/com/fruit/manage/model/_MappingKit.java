@@ -38,6 +38,7 @@ public class _MappingKit {
 		arp.addMapping("b_order_log", "id", OrderLog.class);
 		arp.addMapping("b_procurement_plan", "id", ProcurementPlan.class);
 		arp.addMapping("b_procurement_plan_detail", "id", ProcurementPlanDetail.class);
+		arp.addMapping("b_procurement_quota", "id", ProcurementQuota.class);
 		arp.addMapping("b_product", "id", Product.class);
 		arp.addMapping("b_product_img", "id", ProductImg.class);
 		arp.addMapping("b_product_keyword", "id", ProductKeyword.class);
@@ -45,8 +46,10 @@ public class _MappingKit {
 		arp.addMapping("b_product_recommend", "id", ProductRecommend.class);
 		arp.addMapping("b_product_standard", "id", ProductStandard.class);
 		arp.addMapping("b_product_type", "id", ProductType.class);
+		arp.addMapping("b_test", "id", Test.class);
 		arp.addMapping("b_type", "id", Type.class);
 		arp.addMapping("b_type_group", "id", TypeGroup.class);
+		arp.addMapping("test", "id", Test.class);
 	}
 }
 

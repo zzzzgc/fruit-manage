@@ -3,7 +3,7 @@ package com.fruit.manage.base;
 import com.fruit.manage.controller.BannerController;
 import com.fruit.manage.controller.CommonController;
 import com.fruit.manage.controller.IndexController;
-import com.fruit.manage.controller.Procurement.PlanController;
+import com.fruit.manage.controller.procurement.PlanController;
 import com.fruit.manage.controller.ProductController;
 import com.fruit.manage.controller.ProductMarketController;
 import com.fruit.manage.controller.ProductStandardController;
@@ -12,6 +12,7 @@ import com.fruit.manage.controller.TypeGroupController;
 import com.fruit.manage.controller.customer.CustomerController;
 import com.fruit.manage.controller.login.LoginController;
 import com.fruit.manage.controller.order.OrderController;
+import com.fruit.manage.controller.procurement.QuotaContrller;
 import com.fruit.manage.controller.user.RolesController;
 import com.fruit.manage.controller.user.UserController;
 import com.jfinal.config.Routes;
@@ -39,6 +40,7 @@ public class BaseRoutesConfig extends Routes {
 		add("/manage/user", UserController.class);
 		add("/manage/customer", CustomerController.class);
 		add("/manage/procurement/plan", PlanController.class);
+		add("/manage/procurement/quota", QuotaContrller.class);
 	}
 
 }

@@ -1,7 +1,11 @@
 package com.fruit.manage.model;
 
+import com.fruit.manage.constant.UserTypeConstant;
 import com.fruit.manage.model.base.BaseOrderDetail;
+import com.jfinal.aop.Before;
+import com.jfinal.plugin.activerecord.tx.Tx;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -9,33 +13,120 @@ import java.util.List;
  */
 @SuppressWarnings("serial")
 public class OrderDetail extends BaseOrderDetail<OrderDetail> {
-	public static final OrderDetail dao = new OrderDetail().dao();
+    public static final OrderDetail dao = new OrderDetail().dao();
 
-	public List<OrderDetail> getOrderDetails(String orderId) {
-		return dao.find("SELECT * FROM b_order_detail od WHERE od.order_id = ? ",orderId);
-	}
+    public List<OrderDetail> getOrderDetails(String orderId) {
+        return dao.find("SELECT * FROM b_order_detail od WHERE od.order_id = ? ", orderId);
+    }
 
-	/**
-	 * 获取订单信息展示的部分 商品信息和商品规格
-	 * @param orderid
-	 * @return
-	 */
-	public List<OrderDetail> getOtherOrderDetail(String orderid) {
-		String sql = "SELECT\n" +
-				"\to.product_name,\n" +
-				"\to.id,\n" +
-				"\to.product_standard_name,\n" +
-				"\to.num,\n" +
-				"\to.original_price,\n" +
-				"\to.sell_price,\n" +
-				"\tp.brand,\n" +
-				"\tps.gross_weight\n" +
-				"FROM\n" +
-				"\tb_order_detail AS o\n" +
-				"INNER JOIN b_product AS p ON o.product_id = p.id\n" +
-				"INNER JOIN b_product_standard AS ps ON o.product_standard_id = ps.id\n" +
-				"WHERE\n" +
-				"\to.order_id = ?  ";
-		return dao.find(sql,orderid);
-	}
+    /**
+     * 获取订单信息展示的部分 商品信息和商品规格
+     *
+     * @param orderid
+     * @return
+     */
+    public List<OrderDetail> getOtherOrderDetail(String orderid) {
+        String sql = "SELECT\n" +
+                "\to.product_name,\n" +
+                "\to.id,\n" +
+                "\to.product_standard_name,\n" +
+                "\to.num,\n" +
+                "\to.original_price,\n" +
+                "\to.sell_price,\n" +
+                "\tp.brand,\n" +
+                "\tps.gross_weight\n" +
+                "FROM\n" +
+                "\tb_order_detail AS o\n" +
+                "INNER JOIN b_product AS p ON o.product_id = p.id\n" +
+                "INNER JOIN b_product_standard AS ps ON o.product_standard_id = ps.id\n" +
+                "WHERE\n" +
+                "\to.order_id = ?  ";
+        return dao.find(sql, orderid);
+    }
+
+    @Before(Tx.class)
+    public boolean save(UserTypeConstant type, Integer uid) {
+        super.save();
+        OrderLog orderLog = new OrderLog();
+        orderLog.setUId(uid);
+        orderLog.setUserType(type.getValue());
+        orderLog.setChangeNum(super.getNum());
+        orderLog.setProductStandardId(super.getProductStandardId());
+        orderLog.setCreateTime(new Date());
+        return orderLog.save();
+    }
+
+    @Override
+    @Before(Tx.class)
+    public boolean save() {
+        super.save();
+        OrderLog orderLog = new OrderLog();
+        // 未知用户
+        orderLog.setUserType(UserTypeConstant.UNKNOWN_USER.getValue());
+        orderLog.setChangeNum(super.getNum());
+        orderLog.setProductStandardId(super.getProductStandardId());
+        orderLog.setCreateTime(new Date());
+        return orderLog.save();
+    }
+
+    @Before(Tx.class)
+    public boolean delete(UserTypeConstant type, Integer uid) {
+        super.delete();
+        OrderLog orderLog = new OrderLog();
+        orderLog.setUId(uid);
+        orderLog.setUserType(type.getValue());
+        orderLog.setChangeNum(~super.getNum() + 1);
+        orderLog.setProductStandardId(super.getProductStandardId());
+        return orderLog.save();
+    }
+
+    @Override
+    @Before(Tx.class)
+    public boolean delete() {
+        super.delete();
+        OrderLog orderLog = new OrderLog();
+        // 未知用户
+        orderLog.setUserType(UserTypeConstant.UNKNOWN_USER.getValue());
+        orderLog.setChangeNum(~super.getNum() + 1);
+        orderLog.setProductStandardId(super.getProductStandardId());
+        return orderLog.save();
+    }
+
+    @Before(Tx.class)
+    public boolean update(UserTypeConstant type, Integer uid) {
+        Integer orderDetailId = super.getId();
+        // 可能更新的数据可能有信息缺失,最好都使用获取到的
+        OrderDetail orderDetail = dao.findById(orderDetailId);
+        OrderLog orderLog = new OrderLog();
+        orderLog.setUId(uid);
+        orderLog.setUserType(type.getValue());
+        // 更新的数据中必须要包含num,否则不给通过
+        if (super.getNum() == null) {
+            throw new RuntimeException("更新内容不包含num,暂时不给于通过");
+        }
+        orderLog.setChangeNum(orderDetail.getNum() - super.getNum());
+        orderLog.setProductStandardId(orderDetail.getProductStandardId());
+        // 更新的
+        super.update();
+        return orderLog.save();
+    }
+
+    @Override
+    @Before(Tx.class)
+    public boolean update() {
+        Integer orderDetailId = super.getId();
+        // 可能更新的数据可能有信息缺失,最好都使用获取到的
+        OrderDetail orderDetail = dao.findById(orderDetailId);
+        OrderLog orderLog = new OrderLog();
+        orderLog.setUserType(UserTypeConstant.UNKNOWN_USER.getValue());
+        // 更新的数据中必须要包含num,否则不给通过
+        if (super.getNum() == null) {
+            throw new RuntimeException("更新内容不包含productStandardId,暂时不给于通过");
+        }
+        orderLog.setChangeNum(orderDetail.getNum() - super.getNum());
+        orderLog.setProductStandardId(orderDetail.getProductStandardId());
+        // 更新的
+        super.update();
+        return orderLog.save();
+    }
 }

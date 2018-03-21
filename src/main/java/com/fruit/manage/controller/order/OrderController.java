@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.fruit.manage.base.BaseController;
 import com.fruit.manage.constant.OrderConstant;
 import com.fruit.manage.constant.OrderStatusCode;
+import com.fruit.manage.constant.UserTypeConstant;
 import com.fruit.manage.model.*;
 import com.fruit.manage.util.Constant;
 import com.jfinal.aop.Before;
@@ -146,6 +147,7 @@ public class OrderController extends BaseController {
      */
     @Before(Tx.class)
     public void save() {
+        Integer uid = getSessionAttr(Constant.SESSION_UID);
         Order order = getModel(Order.class, "", true);
         String products = getPara("products");
         Integer business_user_id = getParaToInt("business_user_id");
@@ -153,6 +155,7 @@ public class OrderController extends BaseController {
         BigDecimal payNeedMoney = new BigDecimal(0);
 
         if (order.getOrderId() != null) {
+            //编辑
             for (OrderDetail orderDetail : orderDetails) {
                 Integer num = orderDetail.getNum();
                 BigDecimal sellPrice = orderDetail.getSellPrice();
@@ -161,10 +164,10 @@ public class OrderController extends BaseController {
                 orderDetail.setTotalPay(totalPay);
                 payNeedMoney = payNeedMoney.add(totalPay);
                 if (orderDetail.getId() != null) {
-                    orderDetail.update();
+                    orderDetail.update(UserTypeConstant.A_USER,uid);
                 } else {
                     orderDetail.setOrderId(order.getOrderId());
-                    orderDetail.save();
+                    orderDetail.save(UserTypeConstant.A_USER,uid);
                 }
             }
             order.setPayNeedMoney(payNeedMoney);
@@ -184,7 +187,7 @@ public class OrderController extends BaseController {
                 orderDetail.setCreateTime(now);
                 orderDetail.setBuyUid(business_user_id);
                 orderDetail.setOrderId(order.getOrderId());
-                orderDetail.save();
+                orderDetail.save(UserTypeConstant.A_USER,uid);
             }
             order.setUpdateTime(now);
             order.setCreateTime(now);
@@ -275,17 +278,10 @@ public class OrderController extends BaseController {
      * 编辑订单的时候,删除商品(修改)
      */
     public void deleteProductForEdit(){
+        Integer uid = getSessionAttr(Constant.SESSION_UID);
         String orderDetailId = getPara("orderDetailId");
-        OrderDetail.dao.deleteById(orderDetailId);
+        OrderDetail orderDetail = OrderDetail.dao.findById(orderDetailId);
+        orderDetail.delete(UserTypeConstant.A_USER,uid);
         renderNull();
     }
-
-    /**
-     * 保存订单
-     */
-    public void saveOrder () {
-
-    }
-
-
 }

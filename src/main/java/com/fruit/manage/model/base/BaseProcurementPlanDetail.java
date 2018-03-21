@@ -33,12 +33,12 @@ public abstract class BaseProcurementPlanDetail<M extends BaseProcurementPlanDet
 		return getInt("product_standard_id");
 	}
 
-	public void setProcurementUserId(java.lang.Integer procurementUserId) {
-		set("procurement_user_id", procurementUserId);
+	public void setProcurementId(java.lang.Integer procurementId) {
+		set("procurement_id", procurementId);
 	}
 
-	public java.lang.Integer getProcurementUserId() {
-		return getInt("procurement_user_id");
+	public java.lang.Integer getProcurementId() {
+		return getInt("procurement_id");
 	}
 
 	public void setProductName(java.lang.String productName) {
@@ -65,14 +65,6 @@ public abstract class BaseProcurementPlanDetail<M extends BaseProcurementPlanDet
 		return get("sell_price");
 	}
 
-	public void setProductStandardNum(java.lang.Integer productStandardNum) {
-		set("product_standard_num", productStandardNum);
-	}
-
-	public java.lang.Integer getProductStandardNum() {
-		return getInt("product_standard_num");
-	}
-
 	public void setInventoryNum(java.lang.Integer inventoryNum) {
 		set("inventory_num", inventoryNum);
 	}
@@ -87,6 +79,14 @@ public abstract class BaseProcurementPlanDetail<M extends BaseProcurementPlanDet
 
 	public java.lang.Integer getProcurementNum() {
 		return getInt("procurement_num");
+	}
+
+	public void setProductStandardNum(java.lang.Integer productStandardNum) {
+		set("product_standard_num", productStandardNum);
+	}
+
+	public java.lang.Integer getProductStandardNum() {
+		return getInt("product_standard_num");
 	}
 
 	public void setProcurementNeedPrice(java.math.BigDecimal procurementNeedPrice) {
@@ -105,22 +105,6 @@ public abstract class BaseProcurementPlanDetail<M extends BaseProcurementPlanDet
 		return get("procurement_total_price");
 	}
 
-	public void setCreateTime(java.util.Date createTime) {
-		set("create_time", createTime);
-	}
-
-	public java.util.Date getCreateTime() {
-		return get("create_time");
-	}
-
-	public void setUpdateTime(java.util.Date updateTime) {
-		set("update_time", updateTime);
-	}
-
-	public java.util.Date getUpdateTime() {
-		return get("update_time");
-	}
-
 	public void setOrderRemark(java.lang.String orderRemark) {
 		set("order_remark", orderRemark);
 	}
@@ -135,6 +119,22 @@ public abstract class BaseProcurementPlanDetail<M extends BaseProcurementPlanDet
 
 	public java.lang.String getProcurementRemark() {
 		return getStr("procurement_remark");
+	}
+
+	public void setCreateTime(java.util.Date createTime) {
+		set("create_time", createTime);
+	}
+
+	public java.util.Date getCreateTime() {
+		return get("create_time");
+	}
+
+	public void setUpdateTime(java.util.Date updateTime) {
+		set("update_time", updateTime);
+	}
+
+	public java.util.Date getUpdateTime() {
+		return get("update_time");
 	}
 
 }

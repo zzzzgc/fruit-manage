@@ -1,4 +1,4 @@
-package com.fruit.manage.controller.Procurement;
+package com.fruit.manage.controller.procurement;
 
 import com.fruit.manage.base.BaseController;
 import com.fruit.manage.model.ProcurementPlan;
