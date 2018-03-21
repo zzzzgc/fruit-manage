@@ -114,7 +114,13 @@ public class OrderController extends BaseController {
         if (isNext.equals(1)) {
             // 进入下一个流程
             Integer orderStatus = order.getOrderStatus();
-            order.setOrderStatus(OrderConstant.nextStatus(orderStatus));
+
+            Integer nextStatus = OrderConstant.nextStatus(orderStatus);
+            if (nextStatus.equals(OrderStatusCode.DELETED.getStatus())) {
+                renderErrorText("数据有问题或接口异常丶没有下一个状态了");
+                return;
+            }
+            order.setOrderStatus(nextStatus);
             order.update();
         } else {
             // 删除
@@ -272,6 +278,13 @@ public class OrderController extends BaseController {
         String orderDetailId = getPara("orderDetailId");
         OrderDetail.dao.deleteById(orderDetailId);
         renderNull();
+    }
+
+    /**
+     * 保存订单
+     */
+    public void saveOrder () {
+
     }
 
 

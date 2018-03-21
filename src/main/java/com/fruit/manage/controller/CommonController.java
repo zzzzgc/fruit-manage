@@ -63,7 +63,7 @@ public class CommonController extends BaseController {
         List<Menu> menuListByUid = Menu.dao.getMenuListByUid(getSessionAttr(Constant.SESSION_UID));
         ArrayList<Map> menuList = new ArrayList<>();
         // ArrayList<ArrayList<Menu>> menuGroup = new ArrayList<>();
-        // 一级菜单不能超过12个
+        // 一级菜单id ,不能超过12这个下标,比如 menu_id为13 这是会报错的
         ArrayList<Menu>[] menuGroup = new ArrayList[12];
         for (Menu menu : menuListByUid) {
             Integer parentId = menu.getParentId();
