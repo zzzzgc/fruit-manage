@@ -47,7 +47,6 @@ public class _MappingKit {
 		arp.addMapping("b_product_type", "id", ProductType.class);
 		arp.addMapping("b_type", "id", Type.class);
 		arp.addMapping("b_type_group", "id", TypeGroup.class);
-		arp.addMapping("newtable", "id", Newtable.class);
 	}
 }
 
