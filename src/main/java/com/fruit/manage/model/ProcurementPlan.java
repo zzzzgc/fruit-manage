@@ -3,7 +3,9 @@ package com.fruit.manage.model;
 import com.fruit.manage.model.base.BaseProcurementPlan;
 import com.jfinal.kit.StrKit;
 import com.jfinal.plugin.activerecord.Page;
+import com.sun.tools.javac.util.ArrayUtils;
 
+import java.util.ArrayList;
 import java.util.Map;
 
 /**
@@ -23,11 +25,19 @@ public class ProcurementPlan extends BaseProcurementPlan<ProcurementPlan> {
 	 * @return 返回一个带分页的数据集合
 	 */
 	public Page<ProcurementPlan> getAllProcurementPlan(int pageNum, int pageSize, String orderBy, boolean isASC,Map map){
-		String selectStr="select pp.id,pp.procurement_id,pp.product_standard_num,pp.num,pp.wait_statistics_order_total,pp.order_total,pp.create_time \n";
+        ArrayList<Object> params = new ArrayList<Object>();
+	    String selectStr="select pp.id,pp.procurement_id,pp.product_standard_num,pp.num,pp.wait_statistics_order_total,pp.order_total,pp.create_time \n";
 		StringBuilder sql=new StringBuilder();
-		sql.append("\tfrom b_procurement_plan pp \n");
+		sql.append("\tfrom b_procurement_plan pp where 1=1 \n");
+        if(org.apache.commons.lang3.ArrayUtils.isNotEmpty((String [])map.get("createTime")) && ((String [])map.get("createTime")).length == 2){
+            sql.append("and pp.create_time BETWEEN ? and ? ");
+            String startDate = ((String [])map.get("createTime"))[0] + " 00:00:00";
+            String endDate= ((String [])map.get("createTime"))[1] + " 23:59:59";
+            params.add(startDate);
+            params.add(endDate);
+        }
 		orderBy = StrKit.isBlank(orderBy) ? "pp.create_time" : orderBy;
 		sql.append("order by " + orderBy + " " + (isASC ? "" : "desc "));
-		return paginate(pageNum,pageSize,selectStr,sql.toString(),map);
+		return paginate(pageNum,pageSize,selectStr,sql.toString(),params.toArray());
 	}
 }
