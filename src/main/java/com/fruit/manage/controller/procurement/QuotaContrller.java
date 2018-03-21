@@ -2,7 +2,6 @@ package com.fruit.manage.controller.procurement;
 
 import com.fruit.manage.base.BaseController;
 import com.fruit.manage.model.Order;
-import com.fruit.manage.model.ProcurementQuota;
 import org.apache.log4j.Logger;
 
 /**

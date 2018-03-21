@@ -77,6 +77,7 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
         orderLog.setUserType(type.getValue());
         orderLog.setChangeNum(~super.getNum() + 1);
         orderLog.setProductStandardId(super.getProductStandardId());
+        orderLog.setCreateTime(new Date());
         return orderLog.save();
     }
 
@@ -89,6 +90,7 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
         orderLog.setUserType(UserTypeConstant.UNKNOWN_USER.getValue());
         orderLog.setChangeNum(~super.getNum() + 1);
         orderLog.setProductStandardId(super.getProductStandardId());
+        orderLog.setCreateTime(new Date());
         return orderLog.save();
     }
 
@@ -104,8 +106,9 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
         if (super.getNum() == null) {
             throw new RuntimeException("更新内容不包含num,暂时不给于通过");
         }
-        orderLog.setChangeNum(orderDetail.getNum() - super.getNum());
+        orderLog.setChangeNum(super.getNum() - orderDetail.getNum());
         orderLog.setProductStandardId(orderDetail.getProductStandardId());
+        orderLog.setCreateTime(new Date());
         // 更新的
         super.update();
         return orderLog.save();
@@ -123,8 +126,9 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
         if (super.getNum() == null) {
             throw new RuntimeException("更新内容不包含productStandardId,暂时不给于通过");
         }
-        orderLog.setChangeNum(orderDetail.getNum() - super.getNum());
+        orderLog.setChangeNum(super.getNum() - orderDetail.getNum());
         orderLog.setProductStandardId(orderDetail.getProductStandardId());
+        orderLog.setCreateTime(new Date());
         // 更新的
         super.update();
         return orderLog.save();
