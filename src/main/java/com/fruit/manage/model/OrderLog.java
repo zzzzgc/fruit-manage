@@ -8,4 +8,8 @@ import com.fruit.manage.model.base.BaseOrderLog;
 @SuppressWarnings("serial")
 public class OrderLog extends BaseOrderLog<OrderLog> {
 	public static final OrderLog dao = new OrderLog().dao();
+
+	public void updateOrderLog(String [] createTime){
+
+	}
 }

@@ -2,10 +2,12 @@ package com.fruit.manage.model;
 
 import com.fruit.manage.model.base.BaseProcurementPlan;
 import com.jfinal.kit.StrKit;
+import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Page;
 import com.sun.tools.javac.util.ArrayUtils;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -39,5 +41,79 @@ public class ProcurementPlan extends BaseProcurementPlan<ProcurementPlan> {
 		orderBy = StrKit.isBlank(orderBy) ? "pp.create_time" : orderBy;
 		sql.append("order by " + orderBy + " " + (isASC ? "" : "desc "));
 		return paginate(pageNum,pageSize,selectStr,sql.toString(),params.toArray());
+	}
+	// 获取未统计的商品总数
+	public ProcurementPlan getWaitStatisticsOrderTotal(String [] createTimes,String createTime){
+		StringBuilder sql =new StringBuilder();
+		sql.append("select sum(ol.change_num) as wait_statistics_order_total, ");
+		sql.append("'"+createTime+"'");
+		sql.append(" as create_time ");
+		sql.append("from b_order_log ol ");
+		sql.append("where ol.is_statistical=0 ");
+		sql.append("and ol.create_time BETWEEN ? and ? ");
+		List<String> list=new ArrayList<>();
+		list.add(createTimes[0]);
+		list.add(createTimes[1]);
+		return findFirst(sql.toString(),list.toArray());
+	}
+	public void updateOrderLog(String [] createTimes){
+		String sql="update b_order_log ol set ol.is_statistical=1 where ol.create_time BETWEEN ? and ? ";
+		Db.update(sql,createTimes);
+	}
+	/**
+	 * 根据采购计划ID获取要导出的采购数据
+	 * @param pPlanID
+	 * @return
+	 */
+	public List<ProcurementPlan> getExportDataByPPlanID(Integer pPlanID){
+		StringBuilder sql = new StringBuilder();
+		sql.append("select p.`name` as pName, ");
+		sql.append("ps.`name` as psName, ");
+		sql.append("ps.id as psID, ");
+		sql.append("ps.fruit_weight as fruitWeight, ");
+		sql.append("ps.sell_price as sellPrice, ");
+		sql.append("(select SUM(ol.change_num) from b_order_log ol where ol.product_standard_id =ppd.product_standard_id) as orderCount, ");
+		sql.append("(select 0) as inventoryCount, ");
+		sql.append("((select SUM(ol.change_num) from b_order_log ol where ol.product_standard_id =ppd.product_standard_id)-(select 0)) as procurementCount, ");
+		sql.append("(select '') as procurementPrice, ");
+		sql.append("ppd.order_remark as orderRemark ");
+		sql.append("from b_procurement_plan pp , ");
+		sql.append("b_procurement_plan_detail ppd, ");
+		sql.append("b_product p, ");
+		sql.append("b_product_standard ps ");
+		sql.append("where 1=1 ");
+		sql.append("and pp.procurement_id=ppd.procurement_id ");
+		sql.append("and ppd.product_id = p.id ");
+		sql.append("and ppd.product_standard_id = ps.id ");
+		sql.append("and pp.procurement_id = ? ");
+		return find(sql.toString(),pPlanID);
+	}
+
+	/**
+	 * 获取采购计划要添加的参数
+	 * @param createTime 开始时间和结束时间
+	 * @return 返回一个采购计划的数据
+	 */
+	public ProcurementPlan getPPlan(String [] createTime){
+        ArrayList<Object> params = new ArrayList<Object>();
+		StringBuilder sql = new StringBuilder();
+		sql.append("select (count(DISTINCT ol.product_standard_id)) as product_standard_num, ");
+		sql.append("SUM(ol.change_num) as num, ");
+		sql.append("sum(0) as wait_statistics_order_total, ");
+		sql.append("(count(DISTINCT ol.order_id)) as order_total ");
+		sql.append("from b_order_log ol ");
+		sql.append("where 1=1 ");
+        if(org.apache.commons.lang3.ArrayUtils.isNotEmpty(createTime) && createTime.length == 2){
+            sql.append("and ol.create_time BETWEEN ? and ? ");
+            params.add(createTime[0]);
+            params.add(createTime[1]);
+        }
+		return findFirst(sql.toString(),params.toArray());
+	}
+
+	public ProcurementPlan getPPlanCreateTime(String createTime){
+		String sql="select pp.id,pp.procurement_id,pp.product_standard_num,pp.num,pp.wait_statistics_order_total,pp.order_total,pp.create_time " +
+				" from b_procurement_plan pp where 1=1 and pp.create_time = ? ";
+		return findFirst(sql,createTime);
 	}
 }
