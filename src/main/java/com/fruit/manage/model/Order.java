@@ -188,6 +188,7 @@ public class Order extends BaseOrder<Order> {
                 "o.id AS business_user_id,\n" +
                 "\tau.`name` AS a_user_sales,\n" +
                 "\to.id,\n" +
+                "\to.u_id,\n" +
                 "\to.order_id,\n" +
                 "\to.order_status,\n" +
                 "\to.create_time,\n" +

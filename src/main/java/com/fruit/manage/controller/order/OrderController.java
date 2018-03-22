@@ -171,7 +171,10 @@ public class OrderController extends BaseController {
                 if (orderDetail.getId() != null) {
                     orderDetail.update(UserTypeConstant.A_USER,uid);
                 } else {
+                    orderDetail.setBuyUid(order.getUId());
                     orderDetail.setOrderId(order.getOrderId());
+                    orderDetail.setCreateTime(new Date());
+                    orderDetail.setUpdateTime(new Date());
                     orderDetail.save(UserTypeConstant.A_USER,uid);
                 }
             }
