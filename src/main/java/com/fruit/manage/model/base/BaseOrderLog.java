@@ -25,12 +25,12 @@ public abstract class BaseOrderLog<M extends BaseOrderLog<M>> extends Model<M> i
 		return getInt("u_id");
 	}
 
-	public void setOrderId(java.lang.Integer orderId) {
+	public void setOrderId(java.lang.String orderId) {
 		set("order_id", orderId);
 	}
 
-	public java.lang.Integer getOrderId() {
-		return getInt("order_id");
+	public java.lang.String getOrderId() {
+		return getStr("order_id");
 	}
 
 	public void setProductId(java.lang.Integer productId) {

@@ -109,6 +109,7 @@ public class OrderController extends BaseController {
      */
     @Before(Tx.class)
     public void setStatus() {
+        Integer uid = getSessionAttr(Constant.SESSION_UID);
         Integer isNext = getParaToInt("isNext");
         String orderId = getPara("orderId");
         Order order = Order.dao.getOrder(orderId);
@@ -127,6 +128,10 @@ public class OrderController extends BaseController {
             // 删除
             order.setOrderStatus(OrderStatusCode.DELETED.getStatus());
             order.update();
+            List<OrderDetail> orderDetails = OrderDetail.dao.getOrderDetails(orderId);
+            for (OrderDetail orderDetail : orderDetails) {
+                orderDetail.delete(UserTypeConstant.A_USER, uid);
+            }
         }
         renderNull();
     }
@@ -166,7 +171,10 @@ public class OrderController extends BaseController {
                 if (orderDetail.getId() != null) {
                     orderDetail.update(UserTypeConstant.A_USER,uid);
                 } else {
+                    orderDetail.setBuyUid(order.getUId());
                     orderDetail.setOrderId(order.getOrderId());
+                    orderDetail.setCreateTime(new Date());
+                    orderDetail.setUpdateTime(new Date());
                     orderDetail.save(UserTypeConstant.A_USER,uid);
                 }
             }
