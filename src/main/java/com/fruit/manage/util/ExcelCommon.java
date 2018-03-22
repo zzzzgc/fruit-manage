@@ -9,6 +9,7 @@ import com.fruit.manage.util.excelRd.ExcelRdRow;
 import com.fruit.manage.util.excelRd.ExcelRdTypeEnum;
 import com.jfinal.kit.StrKit;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,12 +22,17 @@ import java.util.Map;
 public class ExcelCommon {
     /**
      *
-     * @param map savePath:保存的路径和文件名，title：标题,createBy：创建者,header[] 行头,listData 要导出的数据（可选填）
+     * @param map path:保存的路径,fileName：文件名，title：标题,createBy：创建者,header[] 行头,listData 要导出的数据（可选填）
      *            必须严格按照指定的列名传入，作用于导出模板和导出数据
      */
-    public static void createExcelModul(Map map) throws ExcelException{
+    public static String createExcelModul(Map map) throws ExcelException{
         Excel excel =new Excel();
-        String savePath =(String) map.get("savePath");
+        String path =(String) map.get("path");
+        if(!new File(path).exists() || !new File(path).isDirectory()){ //判断文件夹是否存在
+            new File(path).mkdir();
+        }
+        String fileName =(String) map.get("fileName");
+        String savePath = path + "/"+fileName;
         String title =(String)map.get("title");
         String createBy = (String)map.get("createBy");
         String [] header=(String[])map.get("header");
@@ -57,9 +63,9 @@ public class ExcelCommon {
             }
         }
         try {
-            excel.CreateXlsx();
+            return excel.CreateXlsx();
         } catch (IOException e) {
-            e.printStackTrace();
+            return null;
         }
     }
 
