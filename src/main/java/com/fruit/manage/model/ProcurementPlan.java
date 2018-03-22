@@ -58,7 +58,7 @@ public class ProcurementPlan extends BaseProcurementPlan<ProcurementPlan> {
 	}
 	public void updateOrderLog(String [] createTimes){
 		String sql="update b_order_log ol set ol.is_statistical=1 where ol.create_time BETWEEN ? and ? ";
-		Db.update(sql,createTimes);
+		Db.update(sql,createTimes[0],createTimes[1]);
 	}
 	/**
 	 * 根据采购计划ID获取要导出的采购数据
