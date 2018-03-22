@@ -44,93 +44,127 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
         return dao.find(sql, orderid);
     }
 
-    @Before(Tx.class)
-    public boolean save(UserTypeConstant type, Integer uid) {
-        super.save();
+    private OrderLog getOrderLog(UserTypeConstant type, Integer uid, String orderId, Integer productId, Integer productStandardId, Integer changeNum) {
         OrderLog orderLog = new OrderLog();
         orderLog.setUId(uid);
         orderLog.setUserType(type.getValue());
-        orderLog.setChangeNum(super.getNum());
-        orderLog.setProductStandardId(super.getProductStandardId());
+        orderLog.setOrderId(orderId);
+        orderLog.setProductId(productId);
+        orderLog.setProductStandardId(productStandardId);
         orderLog.setCreateTime(new Date());
+        orderLog.setChangeNum(changeNum);
+        return orderLog;
+    }
+
+    private OrderLog getOrderLog(String orderId, Integer productId, Integer productStandardId, Integer changeNum) {
+        OrderLog orderLog = new OrderLog();
+        // 未知用户
+        orderLog.setUserType(UserTypeConstant.UNKNOWN_USER.getValue());
+        orderLog.setOrderId(orderId);
+        orderLog.setProductId(productId);
+        orderLog.setProductStandardId(productStandardId);
+        orderLog.setCreateTime(new Date());
+        orderLog.setChangeNum(changeNum);
+        return orderLog;
+    }
+
+    @Before(Tx.class)
+    public boolean save(OrderLog orderLog) {
+        super.save();
+        return orderLog.save();
+    }
+    @Before(Tx.class)
+    public boolean delete(OrderLog orderLog) {
+        super.delete();
+        return orderLog.save();
+    }
+    @Before(Tx.class)
+    public boolean update(OrderLog orderLog) {
+        super.delete();
         return orderLog.save();
     }
 
+    @Deprecated
     @Override
     @Before(Tx.class)
     public boolean save() {
         super.save();
-        OrderLog orderLog = new OrderLog();
-        // 未知用户
-        orderLog.setUserType(UserTypeConstant.UNKNOWN_USER.getValue());
-        orderLog.setChangeNum(super.getNum());
-        orderLog.setProductStandardId(super.getProductStandardId());
-        orderLog.setCreateTime(new Date());
-        return orderLog.save();
+        return getOrderLog(super.getOrderId(), super.getProductId(), super.getProductStandardId(), super.getNum()).save();
     }
-
-    @Before(Tx.class)
-    public boolean delete(UserTypeConstant type, Integer uid) {
-        super.delete();
-        OrderLog orderLog = new OrderLog();
-        orderLog.setUId(uid);
-        orderLog.setUserType(type.getValue());
-        orderLog.setChangeNum(~super.getNum() + 1);
-        orderLog.setProductStandardId(super.getProductStandardId());
-        orderLog.setCreateTime(new Date());
-        return orderLog.save();
-    }
-
+    @Deprecated
     @Override
     @Before(Tx.class)
     public boolean delete() {
         super.delete();
-        OrderLog orderLog = new OrderLog();
-        // 未知用户
-        orderLog.setUserType(UserTypeConstant.UNKNOWN_USER.getValue());
-        orderLog.setChangeNum(~super.getNum() + 1);
-        orderLog.setProductStandardId(super.getProductStandardId());
-        orderLog.setCreateTime(new Date());
-        return orderLog.save();
+        return getOrderLog(super.getOrderId(), super.getProductId(), super.getProductStandardId(), ~super.getNum() + 1).save();
     }
-
-    @Before(Tx.class)
-    public boolean update(UserTypeConstant type, Integer uid) {
-        Integer orderDetailId = super.getId();
-        // 可能更新的数据可能有信息缺失,最好都使用获取到的
-        OrderDetail orderDetail = dao.findById(orderDetailId);
-        OrderLog orderLog = new OrderLog();
-        orderLog.setUId(uid);
-        orderLog.setUserType(type.getValue());
-        // 更新的数据中必须要包含num,否则不给通过
-        if (super.getNum() == null) {
-            throw new RuntimeException("更新内容不包含num,暂时不给于通过");
-        }
-        orderLog.setChangeNum(super.getNum() - orderDetail.getNum());
-        orderLog.setProductStandardId(orderDetail.getProductStandardId());
-        orderLog.setCreateTime(new Date());
-        // 更新的
-        super.update();
-        return orderLog.save();
-    }
-
+    @Deprecated
     @Override
     @Before(Tx.class)
     public boolean update() {
-        Integer orderDetailId = super.getId();
-        // 可能更新的数据可能有信息缺失,最好都使用获取到的
-        OrderDetail orderDetail = dao.findById(orderDetailId);
-        OrderLog orderLog = new OrderLog();
-        orderLog.setUserType(UserTypeConstant.UNKNOWN_USER.getValue());
-        // 更新的数据中必须要包含num,否则不给通过
-        if (super.getNum() == null) {
-            throw new RuntimeException("更新内容不包含productStandardId,暂时不给于通过");
-        }
-        orderLog.setChangeNum(super.getNum() - orderDetail.getNum());
-        orderLog.setProductStandardId(orderDetail.getProductStandardId());
-        orderLog.setCreateTime(new Date());
-        // 更新的
+        OrderDetail orderDetail = OrderDetail.dao.findById(super.getId());
         super.update();
-        return orderLog.save();
+        return getOrderLog(orderDetail.getOrderId(), orderDetail.getProductId(), orderDetail.getProductStandardId(), super.getNum() - orderDetail.getNum()).save();
     }
+
+
+    /**
+     * 推荐
+     */
+    @Before(Tx.class)
+    public boolean save(UserTypeConstant type, Integer uid) {
+        super.save();
+        return getOrderLog(type, uid, super.getOrderId(), super.getProductId(), super.getProductStandardId(), super.getNum()).save();
+    }
+    @Before(Tx.class)
+    public boolean delete(UserTypeConstant type, Integer uid) {
+        super.delete();
+        return getOrderLog(type, uid, super.getOrderId(), super.getProductId(), super.getProductStandardId(), ~super.getNum() + 1).save();
+    }
+    @Before(Tx.class)
+    public boolean update(UserTypeConstant type, Integer uid) {
+        OrderDetail orderDetail = OrderDetail.dao.findById(super.getId());
+        super.update();
+        return getOrderLog(type, uid, orderDetail.getOrderId(), orderDetail.getProductId(), orderDetail.getProductStandardId(), super.getNum() - orderDetail.getNum()).save();
+    }
+
+
+
+    @Before(Tx.class)
+    public boolean save(UserTypeConstant type, Integer uid, String orderId, Integer productId, Integer productStandardId, Integer num) {
+        super.save();
+        return getOrderLog(type, uid, orderId, productId, productStandardId, num).save();
+    }
+    /**
+     * 推荐
+     */
+    @Before(Tx.class)
+    public boolean delete(UserTypeConstant type, Integer uid, String orderId, Integer productId, Integer productStandardId, Integer num) {
+        super.save();
+        return getOrderLog(type, uid, orderId, productId, productStandardId, ~num + 1).save();
+    }
+    /**
+     * 推荐
+     */
+    @Before(Tx.class)
+    public boolean update(UserTypeConstant type, Integer uid, String orderId, Integer productId, Integer productStandardId, Integer beforeNum, Integer afterNum) {
+        super.save();
+        return getOrderLog(type, uid, orderId, productId, productStandardId, afterNum - beforeNum).save();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
