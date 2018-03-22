@@ -9,12 +9,12 @@ import com.jfinal.plugin.activerecord.IBean;
 @SuppressWarnings("serial")
 public abstract class BaseProcurementPlan<M extends BaseProcurementPlan<M>> extends Model<M> implements IBean {
 
-	public void setId(java.lang.Integer id) {
+	public void setId(java.lang.String id) {
 		set("id", id);
 	}
 
-	public java.lang.Integer getId() {
-		return getInt("id");
+	public java.lang.String getId() {
+		return getStr("id");
 	}
 
 	public void setProcurementId(java.lang.Integer procurementId) {
