@@ -33,7 +33,7 @@ public class QuotaContrller extends BaseController {
         boolean isASC = "ascending".equals(getPara("order"));
 
         // 下单时间
-        String[] orderTime = getParaValues("order_time");
+        String[] orderTime = getParaValues("format_create_time");
         Page<ProcurementQuota> pageData = ProcurementQuota.dao.getData(pageNum, pageSize, orderBy, isASC, quota, orderTime);
         renderJson(pageData);
     }
