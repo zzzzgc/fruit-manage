@@ -135,4 +135,14 @@ public class User extends BaseUser<User> {
 		}
 		return true;
 	}
+
+	/**
+	 * 获取所有的用户编号和用户名
+	 * @return 所有的用户编号和用户名
+	 * TODO 这个方面不可取，必须要根据角色ID去获取
+	 */
+	public List<User> getAllUser(){
+		String sql="select u.id,u.`name` from a_user u";
+		return find(sql);
+	}
 }

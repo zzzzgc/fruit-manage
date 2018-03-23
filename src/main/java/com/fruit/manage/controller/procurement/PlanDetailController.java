@@ -89,7 +89,7 @@ public class PlanDetailController extends BaseController{
                 procurementPlanDetail.setInventoryNum(Integer.parseInt (procurementPlan.get("inventoryNum")+""));
                 procurementPlanDetail.setProcurementNum(Integer.parseInt(procurementPlan.get("procurementNum")+""));
                 procurementPlanDetail.setProductStandardNum(Integer.parseInt(procurementPlan.get("productStandardNum")+""));
-                procurementPlanDetail.setProcurementNeedPrice(procurementPlan.get("procurementNeedPrice"));
+                procurementPlanDetail.setProcurementNeedPrice(BigDecimal.valueOf(procurementPlan.get("procurementNeedPrice")));
                 procurementPlanDetail.setProcurementTotalPrice(BigDecimal.valueOf(procurementPlan.get("procurementTotalPrice")));
                 procurementPlanDetail.setOrderRemark(procurementPlan.get("orderRemark"));
                 procurementPlanDetail.setProcurementRemark(procurementPlan.get("procurementRemark"));
@@ -104,5 +104,29 @@ public class PlanDetailController extends BaseController{
             list.add("1");
         }
         renderJson(list);
+    }
+
+    /**
+     * 根据采购计划编码获取采购计划信息
+     */
+    public void getPPlanDetailByID(){
+        Integer id=getParaToInt("id");
+        renderJson(ProcurementPlanDetail.dao.getPPlanDetailByID(id));
+    }
+
+    /**
+     * 获取所有的采购人员
+     */
+    public void getAllProcurementUser(){
+        renderJson(User.dao.getAllUser());
+    }
+
+    /**
+     * 修改采购计划
+     */
+    public void updatePPlanDetailTwo(){
+        ProcurementPlanDetail procurementPlanDetail=getModel(ProcurementPlanDetail.class,"",true);
+        procurementPlanDetail.update();
+        renderJson(new ArrayList<>(1).add(0));
     }
 }
