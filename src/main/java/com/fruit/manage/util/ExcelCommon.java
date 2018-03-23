@@ -54,7 +54,7 @@ public class ExcelCommon {
         String savePath = path + "/" + fileName;
 
         Excel excel = new Excel();
-        excel.setWidth(1024);
+//        excel.setWidth(1024);
         if (StrKit.notBlank(title)) {
             excel.setTitle(title);
         }
@@ -69,18 +69,10 @@ public class ExcelCommon {
         if (StrKit.notBlank(header)) {
             excel.setHeader(header);
         }
-        if (listData != null && listData.size() > 0) {
-            // 循环行数
-            for (int i = 0; i < listData.size(); i++) {
-                if (listData.get(i) != null && listData.get(i).length > 0) {
-                    // 创建新的一行
-                    ExcelRow row = excel.createRow();
-                    // 循环列数
-                    for (int j = 0; j < listData.get(i).length; j++) {
-                        // 添加数据
-                        row.addCell(listData.get(i)[j]);
-                    }
-                }
+        for (String[] dataRow : listData) {
+            ExcelRow row = excel.createRow();
+            for (String dataCell : dataRow) {
+                row.addCell(dataCell);
             }
         }
         try {
@@ -99,19 +91,12 @@ public class ExcelCommon {
      * @throws IOException
      * @throws ExcelRdException
      */
-    public static List<Object[]> excelRd(String readPath, Integer startRowNum, Integer startColNum) throws IOException, ExcelRdException {
+    public static List<Object[]> excelRd(String readPath, Integer startRowNum, Integer startColNum,ExcelRdTypeEnum[] types) throws IOException, ExcelRdException {
         List<Object[]> data = new ArrayList<>();
 
         ExcelRd excelRd = new ExcelRd(readPath);
-        excelRd.setStartRow(startRowNum-1);
-        excelRd.setStartCol(startColNum-1);
-        ExcelRdTypeEnum[] types = {
-                ExcelRdTypeEnum.INTEGER,
-                ExcelRdTypeEnum.DOUBLE,
-                ExcelRdTypeEnum.DATETIME,
-                ExcelRdTypeEnum.DATE,
-                ExcelRdTypeEnum.STRING
-        };
+        excelRd.setStartRow(startRowNum - 1);
+        excelRd.setStartCol(startColNum - 1);
         // 指定每列的类型
         excelRd.setTypes(types);
 
@@ -126,9 +111,63 @@ public class ExcelCommon {
         return data;
     }
 
+//    private static void excelRd() throws IOException, ExcelRdException {
+//
+//        String path = "C:\\Users\\Administrator\\Downloads\\商品库信息大全.xlsx";
+//        ExcelRd excelRd = new ExcelRd(path);
+//        excelRd.setStartRow(2);    // 指定起始行，从0开始
+//        excelRd.setStartCol(0);    // 指定起始列，从0开始
+//        ExcelRdTypeEnum[] types = {
+////                ExcelRdTypeEnum.INTEGER,
+////                ExcelRdTypeEnum.DOUBLE,
+////                ExcelRdTypeEnum.DATETIME,
+////                ExcelRdTypeEnum.DATE,
+//                ExcelRdTypeEnum.STRING,
+//                ExcelRdTypeEnum.STRING,
+//                ExcelRdTypeEnum.STRING,
+//                ExcelRdTypeEnum.STRING,
+//                ExcelRdTypeEnum.STRING,
+//                ExcelRdTypeEnum.STRING,
+//        };
+//        excelRd.setTypes(types);    // 指定每列的类型
+//
+//        List<ExcelRdRow> rows = excelRd.analysisXlsx();
+//        Map<String, Object>[] plans = new HashMap[rows.size()];
+//
+//        int size = rows.size();
+//        for (int i = 0; i < size; i++) {
+//
+//            ExcelRdRow excelRdRow = rows.get(i);
+//            List<Object> row = excelRdRow.getRow();
+//            HashMap<String, Object> plan = new HashMap<String, Object>();
+//
+//            for (Object t : row) {
+//                System.out.println(t);
+//            }
+//            System.out.println("\n");
+//
+//            plans[i] = plan;
+//        }
+//
+//    }
+
     public static void main(String[] args) {
+//        try {
+//            excelRd();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        } catch (ExcelRdException e) {
+//            e.printStackTrace();
+//        }
         try {
-            List<Object[]> list = excelRd("C:\\Users\\Administrator\\Downloads\\商品库信息大全 (2).xlsx", 3, 1);
+            List<Object[]> list = excelRd("C:\\Users\\Administrator\\Downloads\\商品库信息大全.xlsx", 3, 1,new ExcelRdTypeEnum[]{
+                    ExcelRdTypeEnum.STRING,
+                    ExcelRdTypeEnum.INTEGER,
+                    ExcelRdTypeEnum.STRING,
+                    ExcelRdTypeEnum.INTEGER,
+                    ExcelRdTypeEnum.STRING,
+                    ExcelRdTypeEnum.INTEGER
+            });
             for (Object[] objects : list) {
                 for (Object object : objects) {
                     System.out.print(object + "-");

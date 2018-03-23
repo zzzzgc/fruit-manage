@@ -81,6 +81,7 @@ public class ExcelController extends BaseController {
         Integer uid = getSessionAttr(Constant.SESSION_UID);
         String fileName = "商品库信息大全.xlsx";
         String[] headers = new String[6];
+        // xls表头顺序：商品名，规格名，规格编码，采购姓名，采购人id
         headers[0] = "商品名";
         headers[1] = "商品编码";
         headers[2] = "规格名";
@@ -96,19 +97,15 @@ public class ExcelController extends BaseController {
             info[1] = productStandard.get("product_id") + "";
             info[2] = productStandard.getName();
             info[3] = productStandard.getId() + "";
-            info[4] = "";
-            info[5] = "";
+            info[4] = " ";
+            info[5] = " ";
             tables.add(info);
         }
         File file = null;
         try {
             String filePath = ExcelCommon.createExcelModul(basePath, fileName, "商品库信息大全", User.dao.findById(uid).getName(), headers, tables);
-            // xls表头顺序：商品名，规格名，规格编码，采购姓名，采购人id
 
-            // TODO
             file = new File(filePath);
-
-//            ExcelCommon.excelRd(filePath,2,1);
             if (!file.exists()) {
                 throw new RuntimeException("basePath:" + basePath + ",fileName:" + fileName + "  文件不存在");
             }
