@@ -2,6 +2,7 @@ package com.fruit.manage.controller.procurement;
 
 import com.fruit.manage.base.BaseController;
 import com.fruit.manage.model.ProcurementPlan;
+import com.fruit.manage.model.ProcurementPlanDetail;
 import com.fruit.manage.model.User;
 import com.fruit.manage.util.Constant;
 import com.fruit.manage.util.DateAndStringFormat;
@@ -13,7 +14,9 @@ import com.jfinal.plugin.activerecord.tx.TxConfig;
 import com.microsoft.schemas.office.office.STInsetMode;
 import org.apache.log4j.Logger;
 
+import javax.xml.crypto.Data;
 import java.io.File;
+import java.math.BigDecimal;
 import java.util.*;
 
 public class PlanController extends BaseController {
@@ -120,6 +123,8 @@ public class PlanController extends BaseController {
             procurementPlan2.setProcurementId(getSessionAttr(Constant.SESSION_UID));
             procurementPlan2.update();
         }
+        // 订单日志修改为1（被统计过）
+        ProcurementPlan.dao.updateOrderLog(create_time);
         renderJson(new ArrayList<>().add(0));
     }
 
@@ -127,58 +132,84 @@ public class PlanController extends BaseController {
      * 根据采购计划ID导出采购计划单
      */
     public void exportPPlan() {
-        int pPlanId = getParaToInt("pPlanId");
         Integer uid = getSessionAttr(Constant.SESSION_UID);
         // 获取当前操作用户
         User user = User.dao.findById(uid);
+        Date createTime=getParaToDate("createTime");
+        String createTimeStr= DateAndStringFormat.getStringDateShort(createTime);
+        String [] createTimes =new String[2];
+        createTimes[0] = DateAndStringFormat.getNextDay(createTimeStr,"-1")+" 12:00:00";
+        createTimes[1] = createTimeStr+" 11:59:59";
         // 获取要导出数据
-        List<ProcurementPlan> planList = ProcurementPlan.dao.getExportDataByPPlanID(pPlanId);
+        List<ProcurementPlan> planList = ProcurementPlan.dao.getExportDataByPPlanID(createTimes);
         //行头
         String[] header = {"商品名", "规格名", "规格编码", "重量(斤)", "报价", "下单量", "库存量", "采购量", "采购单价", "下单备注"};
+        // 先执行删除操作
+        ProcurementPlanDetail.dao.delPPlanDetail(createTimes);
         List<String[]> listData = new ArrayList<String[]>();
         for (ProcurementPlan procurementPlan : planList) {
             String[] str = new String[header.length];
+            Integer productId =procurementPlan.get("productId");
             // 商品名
-            str[0] = procurementPlan.get("pName");
+            str[0] = procurementPlan.get("productName");
             // 规格名
-            str[1] = procurementPlan.get("psName");
+            str[1] = procurementPlan.get("productStandardName");
             // 规格编号
-            str[2] = procurementPlan.get("psID");
+            str[2] = procurementPlan.get("productStandardID")+"";
             // 水果重量
-            str[3] = procurementPlan.get("fruitWeight");
+            str[3] = procurementPlan.get("fruitWeight")+"";
             // 报价
-            str[4] = procurementPlan.get("sellPrice");
-            str[5] = procurementPlan.get("orderCount");
-            str[6] = procurementPlan.get("inventoryCount");
-            str[7] = procurementPlan.get("procurementCount");
-            str[8] = procurementPlan.get("procurementPrice");
-            str[9] = procurementPlan.get("orderRemark");
+            str[4] = procurementPlan.get("sellPrice")+"";
+            str[5] = procurementPlan.get("purchaseNum")+"";
+            str[6] = procurementPlan.get("inventoryNum")+"";
+            str[7] = procurementPlan.get("procurementNum")+"";
+            str[8] = procurementPlan.get("procurementPrice")+"";
+            str[9] = procurementPlan.get("procurementRemark");
+            ProcurementPlanDetail procurementPlanDetail =new ProcurementPlanDetail();
+            procurementPlanDetail.setProductId(productId);
+            procurementPlanDetail.setProductStandardId(procurementPlan.get("productStandardID"));
+            procurementPlanDetail.setProcurementId(uid);
+            procurementPlanDetail.setProductName( procurementPlan.get("productName"));
+            procurementPlanDetail.setProductStandardName(procurementPlan.get("productStandardName"));
+            procurementPlanDetail.setSellPrice(procurementPlan.get("sellPrice"));
+            procurementPlanDetail.setInventoryNum(Integer.parseInt (procurementPlan.get("inventoryNum")+""));
+            procurementPlanDetail.setProcurementNum(Integer.parseInt(procurementPlan.get("procurementNum")+""));
+            procurementPlanDetail.setProductStandardNum(Integer.parseInt(procurementPlan.get("productStandardNum")+""));
+            procurementPlanDetail.setProcurementNeedPrice(procurementPlan.get("procurementNeedPrice"));
+            procurementPlanDetail.setProcurementTotalPrice(BigDecimal.valueOf(procurementPlan.get("procurementTotalPrice")));
+            procurementPlanDetail.setOrderRemark(procurementPlan.get("orderRemark"));
+            procurementPlanDetail.setProcurementRemark(procurementPlan.get("procurementRemark"));
+            procurementPlanDetail.setCreateTime(createTime);
+            procurementPlanDetail.setUpdateTime(new Date());
+            procurementPlanDetail.save();
             listData.add(str);
         }
+
         //保存路径
         String savePath = getRequest().getSession().getServletContext().getRealPath("static/excel");
         System.out.println("\n" + savePath);
         String fpath = getSession().getServletContext().getRealPath("static/excel");
+        String fileName =UUID.randomUUID().toString().replaceAll("-", "") + ".xlsx";
         System.out.println(fpath + "\n");
         Map map = new HashMap(12);
         map.put("path", savePath);
-        map.put("fileName", UUID.randomUUID().toString().replaceAll("-", "") + ".xlsx");
+        map.put("fileName", fileName);
         map.put("title", "采购计划表");
         map.put("createBy", user.getName());
         map.put("header", header);
         map.put("listData", listData);
         try {
-            String path = ExcelCommon.createExcelModul(map);
+            ExcelCommon.createExcelModul(map);
             List<String> list = new ArrayList<>();
-            list.add(path);
+            list.add(fileName);
             renderJson(list);
         } catch (ExcelException e) {
             renderErrorText(e.getMessage());
         }
     }
-
+    public static Integer testid=1;
     public void download() {
-        String path = getPara("path");
+        String path = getPara("path",testid+1+"");
         File file = new File(path);
         if (file.exists()) {
             renderFile(file);

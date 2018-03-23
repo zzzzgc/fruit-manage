@@ -45,7 +45,7 @@ public class ProcurementPlan extends BaseProcurementPlan<ProcurementPlan> {
 	// 获取未统计的商品总数
 	public ProcurementPlan getWaitStatisticsOrderTotal(String [] createTimes,String createTime){
 		StringBuilder sql =new StringBuilder();
-		sql.append("select sum(ol.change_num) as wait_statistics_order_total, ");
+		sql.append("select count(DISTINCT ol.order_id) AS wait_statistics_order_total, ");
 		sql.append("'"+createTime+"'");
 		sql.append(" as create_time ");
 		sql.append("from b_order_log ol ");
@@ -62,31 +62,41 @@ public class ProcurementPlan extends BaseProcurementPlan<ProcurementPlan> {
 	}
 	/**
 	 * 根据采购计划ID获取要导出的采购数据
-	 * @param pPlanID
+	 * @param createTime
 	 * @return
 	 */
-	public List<ProcurementPlan> getExportDataByPPlanID(Integer pPlanID){
+	public List<ProcurementPlan> getExportDataByPPlanID(String [] createTime){
 		StringBuilder sql = new StringBuilder();
-		sql.append("select p.`name` as pName, ");
-		sql.append("ps.`name` as psName, ");
-		sql.append("ps.id as psID, ");
+		sql.append("select p.`name` as productName, ");
+		sql.append("ps.`name` as productStandardName, ");
+		sql.append("ps.id as productStandardID, ");
 		sql.append("ps.fruit_weight as fruitWeight, ");
-		sql.append("ps.sell_price as sellPrice, ");
-		sql.append("(select SUM(ol.change_num) from b_order_log ol where ol.product_standard_id =ppd.product_standard_id) as orderCount, ");
-		sql.append("(select 0) as inventoryCount, ");
-		sql.append("((select SUM(ol.change_num) from b_order_log ol where ol.product_standard_id =ppd.product_standard_id)-(select 0)) as procurementCount, ");
-		sql.append("(select '') as procurementPrice, ");
-		sql.append("ppd.order_remark as orderRemark ");
-		sql.append("from b_procurement_plan pp , ");
-		sql.append("b_procurement_plan_detail ppd, ");
-		sql.append("b_product p, ");
+		sql.append("ps.sell_price as sellPrice,( ");
+		sql.append("SELECT sum(od2.num) from b_order_detail od2,b_order o ");
+		sql.append("where od2.order_id=o.order_id ");
+		sql.append("and od2.product_standard_id=ol.product_standard_id ");
+		sql.append("group by od2.product_standard_id ");
+		sql.append(") as purchaseNum, ");
+		sql.append("(select 0) as inventoryNum, ");
+		sql.append("(select 0) as procurementNum, ");
+		sql.append("(select 0) as procurementPrice, ");
+		sql.append("(select '') as procurementRemark, ");
+		sql.append("p.id as productId, ");
+		sql.append("(SELECT SUM(ol2.change_num) from b_order_log ol2 where ol2.product_standard_id=ol.product_standard_id) as productStandardNum, ");
+		sql.append("(SELECT SUM(ol2.change_num)*ps.sell_price from b_order_log ol2 where ol2.product_standard_id=ol.product_standard_id) as procurementNeedPrice, ");
+		sql.append("(select 0) as procurementTotalPrice, ");
+		sql.append("(select '') as orderRemark ");
+		sql.append("from b_order_log ol,b_product p,");
 		sql.append("b_product_standard ps ");
 		sql.append("where 1=1 ");
-		sql.append("and pp.procurement_id=ppd.procurement_id ");
-		sql.append("and ppd.product_id = p.id ");
-		sql.append("and ppd.product_standard_id = ps.id ");
-		sql.append("and pp.procurement_id = ? ");
-		return find(sql.toString(),pPlanID);
+		sql.append("and ol.product_id=p.id ");
+		sql.append("and ol.product_standard_id=ps.id ");
+		sql.append("and ol.create_time BETWEEN ? and ? ");
+		sql.append("GROUP BY ol.product_standard_id ");
+		List<String> list=new ArrayList<>();
+		list.add(createTime[0]);
+		list.add(createTime[1]);
+		return find(sql.toString(),list.toArray());
 	}
 
 	/**

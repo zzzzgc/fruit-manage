@@ -13,9 +13,11 @@ import com.fruit.manage.controller.TypeGroupController;
 import com.fruit.manage.controller.customer.CustomerController;
 import com.fruit.manage.controller.login.LoginController;
 import com.fruit.manage.controller.order.OrderController;
+import com.fruit.manage.controller.procurement.PlanDetailController;
 import com.fruit.manage.controller.procurement.QuotaContrller;
 import com.fruit.manage.controller.user.RolesController;
 import com.fruit.manage.controller.user.UserController;
+import com.fruit.manage.model.ProcurementPlanDetail;
 import com.jfinal.config.Routes;
 
 /**
@@ -44,6 +46,7 @@ public class BaseRoutesConfig extends Routes {
 		add("/manage/customer", CustomerController.class);
 		add("/manage/procurement/plan", PlanController.class);
 		add("/manage/procurement/quota", QuotaContrller.class);
+		add("/manage/procurement/plan/detail", PlanDetailController.class);
 	}
 
 }
