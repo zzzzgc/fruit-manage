@@ -73,6 +73,22 @@ public abstract class BaseProcurementQuota<M extends BaseProcurementQuota<M>> ex
 		return getStr("procurement_phone");
 	}
 
+	public void setCreateUserId(java.lang.Integer createUserId) {
+		set("create_user_id", createUserId);
+	}
+
+	public java.lang.Integer getCreateUserId() {
+		return getInt("create_user_id");
+	}
+
+	public void setCreateUserName(java.lang.String createUserName) {
+		set("create_user_name", createUserName);
+	}
+
+	public java.lang.String getCreateUserName() {
+		return getStr("create_user_name");
+	}
+
 	public void setCreateTime(java.util.Date createTime) {
 		set("create_time", createTime);
 	}

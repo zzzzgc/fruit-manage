@@ -28,6 +28,7 @@ public class ProcurementQuota extends BaseProcurementQuota<ProcurementQuota> {
                 "\tpq.procurement_id,\n" +
                 "\tpq.procurement_name,\n" +
                 "\tpq.procurement_phone,\n" +
+                "\tpq.create_user_name,\n " +
                 "\tpq.create_time,\n" +
                 "\tpq.update_time \n ";
 
