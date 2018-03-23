@@ -1,4 +1,4 @@
-package com.fruit.manage.controller;
+package com.fruit.manage.controller.common;
 
 import java.util.*;
 

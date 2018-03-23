@@ -1,8 +1,9 @@
 package com.fruit.manage.base;
 
 import com.fruit.manage.controller.BannerController;
-import com.fruit.manage.controller.CommonController;
+import com.fruit.manage.controller.common.CommonController;
 import com.fruit.manage.controller.IndexController;
+import com.fruit.manage.controller.common.ExcelController;
 import com.fruit.manage.controller.procurement.PlanController;
 import com.fruit.manage.controller.ProductController;
 import com.fruit.manage.controller.ProductMarketController;
@@ -30,9 +31,11 @@ public class BaseRoutesConfig extends Routes {
 		add("/productStandard", ProductStandardController.class);
 		add("/productMarket", ProductMarketController.class);
 		add("/login", LoginController.class);
-		
-		add("/manage/order", OrderController.class);
+		// 通用
+		add("/excel", ExcelController.class);
 		add("/manage/common", CommonController.class);
+
+		add("/manage/order", OrderController.class);
 		add("/manage/banner", BannerController.class);
 		add("/manage/type", TypeController.class);
 		add("/manage/typeGroup", TypeGroupController.class);
