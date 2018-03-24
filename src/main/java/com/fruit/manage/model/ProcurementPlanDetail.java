@@ -96,4 +96,20 @@ public class ProcurementPlanDetail extends BaseProcurementPlanDetail<Procurement
 				"ppd.update_time FROM b_procurement_plan_detail ppd where ppd.id = ? ";
 		return findFirst(sql,id);
 	}
+
+	/**
+	 * 根据商品规格编号获取采购计划详情
+	 * @param productStandardID
+	 * @return
+	 */
+	public ProcurementPlanDetail getPPlanDetailByPSID(Integer productStandardID,String [] createTimes){
+		StringBuilder sql =new StringBuilder();
+		sql.append("select ppd.id,ppd.product_id,ppd.product_standard_id,ppd.procurement_id, ");
+		sql.append("ppd.product_name,ppd.product_standard_name,ppd.sell_price,ppd.inventory_num,ppd.procurement_num,ppd.product_standard_num, ");
+		sql.append("ppd.procurement_need_price,ppd.procurement_total_price,ppd.procurement_need_price,ppd.order_remark,ppd.create_time,ppd.update_time ");
+		sql.append("from b_procurement_plan_detail ppd ");
+		sql.append("where ppd.product_standard_id = ? ");
+		sql.append("and ppd.create_time BETWEEN ? and ? ");
+		return findFirst(sql.toString(),productStandardID,createTimes[0],createTimes[1]);
+	}
 }

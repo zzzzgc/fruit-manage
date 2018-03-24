@@ -130,4 +130,18 @@ public class Product extends BaseProduct<Product> {
 		String sql = "SELECT p.`name` AS product_name,p.brand,p.id AS product_id FROM b_product p  WHERE p.`name` LIKE CONCAT('%',?,'%')";
 		return dao.find(sql,queryString);
 	}
+
+	/**
+	 * 获取产品ID，用于判断是否存在该商品
+	 * @param productName
+	 * @param productStandardID
+	 * @return
+	 */
+	public Product getProductIDByPNameAndPSID(String productName,Integer productStandardID){
+		String sql="select p.id,ps.sell_price from b_product p,b_product_standard ps where 1=1 \n" +
+				"and p.id = ps.product_id " +
+				"and p.`name` = ?  " +
+				"and ps.id= ? ";
+		return  findFirst(sql,productName,productStandardID);
+	}
 }

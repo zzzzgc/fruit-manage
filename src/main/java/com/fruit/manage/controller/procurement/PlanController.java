@@ -175,7 +175,7 @@ public class PlanController extends BaseController {
             procurementPlanDetail.setInventoryNum(Integer.parseInt (procurementPlan.get("inventoryNum")+""));
             procurementPlanDetail.setProcurementNum(Integer.parseInt(procurementPlan.get("procurementNum")+""));
             procurementPlanDetail.setProductStandardNum(Integer.parseInt(procurementPlan.get("productStandardNum")+""));
-            procurementPlanDetail.setProcurementNeedPrice(procurementPlan.get("procurementNeedPrice"));
+            procurementPlanDetail.setProcurementNeedPrice(BigDecimal.valueOf(procurementPlan.get("procurementNeedPrice")));
             procurementPlanDetail.setProcurementTotalPrice(BigDecimal.valueOf(procurementPlan.get("procurementTotalPrice")));
             procurementPlanDetail.setOrderRemark(procurementPlan.get("orderRemark"));
             procurementPlanDetail.setProcurementRemark(procurementPlan.get("procurementRemark"));
