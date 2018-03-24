@@ -83,7 +83,7 @@ public class ProcurementPlan extends BaseProcurementPlan<ProcurementPlan> {
 		sql.append("(select '') as procurementRemark, ");
 		sql.append("p.id as productId, ");
 		sql.append("(SELECT SUM(ol2.change_num) from b_order_log ol2 where ol2.product_standard_id=ol.product_standard_id) as productStandardNum, ");
-		sql.append("(SELECT SUM(ol2.change_num)*ps.sell_price from b_order_log ol2 where ol2.product_standard_id=ol.product_standard_id) as procurementNeedPrice, ");
+		sql.append("(SELECT 0) as procurementNeedPrice, ");
 		sql.append("(select 0) as procurementTotalPrice, ");
 		sql.append("(select '') as orderRemark ");
 		sql.append("from b_order_log ol,b_product p,");
@@ -93,6 +93,8 @@ public class ProcurementPlan extends BaseProcurementPlan<ProcurementPlan> {
 		sql.append("and ol.product_standard_id=ps.id ");
 		sql.append("and ol.create_time BETWEEN ? and ? ");
 		sql.append("GROUP BY ol.product_standard_id ");
+		// 按采购量和售价降序排序
+		sql.append("order by purchaseNum desc,ps.sell_price desc ");
 		List<String> list=new ArrayList<>();
 		list.add(createTime[0]);
 		list.add(createTime[1]);

@@ -1,6 +1,7 @@
 package com.fruit.manage.model;
 
 import com.fruit.manage.model.base.BaseProcurementPlanDetail;
+import com.jfinal.core.paragetter.IntegerGetter;
 import com.jfinal.kit.StrKit;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Page;
@@ -80,5 +81,19 @@ public class ProcurementPlanDetail extends BaseProcurementPlanDetail<Procurement
 			return true;
 		}
 		return  false;
+	}
+
+	/**
+	 * 根据采购计划详情ID获取采购计划详情
+	 * @param id 采购计划详情ID
+	 * @return 采购计划详情
+	 */
+	public ProcurementPlanDetail getPPlanDetailByID(Integer id){
+		String sql ="SELECT ppd.id,ppd.product_id,ppd.product_standard_id,ppd.procurement_id," +
+				"ppd.product_name,ppd.product_standard_name,ppd.sell_price,ppd.inventory_num," +
+				"ppd.procurement_num,ppd.product_standard_num,ppd.procurement_need_price," +
+				"ppd.procurement_total_price,ppd.order_remark,ppd.procurement_remark,ppd.create_time," +
+				"ppd.update_time FROM b_procurement_plan_detail ppd where ppd.id = ? ";
+		return findFirst(sql,id);
 	}
 }
