@@ -34,7 +34,7 @@ public class BaseRoutesConfig extends Routes {
 		add("/productMarket", ProductMarketController.class);
 		add("/login", LoginController.class);
 		// 通用
-		add("/excel", ExcelController.class);
+		add("/manage/excel", ExcelController.class);
 		add("/manage/common", CommonController.class);
 
 		add("/manage/order", OrderController.class);

@@ -1,40 +1,71 @@
 package com.fruit.manage.controller.common;
 
-import java.util.*;
-
 import com.fruit.manage.base.BaseController;
 import com.fruit.manage.constant.OrderConstant;
 import com.fruit.manage.constant.ShipmentConstant;
 import com.fruit.manage.model.Menu;
 import com.fruit.manage.model.Permission;
+import com.fruit.manage.model.User;
 import com.fruit.manage.util.Constant;
-import com.fruit.manage.util.ImgUtil;
+import com.jfinal.kit.PathKit;
+import com.jfinal.kit.PropKit;
 import com.jfinal.upload.UploadFile;
+import org.apache.log4j.Logger;
+
+import javax.servlet.http.HttpServletRequest;
+import java.io.File;
+import java.util.*;
 
 public class CommonController extends BaseController {
+    private static Logger log = Logger.getLogger(ExcelController.class);
 
     /**
-     * 上传图片公共方法
+     * 文件上传的路径,可以根据这个路径和文件名获取文件
+     * 不明白为什么设置的上传下载地址必须加上file
+     */
+    public static final String FILE_PATH = PathKit.getWebRootPath() + File.separator + PropKit.get("file.baseUploadPath") + File.separator + "file";
+
+    /**
+     * 上传文件公共方法
      */
     public void upload() {
-        List<UploadFile> fileList = null;
+        List<UploadFile> updataFiles = null;
         try {
-            fileList = getFiles("file");
+            updataFiles = getFiles("file");
         } catch (Exception e) {
             renderNull();
             return;
         }
-        if (fileList.size() == 1) {
-            String picUrl = ImgUtil.upImg(fileList.get(0), getRequest());
-            renderText(picUrl);
+        if (updataFiles.size() == 1) {
+            String saveFileName = renameFile(updataFiles.get(0), getRequest());
+            renderText(saveFileName);
             return;
         }
-        List<String> uploadText = new ArrayList<String>();
-        for (UploadFile f : fileList) {
-            String upImg = ImgUtil.upImg(f, getRequest());
-            uploadText.add(upImg);
+        List<String> saveFileNames = new ArrayList<String>();
+        for (UploadFile f : updataFiles) {
+            String saveFileName = renameFile(f, getRequest());
+            saveFileNames.add(saveFileName);
         }
-        renderJson(uploadText);
+        renderJson(saveFileNames);
+    }
+
+    /**
+     * 重命名文件
+     * 避免出现重名的文件
+     * @param uploadFile
+     * @param request
+     * @return
+     */
+    public static String renameFile(UploadFile uploadFile, HttpServletRequest request) {
+        File file = uploadFile.getFile();
+        String name = file.getName();
+        String saveFileName = "file_" + UUID.randomUUID().toString().replace("-", "") + name.substring(name.lastIndexOf("."));
+        File saveFile = new File(file.getParent() + File.separator + saveFileName);
+        if (file.renameTo(saveFile)) {
+            return saveFileName;
+        } else {
+            throw new RuntimeException("保存或重命名文件名失败");
+        }
     }
 
     /**

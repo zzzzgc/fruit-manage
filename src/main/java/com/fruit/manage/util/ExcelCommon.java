@@ -11,10 +11,16 @@ import com.jfinal.kit.StrKit;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Excel导入、导出、生成模板 公共类
+ *
+ * @author ZGC AND CCZ
+ * @date Created in 21:10 2018/3/23
  */
 public class ExcelCommon {
     /**
@@ -28,11 +34,10 @@ public class ExcelCommon {
         if (!new File(path).exists() || !new File(path).isDirectory()) {
             new File(path).mkdir();
         }
-        String savePath = path + "/" + fileName;
         String title = (String) map.get("title");
         String createBy = (String) map.get("createBy");
         String[] header = (String[]) map.get("header");
-        List<String[]> listData = (List<String[]>) map.get("listData");
+        List<Object[]> listData = (List<Object[]>) map.get("listData");
         return createExcelModul(path, fileName, title, createBy, header, listData);
     }
 
@@ -46,15 +51,14 @@ public class ExcelCommon {
      * @return 保存地址
      * @throws ExcelException 异常
      */
-    public static String createExcelModul(String path, String fileName, String title, String createBy, String[] header, List<String[]> listData) throws ExcelException {
+    public static String createExcelModul(String path, String fileName, String title, String createBy, String[] header, List<Object[]> listData) throws ExcelException {
         //判断文件夹是否存在
         if (!new File(path).exists() || !new File(path).isDirectory()) {
-            new File(path).mkdir();
+            new File(path).mkdirs();
         }
         String savePath = path + "/" + fileName;
 
         Excel excel = new Excel();
-//        excel.setWidth(1024);
         if (StrKit.notBlank(title)) {
             excel.setTitle(title);
         }
@@ -69,9 +73,9 @@ public class ExcelCommon {
         if (StrKit.notBlank(header)) {
             excel.setHeader(header);
         }
-        for (String[] dataRow : listData) {
+        for (Object[] dataRow : listData) {
             ExcelRow row = excel.createRow();
-            for (String dataCell : dataRow) {
+            for (Object dataCell : dataRow) {
                 row.addCell(dataCell);
             }
         }
@@ -85,16 +89,16 @@ public class ExcelCommon {
     /**
      * 简单的专门返回数据的excel信息
      *
-     * @param readPath
+     * @param pathFile 目录对象,支持url路径,支持绝对和抽象路径
      * @param startRowNum 指定起始行，从1开始
      * @param startColNum 指定起始列，从1开始
      * @throws IOException
      * @throws ExcelRdException
      */
-    public static List<Object[]> excelRd(String readPath, Integer startRowNum, Integer startColNum,ExcelRdTypeEnum[] types) throws IOException, ExcelRdException {
+    public static List<Object[]> excelRd(File pathFile, Integer startRowNum, Integer startColNum, ExcelRdTypeEnum[] types) throws IOException, ExcelRdException {
         List<Object[]> data = new ArrayList<>();
 
-        ExcelRd excelRd = new ExcelRd(readPath);
+        ExcelRd excelRd = new ExcelRd(pathFile);
         excelRd.setStartRow(startRowNum - 1);
         excelRd.setStartCol(startColNum - 1);
         // 指定每列的类型
@@ -111,56 +115,10 @@ public class ExcelCommon {
         return data;
     }
 
-//    private static void excelRd() throws IOException, ExcelRdException {
-//
-//        String path = "C:\\Users\\Administrator\\Downloads\\商品库信息大全.xlsx";
-//        ExcelRd excelRd = new ExcelRd(path);
-//        excelRd.setStartRow(2);    // 指定起始行，从0开始
-//        excelRd.setStartCol(0);    // 指定起始列，从0开始
-//        ExcelRdTypeEnum[] types = {
-////                ExcelRdTypeEnum.INTEGER,
-////                ExcelRdTypeEnum.DOUBLE,
-////                ExcelRdTypeEnum.DATETIME,
-////                ExcelRdTypeEnum.DATE,
-//                ExcelRdTypeEnum.STRING,
-//                ExcelRdTypeEnum.STRING,
-//                ExcelRdTypeEnum.STRING,
-//                ExcelRdTypeEnum.STRING,
-//                ExcelRdTypeEnum.STRING,
-//                ExcelRdTypeEnum.STRING,
-//        };
-//        excelRd.setTypes(types);    // 指定每列的类型
-//
-//        List<ExcelRdRow> rows = excelRd.analysisXlsx();
-//        Map<String, Object>[] plans = new HashMap[rows.size()];
-//
-//        int size = rows.size();
-//        for (int i = 0; i < size; i++) {
-//
-//            ExcelRdRow excelRdRow = rows.get(i);
-//            List<Object> row = excelRdRow.getRow();
-//            HashMap<String, Object> plan = new HashMap<String, Object>();
-//
-//            for (Object t : row) {
-//                System.out.println(t);
-//            }
-//            System.out.println("\n");
-//
-//            plans[i] = plan;
-//        }
-//
-//    }
 
     public static void main(String[] args) {
-//        try {
-//            excelRd();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        } catch (ExcelRdException e) {
-//            e.printStackTrace();
-//        }
         try {
-            List<Object[]> list = excelRd("C:\\Users\\Administrator\\Downloads\\商品库信息大全.xlsx", 3, 1,new ExcelRdTypeEnum[]{
+            List<Object[]> list = excelRd(new File("C:\\Users\\Administrator\\Downloads\\商品库信息大全.xlsx"), 3, 1, new ExcelRdTypeEnum[]{
                     ExcelRdTypeEnum.STRING,
                     ExcelRdTypeEnum.INTEGER,
                     ExcelRdTypeEnum.STRING,
@@ -174,29 +132,8 @@ public class ExcelCommon {
                 }
                 System.out.println("");
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ExcelRdException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
-/*    public static void main(String[] args) {
-        Map map =new HashMap();
-        map.put("savePath","C:\\Users\\Administrator\\Desktop\\test.xlsx");
-        map.put("title","标题");
-        String[] header = {"序号","日期","时间","数字"};
-        map.put("header",header);
-        map.put("createBy","partner");
-        List<String[]> listData=new ArrayList<>();
-        for (int i = 0; i < 20; i++) {
-            String [] row ={"序号"+i,"日期"+i,"时间"+i,"数字"+i};
-            listData.add(row);
-        }
-        map.put("listData",listData);
-        try {
-            createExcelModul(map);
-        } catch (ExcelException e) {
-            e.printStackTrace();
-        }
-    }*/
 }

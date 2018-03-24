@@ -115,8 +115,8 @@ public class ProductStandard extends BaseProductStandard<ProductStandard> {
         return find("SELECT\n" +
                 "\tp.`name` AS product_name,\n" +
                 "\tp.id AS product_id,\n" +
-                "\tps.`name`,\n" +
-                "\tps.id\n" +
+                "\tps.`name` AS product_standard_name,\n" +
+                "\tps.id AS product_standard_id\n" +
                 "FROM\n" +
                 "\tb_product_standard AS ps\n" +
                 "INNER JOIN b_product AS p ON ps.product_id = p.id");
