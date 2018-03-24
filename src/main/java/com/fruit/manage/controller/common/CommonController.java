@@ -50,6 +50,14 @@ public class CommonController extends BaseController {
     }
 
     /**
+     * 下载文件公共方法
+     */
+    public void download() {
+        String fileName = getPara("fileName");
+        renderFile(new File(FILE_PATH+File.separator + fileName));
+    }
+
+    /**
      * 重命名文件
      * 避免出现重名的文件
      * @param uploadFile

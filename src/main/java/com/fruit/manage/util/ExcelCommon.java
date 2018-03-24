@@ -1,5 +1,6 @@
 package com.fruit.manage.util;
 
+import com.fruit.manage.model.Order;
 import com.fruit.manage.util.excel.Excel;
 import com.fruit.manage.util.excel.ExcelException;
 import com.fruit.manage.util.excel.ExcelRow;
@@ -38,6 +39,7 @@ public class ExcelCommon {
         String createBy = (String) map.get("createBy");
         String[] header = (String[]) map.get("header");
         List<Object[]> listData = (List<Object[]>) map.get("listData");
+
         return createExcelModul(path, fileName, title, createBy, header, listData);
     }
 
@@ -56,7 +58,7 @@ public class ExcelCommon {
         if (!new File(path).exists() || !new File(path).isDirectory()) {
             new File(path).mkdirs();
         }
-        String savePath = path + "/" + fileName;
+        String savePath = path + File.separator + fileName;
 
         Excel excel = new Excel();
         if (StrKit.notBlank(title)) {
@@ -89,7 +91,7 @@ public class ExcelCommon {
     /**
      * 简单的专门返回数据的excel信息
      *
-     * @param pathFile 目录对象,支持url路径,支持绝对和抽象路径
+     * @param pathFile    目录对象,支持url路径,支持绝对和抽象路径
      * @param startRowNum 指定起始行，从1开始
      * @param startColNum 指定起始列，从1开始
      * @throws IOException

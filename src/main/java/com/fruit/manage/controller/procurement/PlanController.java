@@ -234,7 +234,9 @@ public class PlanController extends BaseController {
         }
         String zipName  = zipFileName + ".zip";
         boolean b = fileToZip(zipFolder, zipFolder, zipFileName);
-        renderText(zipName);
+        HashMap<Object, Object> objectObjectHashMap = new HashMap<>();
+        objectObjectHashMap.put("zipName",zipName);
+        renderJson(objectObjectHashMap);
     }
 
     /**
