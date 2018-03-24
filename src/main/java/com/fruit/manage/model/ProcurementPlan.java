@@ -68,6 +68,8 @@ public class ProcurementPlan extends BaseProcurementPlan<ProcurementPlan> {
 	public List<ProcurementPlan> getExportDataByPPlanID(String [] createTime){
 		StringBuilder sql = new StringBuilder();
 		sql.append("select p.`name` as productName, ");
+		sql.append("pq.procurement_id, ");
+		sql.append("pq.procurement_name, ");
 		sql.append("ps.`name` as productStandardName, ");
 		sql.append("ps.id as productStandardID, ");
 		sql.append("ps.fruit_weight as fruitWeight, ");
@@ -87,8 +89,9 @@ public class ProcurementPlan extends BaseProcurementPlan<ProcurementPlan> {
 		sql.append("(select 0) as procurementTotalPrice, ");
 		sql.append("(select '') as orderRemark ");
 		sql.append("from b_order_log ol,b_product p,");
-		sql.append("b_product_standard ps ");
+		sql.append("b_product_standard ps,b_procurement_quota pq ");
 		sql.append("where 1=1 ");
+		sql.append("and pq.product_standard_id = ol.product_standard_id ");
 		sql.append("and ol.product_id=p.id ");
 		sql.append("and ol.product_standard_id=ps.id ");
 		sql.append("and ol.create_time BETWEEN ? and ? ");
