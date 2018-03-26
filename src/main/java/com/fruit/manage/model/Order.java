@@ -185,7 +185,7 @@ public class Order extends BaseOrder<Order> {
      */
     public Order getOtherDataInfo(String orderId) {
         String selectStr = "SELECT\n" +
-                "o.id AS business_user_id,\n" +
+                "\to.id AS business_user_id,\n" +
                 "\tau.`name` AS a_user_sales,\n" +
                 "\to.id,\n" +
                 "\to.u_id,\n" +
@@ -194,17 +194,20 @@ public class Order extends BaseOrder<Order> {
                 "\to.create_time,\n" +
                 "\to.pay_need_money,\n" +
                 "\tinfo.business_name,\n" +
-                "\to.buy_address,\n" +
-                "\to.buy_phone,\n" +
-                "\to.buy_user_name,\n" +
-                "\to.delivery_type ";
+                "\tli.buy_address,\n" +
+                "\tli.buy_phone,\n" +
+                "\tli.buy_user_name,\n" +
+                "\tli.delivery_type ";
 
         StringBuffer sql = new StringBuffer();
         sql.append("FROM\n" +
-                "\tb_order AS o\n" +
+                "\tb_order AS o \n" +
                 "INNER JOIN b_business_user AS u ON o.u_id = u.id\n" +
+                "LEFT JOIN b_logistics_info AS li ON o.u_id = li.u_id\n" +
                 "INNER JOIN b_business_info AS info ON u.id = info.u_id\n" +
-                "INNER JOIN a_user AS au ON u.a_user_sales_id = au.id WHERE 1 = 1 ");
+                "INNER JOIN a_user AS au ON u.a_user_sales_id = au.id\n" +
+                "WHERE\n" +
+                "\t1 = 1 ");
         sql.append("AND o.order_id = ? ");
         System.out.println(selectStr + sql.toString());
         return dao.findFirst(selectStr+sql,orderId);
