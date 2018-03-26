@@ -8,6 +8,7 @@ import com.fruit.manage.util.Constant;
 import com.fruit.manage.util.ExcelCommon;
 import com.fruit.manage.util.excelRd.ExcelRdException;
 import com.fruit.manage.util.excelRd.ExcelRdTypeEnum;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 import java.io.File;
@@ -109,7 +110,7 @@ public class ExcelController extends BaseController {
         Integer uid = getSessionAttr(Constant.SESSION_UID);
         String name = User.dao.findById(uid).getName();
         String fileName = getPara("fileName");
-        File file = new File(BASE_PATH+ File.separator + fileName);
+        File file = new File(BASE_PATH + File.separator + fileName);
         try {
             // xls表头顺序：商品名,，规格名，规格编码，采购姓名，采购人编码
             List<Object[]> excelData = ExcelCommon.excelRd(file, 4, 1, new ExcelRdTypeEnum[]{
@@ -125,18 +126,20 @@ public class ExcelController extends BaseController {
 
             for (Object[] excelRow : excelData) {
                 for (ProductStandard productStandard : productStandardList) {
-                    if (productStandard.get("product_standard_id").equals(excelRow[3])) {
-                        ProcurementQuota procurementQuota = new ProcurementQuota();
-                        procurementQuota.setProductId(productStandard.get("product_id"));
-                        procurementQuota.setProductName(productStandard.get("product_name"));
-                        procurementQuota.setProductStandardName(productStandard.get("product_standard_name"));
-                        procurementQuota.setProductStandardId(productStandard.get("product_standard_id"));
-                        procurementQuota.setProcurementName((String) excelRow[4]);
-                        procurementQuota.setProcurementId((Integer) excelRow[5]);
-                        procurementQuota.setCreateTime(new Date());
-                        procurementQuota.setCreateUserId(uid);
-                        procurementQuota.setCreateUserName(name);
-                        procurementQuota.save();
+                    if (productStandard.get("product_standard_id") != null && productStandard.get("product_standard_id").equals(excelRow[3])) {
+                        if (StringUtils.isNotBlank((String) excelRow[4]) && excelRow[5] != null) {
+                            ProcurementQuota procurementQuota = new ProcurementQuota();
+                            procurementQuota.setProductId(productStandard.get("product_id"));
+                            procurementQuota.setProductName(productStandard.get("product_name"));
+                            procurementQuota.setProductStandardName(productStandard.get("product_standard_name"));
+                            procurementQuota.setProductStandardId(productStandard.get("product_standard_id"));
+                            procurementQuota.setProcurementName((String) excelRow[4]);
+                            procurementQuota.setProcurementId((Integer) excelRow[5]);
+                            procurementQuota.setCreateTime(new Date());
+                            procurementQuota.setCreateUserId(uid);
+                            procurementQuota.setCreateUserName(name);
+                            procurementQuota.save();
+                        }
                         break;
                     }
                 }
