@@ -87,7 +87,7 @@ public class PlanDetailController extends BaseController{
         List<String> list = new ArrayList<>();
         try {
             for (ProcurementPlan procurementPlan : planList) {
-                ProcurementPlanDetail procurementPlanDetail2=ProcurementPlanDetail.dao.getPPlanDetailByPSID(procurementPlan.get("productStandardID"),createTimes);
+                ProcurementPlanDetail procurementPlanDetail2=ProcurementPlanDetail.dao.getPPlanDetailByPSID(procurementPlan.get("productStandardID"),createTimes,null);
                 // 如果采购计划不存在就新增
                 if(procurementPlanDetail2==null){
                     Integer productId =procurementPlan.get("productId");
@@ -179,6 +179,7 @@ public class PlanDetailController extends BaseController{
             Iterator<ExcelRdRow> iterator = rows.iterator();
             Integer count=0;
             String [] createTimes =new String[2];
+            Map<Integer,List<Integer>> map=new HashMap<>(12);
             while (iterator.hasNext()) {
                 ExcelRdRow next = iterator.next();
                 List<Object> row = next.getRow();
@@ -189,31 +190,207 @@ public class PlanDetailController extends BaseController{
                     createTimes[1] = createTimeStr+" 11:59:59";
                 }
                 if(count>2){
-                    ProcurementPlanDetail procurementPlanDetail= ProcurementPlanDetail.dao.getPPlanDetailByPSID((Integer) row.get(0),createTimes);
+                    boolean flag = false;
+                    ProcurementPlanDetail procurementPlanDetail= ProcurementPlanDetail.dao.getPPlanDetailByPSID((Integer) row.get(0),createTimes,null);
                     if(procurementPlanDetail!=null){
-                        procurementPlanDetail.setProductStandardId((int)row.get(0));
-                        procurementPlanDetail.setProductName((String)row.get(1));
-                        procurementPlanDetail.setProductStandardName((String)row.get(2));
-                        procurementPlanDetail.setProcurementNum((int)row.get(3));
-                        procurementPlanDetail.setProcurementNeedPrice(new BigDecimal((Double) row.get(4)));
-                        procurementPlanDetail.setProcurementId((int)row.get(5));
-                        procurementPlanDetail.setProcurementRemark((String)row.get(6));
-                        BigDecimal pNeedPrice=new BigDecimal((Double) row.get(4));
-                        BigDecimal pNum =new BigDecimal((int)row.get(3));
-                        procurementPlanDetail.setProcurementTotalPrice(pNeedPrice.multiply(pNum));
-                        procurementPlanDetail.setUpdateTime(new Date());
-                        procurementPlanDetail.update();
+                        List<Integer> userIDs=map.get(row.get(0));
+                        if(userIDs!=null){
+                            for (int i = 0;i < userIDs.size(); i++) {
+                                Integer userID=userIDs.get(i);
+                                if(userID!=null && userID!=(int)row.get(5)){
+                                    flag = true;
+                                    userIDs.add((int)row.get(5));
+                                    map.put((int)row.get(0),userIDs);
+                                    break;
+                                }else {
+                                    userIDs.add((int)row.get(5));
+                                    map.put((int)row.get(0),userIDs);
+                                }
+                            }
+                        }else {
+                            if(userIDs==null){
+                                userIDs=new ArrayList<>();
+                            }
+                            userIDs.add((int)row.get(5));
+                            map.put((int)row.get(0),userIDs);
+                        }
+                        if(flag){
+                            procurementPlanDetail.setId(null);
+                            procurementPlanDetail.setProductStandardId((int)row.get(0));
+                            procurementPlanDetail.setProductName((String)row.get(1));
+                            procurementPlanDetail.setProductStandardName((String)row.get(2));
+                            procurementPlanDetail.setProcurementNum((int)row.get(3));
+                            procurementPlanDetail.setProcurementNeedPrice(new BigDecimal((Double) row.get(4)));
+                            procurementPlanDetail.setProcurementId((int)row.get(5));
+                            procurementPlanDetail.setProcurementRemark((String)row.get(6));
+                            BigDecimal pNeedPrice=new BigDecimal((Double) row.get(4));
+                            BigDecimal pNum =new BigDecimal((int)row.get(3));
+                            procurementPlanDetail.setProcurementTotalPrice(pNeedPrice.multiply(pNum));
+                            procurementPlanDetail.setUpdateTime(new Date());
+                            procurementPlanDetail.save();
+                        }else {
+                            procurementPlanDetail.setProductStandardId((int)row.get(0));
+                            procurementPlanDetail.setProductName((String)row.get(1));
+                            procurementPlanDetail.setProductStandardName((String)row.get(2));
+                            procurementPlanDetail.setProcurementNum((int)row.get(3));
+                            procurementPlanDetail.setProcurementNeedPrice(new BigDecimal((Double) row.get(4)));
+                            procurementPlanDetail.setProcurementId((int)row.get(5));
+                            procurementPlanDetail.setProcurementRemark((String)row.get(6));
+                            BigDecimal pNeedPrice=new BigDecimal((Double) row.get(4));
+                            BigDecimal pNum =new BigDecimal((int)row.get(3));
+                            procurementPlanDetail.setProcurementTotalPrice(pNeedPrice.multiply(pNum));
+                            procurementPlanDetail.setUpdateTime(new Date());
+                            procurementPlanDetail.update();
+                        }
                     }
-                    for (Object t : row) {
-                        System.out.print(t+"\t");
-                    }
-                    System.out.println();
                 }
             }
+            // 进行删除操作
+            List<ProcurementPlanDetail> procurementPlanDetails=ProcurementPlanDetail.dao.getPSIDAndPSCount(createTimes);
+                for (int i = 0; i < procurementPlanDetails.size(); i++) {
+                ProcurementPlanDetail procurementPlanDetail= procurementPlanDetails.get(i);
+                Integer psID=procurementPlanDetail.getProductStandardId();
+                Integer psCount= Integer.parseInt(procurementPlanDetail.get("pscount")+"");
+                List<Integer> list =map.get(psID);
+                // 判断导入的用户是否少了
+                if( list!=null && list.size()<psCount){
+                    List<ProcurementPlanDetail> procurementPlanDetailList= ProcurementPlanDetail.dao.getPPDIDAndProcurementID(createTimes, psID);
+                    for (int j = 0; j < procurementPlanDetailList.size(); j++) {
+                        ProcurementPlanDetail procurementPlanDetail2= procurementPlanDetailList.get(j);
+                        Integer procurementId= procurementPlanDetail2.getProcurementId();
+                        Integer id=procurementPlanDetail2.getId();
+                        boolean isExist=false;
+                        for (int k = 0; k < list.size(); k++) {
+                            if(procurementId!=null && procurementId.equals(list.get(k))){
+                                isExist = true;
+                            }
+                        }
+                        if(!isExist){
+                            procurementPlanDetail2.deleteById(id);
+                        }
+                    }
+                }
+            }
+            renderJson(new ArrayList<>().add(0));
         }catch (Exception e){
             renderJson(new ArrayList<>().add(1));
         }
 
-        renderJson(new ArrayList<>().add(0));
     }
+
+
+
+
+
+
+
+
+    public static List<ExcelRdRow> readExcel(String filePath){
+        ExcelRd excelRd = new ExcelRd(filePath);
+        excelRd.setStartRow(1);
+        excelRd.setStartCol(0);
+        ExcelRdTypeEnum[] types = {
+                ExcelRdTypeEnum.INTEGER,
+                ExcelRdTypeEnum.STRING,
+                ExcelRdTypeEnum.STRING,
+                ExcelRdTypeEnum.INTEGER,
+                ExcelRdTypeEnum.DOUBLE,
+                ExcelRdTypeEnum.INTEGER,
+                ExcelRdTypeEnum.STRING
+        };
+        // 指定每列的类型
+        excelRd.setTypes(types);
+
+        List<ExcelRdRow> rows = null;
+        try {
+            rows = excelRd.analysisXlsx();
+        } catch (ExcelRdException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return rows;
+    }
+
+
+
+    public void uploaderExcelTwo(){
+        try{
+
+            String fileName=getPara("fileName");
+            String filePath = CommonController.FILE_PATH + File.separator + fileName;
+            Iterator<ExcelRdRow> iterator = PlanDetailController.readExcel(filePath).iterator();
+            Integer count=0;
+            Map<String,ProcurementPlanDetail> mapKeyOne =new HashMap<>();
+            Map<String,ProcurementPlanDetail> mapKeyTwo =new HashMap<>();
+            String [] createTimes =new String[2];
+            // 循环Excel行
+            while (iterator.hasNext()) {
+                ExcelRdRow next = iterator.next();
+                List<Object> row = next.getRow();
+                count ++;
+                if(count ==1){
+                    String createTimeStr= ((String)row.get(0)).split(" ")[0].substring(5);
+                    createTimes[0] = DateAndStringFormat.getNextDay(createTimeStr,"-1")+" 12:00:00";
+                    createTimes[1] = createTimeStr+" 11:59:59";
+                    // 根据时间获取所有的采购计划
+                    List<ProcurementPlanDetail> procurementPlanDetailList= ProcurementPlanDetail.dao.getAllPPlanDetail(createTimes);
+                    if(procurementPlanDetailList!=null && procurementPlanDetailList.size()>0) {
+                        //循环所有的采购计划数据到Map临时数据
+                        for (ProcurementPlanDetail pPlanDetail : procurementPlanDetailList) {
+                            // key为productStandardId,value为ProcurementPlanDetail
+                            mapKeyOne.put(pPlanDetail.getProductStandardId()+"",pPlanDetail);
+                            // key为productStandardId+"-"+procurementId,value为ProcurementPlanDetail
+                            mapKeyTwo.put(pPlanDetail.getProductStandardId() + "-"+pPlanDetail.getProcurementId(),pPlanDetail);
+                        }
+                    }
+                }
+                if(count>2){
+                    if(count==3){
+                        // 根据时间删除所有的采购计划
+                        ProcurementPlanDetail.dao.delAllPPlanDetailByTime(createTimes);
+                    }
+                    ProcurementPlanDetail pPDtailTwo = mapKeyTwo.get((Integer) row.get(0) + "-" + (Integer) row.get(5));
+                    if(pPDtailTwo!=null){
+                        pPDtailTwo.setId(null);
+                        pPDtailTwo.setProductStandardId((int)row.get(0));
+                        pPDtailTwo.setProductName((String)row.get(1));
+                        pPDtailTwo.setProductStandardName((String)row.get(2));
+                        pPDtailTwo.setProcurementNum((int)row.get(3));
+                        pPDtailTwo.setProcurementNeedPrice(new BigDecimal((Double) row.get(4)));
+                        pPDtailTwo.setProcurementId((int)row.get(5));
+                        pPDtailTwo.setProcurementRemark((String)row.get(6));
+                        BigDecimal pNeedPrice=new BigDecimal((Double) row.get(4));
+                        BigDecimal pNum =new BigDecimal((int)row.get(3));
+                        pPDtailTwo.setProcurementTotalPrice(pNeedPrice.multiply(pNum));
+                        pPDtailTwo.setUpdateTime(new Date());
+                        pPDtailTwo.save();
+                    }else {
+                        ProcurementPlanDetail pPDtailOne = mapKeyOne.get(row.get(0)+"");
+                        if(pPDtailOne!=null){
+                            pPDtailOne.setId(null);
+                            pPDtailOne.setProductStandardId((int)row.get(0));
+                            pPDtailOne.setProductName((String)row.get(1));
+                            pPDtailOne.setProductStandardName((String)row.get(2));
+                            pPDtailOne.setProcurementNum((int)row.get(3));
+                            pPDtailOne.setProcurementNeedPrice(new BigDecimal((Double) row.get(4)));
+                            pPDtailOne.setProcurementId((int)row.get(5));
+                            pPDtailOne.setProcurementRemark((String)row.get(6));
+                            BigDecimal pNeedPrice=new BigDecimal((Double) row.get(4));
+                            BigDecimal pNum =new BigDecimal((int)row.get(3));
+                            pPDtailOne.setProcurementTotalPrice(pNeedPrice.multiply(pNum));
+                            pPDtailOne.setUpdateTime(new Date());
+                            pPDtailOne.save();
+                        }
+                    }
+                }
+            }
+
+            renderJson(new ArrayList<>().add(0));
+        }catch (Exception e){
+            renderJson(new ArrayList<>().add(1));
+        }
+    }
+
+
 }

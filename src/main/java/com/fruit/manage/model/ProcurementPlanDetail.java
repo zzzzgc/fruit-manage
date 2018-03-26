@@ -7,6 +7,7 @@ import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Page;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -102,7 +103,7 @@ public class ProcurementPlanDetail extends BaseProcurementPlanDetail<Procurement
 	 * @param productStandardID
 	 * @return
 	 */
-	public ProcurementPlanDetail getPPlanDetailByPSID(Integer productStandardID,String [] createTimes){
+	public ProcurementPlanDetail getPPlanDetailByPSID(Integer productStandardID,String [] createTimes,Integer procurementID){
 		StringBuilder sql =new StringBuilder();
 		sql.append("select ppd.id,ppd.product_id,ppd.product_standard_id,ppd.procurement_id, ");
 		sql.append("ppd.product_name,ppd.product_standard_name,ppd.sell_price,ppd.inventory_num,ppd.procurement_num,ppd.product_standard_num, ");
@@ -110,6 +111,96 @@ public class ProcurementPlanDetail extends BaseProcurementPlanDetail<Procurement
 		sql.append("from b_procurement_plan_detail ppd ");
 		sql.append("where ppd.product_standard_id = ? ");
 		sql.append("and ppd.create_time BETWEEN ? and ? ");
-		return findFirst(sql.toString(),productStandardID,createTimes[0],createTimes[1]);
+		if(procurementID!=null && procurementID>0){
+			sql.append("AND ppd.procurement_id =? ");
+			return findFirst(sql.toString(),productStandardID,createTimes[0],createTimes[1],procurementID);
+
+		}else {
+			return findFirst(sql.toString(),productStandardID,createTimes[0],createTimes[1]);
+		}
 	}
+
+    /**
+     * 获取规格编号和同一规格的个数
+     * @param createTimes
+     * @return
+     */
+	public List<ProcurementPlanDetail> getPSIDAndPSCount(String [] createTimes){
+        StringBuilder sql=new StringBuilder();
+        sql.append("SELECT ppd.product_standard_id,");
+        sql.append("count(ppd.product_standard_id) as pscount ");
+        sql.append("FROM b_procurement_plan_detail ppd ");
+        sql.append("where 1=1 ");
+        sql.append("AND ppd.create_time BETWEEN ? and ? ");
+        sql.append("GROUP BY ppd.product_standard_id ");
+        sql.append("ORDER BY ppd.create_time DESC");
+	    return find(sql.toString(),createTimes[0],createTimes[1]);
+    }
+
+	/**
+	 * 根据时间和产品规格编号获取采购计划编号和采购人员
+	 * @param createTimes
+	 * @param psID
+	 * @return
+	 */
+	public List<ProcurementPlanDetail> getPPDIDAndProcurementID(String [] createTimes,Integer psID){
+		StringBuilder sql=new StringBuilder();
+		sql.append("select ppd.id,ppd.procurement_id from b_procurement_plan_detail ppd ");
+		sql.append("where ppd.product_standard_id = ? ");
+		sql.append("and ppd.create_time BETWEEN ? and ? ");
+		return find(sql.toString(),psID,createTimes[0],createTimes[1]);
+	}
+
+    /**
+     * 根据商品规格编号获取采购计划详情
+     * @param productStandardID
+     * @return
+     */
+    public ProcurementPlanDetail getPPlanDetail(Integer productStandardID,String [] createTimes,Integer procurementID){
+        StringBuilder sql =new StringBuilder();
+        List list=new ArrayList();
+        sql.append("select ppd.id,ppd.product_id,ppd.product_standard_id,ppd.procurement_id, ");
+        sql.append("ppd.product_name,ppd.product_standard_name,ppd.sell_price,ppd.inventory_num,ppd.procurement_num,ppd.product_standard_num, ");
+        sql.append("ppd.procurement_need_price,ppd.procurement_total_price,ppd.procurement_need_price,ppd.order_remark,ppd.create_time,ppd.update_time ");
+        sql.append("from b_procurement_plan_detail ppd ");
+        sql.append("where ppd.product_standard_id = ? ");
+        sql.append("and ppd.create_time BETWEEN ? and ? ");
+        list.add(productStandardID);
+        list.add(createTimes[0]);
+        list.add(createTimes[1]);
+        if(procurementID!=null && procurementID>0){
+            sql.append("AND ppd.procurement_id =? ");
+            list.add(procurementID);
+        }
+        return findFirst(sql.toString(),list.toArray());
+    }
+
+
+    /**
+     * 根据日期获取所有的采购订单详情
+     * @param
+     * @return
+     */
+    public List<ProcurementPlanDetail> getAllPPlanDetail(String [] createTimes){
+        StringBuilder sql =new StringBuilder();
+        List list=new ArrayList();
+        sql.append("select ppd.id,ppd.product_id,ppd.product_standard_id,ppd.procurement_id, ");
+        sql.append("ppd.product_name,ppd.product_standard_name,ppd.sell_price,ppd.inventory_num,ppd.procurement_num,ppd.product_standard_num, ");
+        sql.append("ppd.procurement_need_price,ppd.procurement_total_price,ppd.procurement_need_price,ppd.order_remark,ppd.create_time,ppd.update_time ");
+        sql.append("from b_procurement_plan_detail ppd ");
+        sql.append("where 1=1 ");
+        sql.append("and ppd.create_time BETWEEN ? and ? ");
+        list.add(createTimes[0]);
+        list.add(createTimes[1]);
+        return find(sql.toString(),list.toArray());
+    }
+
+    /**
+     * 根据时间删除所有的采购计划
+     * @param createTimes
+     */
+    public void delAllPPlanDetailByTime(String [] createTimes){
+        String sql="DELETE from b_procurement_plan_detail where create_time BETWEEN ? and ?";
+        Db.update(sql,createTimes[0],createTimes[1]);
+    }
 }
