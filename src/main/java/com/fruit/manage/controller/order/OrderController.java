@@ -28,7 +28,9 @@ public class OrderController extends BaseController {
 
     private Logger log = Logger.getLogger(getClass());
 
-    private static long PAY_COUNT = 10000L;
+    public void test() {
+        System.out.println(new Date());
+    }
 
     /**
      * 获取所有订单的列表数据
@@ -250,9 +252,7 @@ public class OrderController extends BaseController {
                 nowOrder.setPayNeedMoney(payNeedMoney);
                 nowOrder.setUpdateTime(now);
                 nowOrder.update();
-
             }
-
         }
         // 成功
         renderNull();
@@ -271,20 +271,24 @@ public class OrderController extends BaseController {
         // 销售只能获取自己的客户,其他人能获取全部,但是其他人除了超级管理员都不能调用这个方法,因为权限控制.
         // name必须为value ,是获取该值的关键(前端)
         String sql = "SELECT\n" +
-                "\tu.`name` AS value,\n" +
-                "\tu.id AS business_user_id,\n" +
-                "\tu.phone,\n" +
-                "\tu.nick_name,\n" +
-                "\tu.a_user_sales_id AS sales_id\n" +
+                "\tbu.`name`,\n" +
+                "\tbu.id,\n" +
+                "\tbu.phone,\n" +
+                "\tbu.nick_name,\n" +
+                "\tbu.a_user_sales_id\n" +
                 "FROM\n" +
-                "\tb_business_user AS u ";
+                "\ta_user AS au\n" +
+                "INNER JOIN a_user_role ON a_user_role.user_id = au.id\n" +
+                "INNER JOIN a_role AS r ON a_user_role.role_id = r.id\n" +
+                "INNER JOIN b_business_user AS bu ON au.id = bu.a_user_sales_id ";
         if (!User.dao.isSales(uid)) {
             renderJson(BusinessUser.dao.find(sql));
             return;
         }
         // 销售只能获取自己的客户
-        renderJson(BusinessUser.dao.find(sql + " WHERE u.a_user_sales_id = ? ", uid));
-        return;
+        renderJson(BusinessUser.dao.find(sql + "WHERE\n" +
+                "\tr.role_key = 'salesAdmin'\n" +
+                "AND bu.a_user_sales_id = ?", uid));
     }
 
     /**

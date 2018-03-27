@@ -13,6 +13,7 @@ import com.jfinal.kit.PropKit;
 import com.jfinal.plugin.activerecord.ActiveRecordPlugin;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import com.jfinal.plugin.activerecord.tx.TxByActionKeyRegex;
+import com.jfinal.plugin.cron4j.Cron4jPlugin;
 import com.jfinal.plugin.ehcache.EhCachePlugin;
 import com.jfinal.plugin.hikaricp.HikariCpPlugin;
 import com.jfinal.template.Engine;
@@ -91,7 +92,7 @@ public class JFConfig extends JFinalConfig {
         me.add(arp);
 
         me.add(new EhCachePlugin());// 初始化应用缓存插件
-//		me.add(new Cron4jPlugin("job.properties"));// 初始化定时任务插件
+		me.add(new Cron4jPlugin("job.properties"));// 初始化定时任务插件
         ShiroPlugin shiroPlugin = new ShiroPlugin(routes);//权限控制插件
         shiroPlugin.setLoginUrl("/login");
         shiroPlugin.setSuccessUrl("/");
