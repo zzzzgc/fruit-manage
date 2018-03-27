@@ -254,9 +254,7 @@ public class OrderController extends BaseController {
                 nowOrder.setPayNeedMoney(payNeedMoney);
                 nowOrder.setUpdateTime(now);
                 nowOrder.update();
-
             }
-
         }
         // 成功
         renderNull();
