@@ -74,4 +74,16 @@ public class BusinessInfo extends BaseBusinessInfo<BusinessInfo> {
         System.out.println("sql:"+ select + sql.toString());
         return paginate(pageNum, pageSize, select, sql.toString(),params.toArray());
     }
+
+    /**
+     * 根据店铺编号获取店铺联系电话号码，发货的详细地址,物流方式
+     * @param businessInfoID
+     * @return
+     */
+    public BusinessInfo getBusinessInfoByID(Integer businessInfoID){
+	    String sql="select bi.id,bi.phone,CONCAT(bi.address_province,bi.address_city,bi.address_shop) as detailAddress,bi.shipments_type\n" +
+                "\tfrom b_business_info bi\n" +
+                "\twhere bi.u_id = ? ";
+	    return findFirst(sql,businessInfoID);
+    }
 }
