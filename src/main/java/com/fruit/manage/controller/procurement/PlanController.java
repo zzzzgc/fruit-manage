@@ -8,7 +8,7 @@ import com.fruit.manage.model.User;
 import com.fruit.manage.util.Constant;
 import com.fruit.manage.util.DateAndStringFormat;
 import com.fruit.manage.util.ExcelCommon;
-import com.fruit.manage.util.SerialNumUtil;
+import com.fruit.manage.util.IdUtil;
 import com.fruit.manage.util.excel.ExcelException;
 import com.jfinal.plugin.activerecord.Page;
 import org.apache.log4j.Logger;
@@ -84,7 +84,7 @@ public class PlanController extends BaseController {
                     // 此段日期已经有人有人下单，并重新覆盖
                     list.add(0);
                 } else {
-                    procurementPlan.setId(SerialNumUtil.getProrementPlanId());
+                    procurementPlan.setId(IdUtil.getProrementPlanId());
                     procurementPlan.setProcurementId(getSessionAttr(Constant.SESSION_UID));
                     procurementPlan.setCreateTime(DateAndStringFormat.strToDate(nowDateStr));
                     procurementPlan.save();

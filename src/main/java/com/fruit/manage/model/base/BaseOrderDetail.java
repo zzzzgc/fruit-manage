@@ -17,6 +17,14 @@ public abstract class BaseOrderDetail<M extends BaseOrderDetail<M>> extends Mode
 		return getInt("id");
 	}
 
+	public void setUId(java.lang.Integer uId) {
+		set("u_id", uId);
+	}
+
+	public java.lang.Integer getUId() {
+		return getInt("u_id");
+	}
+
 	public void setOrderId(java.lang.String orderId) {
 		set("order_id", orderId);
 	}
@@ -73,14 +81,6 @@ public abstract class BaseOrderDetail<M extends BaseOrderDetail<M>> extends Mode
 		return getStr("measure_unit");
 	}
 
-	public void setNum(java.lang.Integer num) {
-		set("num", num);
-	}
-
-	public java.lang.Integer getNum() {
-		return getInt("num");
-	}
-
 	public void setOriginalPrice(java.math.BigDecimal originalPrice) {
 		set("original_price", originalPrice);
 	}
@@ -97,20 +97,28 @@ public abstract class BaseOrderDetail<M extends BaseOrderDetail<M>> extends Mode
 		return get("sell_price");
 	}
 
-	public void setSendGoodsPay(java.math.BigDecimal sendGoodsPay) {
-		set("send_goods_pay", sendGoodsPay);
+	public void setNum(java.lang.Integer num) {
+		set("num", num);
 	}
 
-	public java.math.BigDecimal getSendGoodsPay() {
-		return get("send_goods_pay");
+	public java.lang.Integer getNum() {
+		return getInt("num");
 	}
 
-	public void setPackagePay(java.math.BigDecimal packagePay) {
-		set("package_pay", packagePay);
+	public void setActualSendGoodsNum(java.lang.Integer actualSendGoodsNum) {
+		set("actual_send_goods_num", actualSendGoodsNum);
 	}
 
-	public java.math.BigDecimal getPackagePay() {
-		return get("package_pay");
+	public java.lang.Integer getActualSendGoodsNum() {
+		return getInt("actual_send_goods_num");
+	}
+
+	public void setActualDeliverNum(java.lang.Integer actualDeliverNum) {
+		set("actual_deliver_num", actualDeliverNum);
+	}
+
+	public java.lang.Integer getActualDeliverNum() {
+		return getInt("actual_deliver_num");
 	}
 
 	public void setTotalPay(java.math.BigDecimal totalPay) {
@@ -119,14 +127,6 @@ public abstract class BaseOrderDetail<M extends BaseOrderDetail<M>> extends Mode
 
 	public java.math.BigDecimal getTotalPay() {
 		return get("total_pay");
-	}
-
-	public void setBuyUid(java.lang.Integer buyUid) {
-		set("buy_uid", buyUid);
-	}
-
-	public java.lang.Integer getBuyUid() {
-		return getInt("buy_uid");
 	}
 
 	public void setBuyRemark(java.lang.String buyRemark) {
@@ -151,22 +151,6 @@ public abstract class BaseOrderDetail<M extends BaseOrderDetail<M>> extends Mode
 
 	public java.util.Date getCancelTime() {
 		return get("cancel_time");
-	}
-
-	public void setSendGoodsTime(java.util.Date sendGoodsTime) {
-		set("send_goods_time", sendGoodsTime);
-	}
-
-	public java.util.Date getSendGoodsTime() {
-		return get("send_goods_time");
-	}
-
-	public void setTakeGoodsTime(java.util.Date takeGoodsTime) {
-		set("take_goods_time", takeGoodsTime);
-	}
-
-	public java.util.Date getTakeGoodsTime() {
-		return get("take_goods_time");
 	}
 
 	public void setCreateTime(java.util.Date createTime) {

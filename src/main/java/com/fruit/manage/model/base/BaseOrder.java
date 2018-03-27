@@ -41,14 +41,6 @@ public abstract class BaseOrder<M extends BaseOrder<M>> extends Model<M> impleme
 		return getStr("pay_id");
 	}
 
-	public void setOrderStatus(java.lang.Integer orderStatus) {
-		set("order_status", orderStatus);
-	}
-
-	public java.lang.Integer getOrderStatus() {
-		return getInt("order_status");
-	}
-
 	public void setPayStatus(java.lang.Integer payStatus) {
 		set("pay_status", payStatus);
 	}
@@ -89,36 +81,12 @@ public abstract class BaseOrder<M extends BaseOrder<M>> extends Model<M> impleme
 		return getInt("pay_success");
 	}
 
-	public void setBuyUserName(java.lang.String buyUserName) {
-		set("buy_user_name", buyUserName);
+	public void setOrderStatus(java.lang.Integer orderStatus) {
+		set("order_status", orderStatus);
 	}
 
-	public java.lang.String getBuyUserName() {
-		return getStr("buy_user_name");
-	}
-
-	public void setBuyPhone(java.lang.String buyPhone) {
-		set("buy_phone", buyPhone);
-	}
-
-	public java.lang.String getBuyPhone() {
-		return getStr("buy_phone");
-	}
-
-	public void setBuyAddress(java.lang.String buyAddress) {
-		set("buy_address", buyAddress);
-	}
-
-	public java.lang.String getBuyAddress() {
-		return getStr("buy_address");
-	}
-
-	public void setDeliveryType(java.lang.Integer deliveryType) {
-		set("delivery_type", deliveryType);
-	}
-
-	public java.lang.Integer getDeliveryType() {
-		return getInt("delivery_type");
+	public java.lang.Integer getOrderStatus() {
+		return getInt("order_status");
 	}
 
 	public void setPayTime(java.util.Date payTime) {
@@ -135,14 +103,6 @@ public abstract class BaseOrder<M extends BaseOrder<M>> extends Model<M> impleme
 
 	public java.lang.Integer getRefundStatus() {
 		return getInt("refund_status");
-	}
-
-	public void setDeliveryTime(java.util.Date deliveryTime) {
-		set("delivery_time", deliveryTime);
-	}
-
-	public java.util.Date getDeliveryTime() {
-		return get("delivery_time");
 	}
 
 	public void setRefundTime(java.util.Date refundTime) {

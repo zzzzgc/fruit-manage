@@ -33,6 +33,7 @@ public class _MappingKit {
 		arp.addMapping("b_business_info", "id", BusinessInfo.class);
 		arp.addMapping("b_business_user", "id", BusinessUser.class);
 		arp.addMapping("b_cart_product", "id", CartProduct.class);
+		arp.addMapping("b_logistics_info", "id", LogisticsInfo.class);
 		arp.addMapping("b_order", "id", Order.class);
 		arp.addMapping("b_order_detail", "id", OrderDetail.class);
 		arp.addMapping("b_order_log", "id", OrderLog.class);

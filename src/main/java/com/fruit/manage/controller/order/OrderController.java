@@ -7,6 +7,7 @@ import com.fruit.manage.constant.OrderStatusCode;
 import com.fruit.manage.constant.UserTypeConstant;
 import com.fruit.manage.model.*;
 import com.fruit.manage.util.Constant;
+import com.fruit.manage.util.IdUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.ext2.kit.DateTimeKit;
 import com.jfinal.ext2.kit.RandomKit;
@@ -158,51 +159,102 @@ public class OrderController extends BaseController {
         Integer business_user_id = getParaToInt("business_user_id");
         List<OrderDetail> orderDetails = JSON.parseArray(products, OrderDetail.class);
         BigDecimal payNeedMoney = new BigDecimal(0);
+        Date now = new Date();
 
         if (order.getOrderId() != null) {
             //编辑
+
             for (OrderDetail orderDetail : orderDetails) {
                 Integer num = orderDetail.getNum();
                 BigDecimal sellPrice = orderDetail.getSellPrice();
-                // 该商品的真实支付总价
                 BigDecimal totalPay = sellPrice.multiply(new BigDecimal(num));
                 orderDetail.setTotalPay(totalPay);
                 payNeedMoney = payNeedMoney.add(totalPay);
                 if (orderDetail.getId() != null) {
-                    orderDetail.update(UserTypeConstant.A_USER,uid);
+                    orderDetail.update(UserTypeConstant.A_USER, uid);
                 } else {
-                    orderDetail.setBuyUid(order.getUId());
+                    orderDetail.setUId(business_user_id);
                     orderDetail.setOrderId(order.getOrderId());
-                    orderDetail.setCreateTime(new Date());
-                    orderDetail.setUpdateTime(new Date());
-                    orderDetail.save(UserTypeConstant.A_USER,uid);
+                    orderDetail.setCreateTime(now);
+                    orderDetail.setUpdateTime(now);
+                    orderDetail.save(UserTypeConstant.A_USER, uid);
                 }
             }
             order.setPayNeedMoney(payNeedMoney);
+            order.setUpdateTime(now);
             order.update();
         } else {
-            //添加
-            order.setOrderId(getNewOrderId());
-            Date now = new Date();
-            for (OrderDetail orderDetail : orderDetails) {
-                Integer num = orderDetail.getNum();
-                BigDecimal sellPrice = orderDetail.getSellPrice();
-                // 该商品的真实支付总价
-                BigDecimal totalPay = sellPrice.multiply(new BigDecimal(num));
-                orderDetail.setTotalPay(totalPay);
-                payNeedMoney = payNeedMoney.add(totalPay);
-                orderDetail.setUpdateTime(now);
-                orderDetail.setCreateTime(now);
-                orderDetail.setBuyUid(business_user_id);
-                orderDetail.setOrderId(order.getOrderId());
-                orderDetail.save(UserTypeConstant.A_USER,uid);
+            //添加,并校验是否存在相同订单周期的订单
+
+            String orderId = IdUtil.createOrderId(business_user_id);
+            Order nowOrder = Order.dao.getOrder(orderId);
+            // 区分该订单周期的订单是否已经被创建
+            if (nowOrder == null) {
+                order.setOrderId(orderId);
+
+                for (OrderDetail orderDetail : orderDetails) {
+                    Integer num = orderDetail.getNum();
+                    BigDecimal sellPrice = orderDetail.getSellPrice();
+                    BigDecimal totalPay = sellPrice.multiply(new BigDecimal(num));
+                    payNeedMoney = payNeedMoney.add(totalPay);
+
+                    orderDetail.setTotalPay(totalPay);
+                    orderDetail.setCreateTime(now);
+                    orderDetail.setUId(business_user_id);
+                    orderDetail.setOrderId(order.getOrderId());
+                    orderDetail.setUpdateTime(now);
+                    orderDetail.save(UserTypeConstant.A_USER, uid);
+                }
+
+                order.setPayNeedMoney(payNeedMoney);
+                order.setPayTotalMoney(new BigDecimal(0));
+                order.setUId(business_user_id);
+                order.setUpdateTime(now);
+                order.setCreateTime(now);
+                order.save();
+            } else {
+                // 如果有相同订单周期的订单,就叠加商品.这次添加视为补充商品.因为想修改商品应该去编辑才对,而不是添加.
+
+                // 具有完整字段的对象,用于作为更新模板和核对是否叠加
+                List<OrderDetail> nowOrderDetails = OrderDetail.dao.getOrderDetails(orderId);
+                // 导入的订单
+                OrderDetailFor:
+                for (OrderDetail orderDetail : orderDetails) {
+                    BigDecimal sellPrice = orderDetail.getSellPrice();
+                    BigDecimal num = new BigDecimal(orderDetail.getNum());
+
+                    // 过滤与数据库中的订单匹配的商品
+                    for (OrderDetail nowOrderDetail : nowOrderDetails) {
+                        if (nowOrderDetail.getProductStandardId().equals(orderDetail.getProductStandardId())) {
+                            int nowNum = nowOrderDetail.getNum() + orderDetail.getNum();
+                            BigDecimal totalPrice = sellPrice.multiply(num);
+                            payNeedMoney = payNeedMoney.add(totalPrice);
+
+                            nowOrderDetail.setNum(nowNum);
+                            nowOrderDetail.setTotalPay(totalPrice);
+                            nowOrderDetail.setUpdateTime(now);
+                            nowOrderDetail.update(UserTypeConstant.A_USER, uid, orderId, nowOrderDetail.getProductId(), nowOrderDetail.getProductStandardId(), nowOrderDetail.getNum(), nowNum);
+                            continue OrderDetailFor;
+                        }
+                    }
+
+                    // 不和数据库中的订单匹配的新增商品
+                    BigDecimal totalPrice = sellPrice.multiply(num);
+                    payNeedMoney = payNeedMoney.add(totalPrice);
+
+                    orderDetail.setTotalPay(totalPrice);
+                    orderDetail.setOrderId(orderId);
+                    orderDetail.setUId(business_user_id);
+                    orderDetail.setUpdateTime(now);
+                    orderDetail.setCreateTime(now);
+                    orderDetail.save(UserTypeConstant.A_USER,uid);
+                }
+                nowOrder.setPayNeedMoney(payNeedMoney);
+                nowOrder.setUpdateTime(now);
+                nowOrder.update();
+
             }
-            order.setUpdateTime(now);
-            order.setCreateTime(now);
-            order.setPayNeedMoney(payNeedMoney);
-            order.setPayTotalMoney(new BigDecimal(0));
-            order.setUId(business_user_id);
-            order.save();
+
         }
         // 成功
         renderNull();
@@ -270,26 +322,13 @@ public class OrderController extends BaseController {
     }
 
     /**
-     * 支付id生成规则
-     *
-     * @return 新的订单id
-     */
-    private String getNewOrderId() {
-        String orderId;
-        synchronized (OrderController.class) {
-            orderId = DateTimeKit.formatDateToStyle("yyMMddhhmmss", new Date()) + "-" + PAY_COUNT++ + RandomKit.random(1000, 9999);
-        }
-        return orderId;
-    }
-
-    /**
      * 编辑订单的时候,删除商品(修改)
      */
-    public void deleteProductForEdit(){
+    public void deleteProductForEdit() {
         Integer uid = getSessionAttr(Constant.SESSION_UID);
         String orderDetailId = getPara("orderDetailId");
         OrderDetail orderDetail = OrderDetail.dao.findById(orderDetailId);
-        orderDetail.delete(UserTypeConstant.A_USER,uid);
+        orderDetail.delete(UserTypeConstant.A_USER, uid);
         renderNull();
     }
 }

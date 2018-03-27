@@ -80,7 +80,7 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
     }
     @Before(Tx.class)
     public boolean update(OrderLog orderLog) {
-        super.delete();
+        super.update();
         return orderLog.save();
     }
 
@@ -140,7 +140,7 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
      */
     @Before(Tx.class)
     public boolean delete(UserTypeConstant type, Integer uid, String orderId, Integer productId, Integer productStandardId, Integer num) {
-        super.save();
+        super.delete();
         return getOrderLog(type, uid, orderId, productId, productStandardId, ~num + 1).save();
     }
     /**
@@ -148,7 +148,8 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
      */
     @Before(Tx.class)
     public boolean update(UserTypeConstant type, Integer uid, String orderId, Integer productId, Integer productStandardId, Integer beforeNum, Integer afterNum) {
-        super.save();
+        super.setUpdateTime(new Date());
+        super.update();
         return getOrderLog(type, uid, orderId, productId, productStandardId, afterNum - beforeNum).save();
     }
 
