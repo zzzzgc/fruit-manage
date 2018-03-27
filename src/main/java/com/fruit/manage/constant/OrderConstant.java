@@ -61,8 +61,18 @@ public class OrderConstant {
         }
     }
 
+    /**
+     * 获取上一个流程的状态
+     * @param orderStatus
+     * @return
+     */
+    public static Integer rollbackStatus(Integer orderStatus) {
+        return null;
+    }
+
     public static void main(String[] args) {
         System.out.println(nextStatus(15));
     }
+
 
 }
