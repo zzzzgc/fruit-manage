@@ -27,7 +27,7 @@ public class intervalJob implements Runnable{
      * 开始输出时间和声明开始调度
      */
     public static void start() {
-        log.info("-------------开始->每三分钟一次的定时调度------------------");
+//        log.info("-------------开始->每三分钟一次的定时调度------------------");
 
     }
 
@@ -52,7 +52,7 @@ public class intervalJob implements Runnable{
      *结束输出时间和声明开始调度
      */
     public static void end() {
-        log.info("-------------结束->每三分钟一次的定时调度------------------");
+//        log.info("-------------结束->每三分钟一次的定时调度------------------");
 
     }
 }
