@@ -104,4 +104,14 @@ public class BusinessUser extends BaseBusinessUser<BusinessUser> {
         sql.append("AND u.id = ? ");
         return dao.findFirst(selectStr + sql,customerId);
     }
+
+    /**
+     * 根据用户编号获取用户姓名，电话号码
+     * @param businessUserId
+     * @return
+     */
+    public BusinessUser getBusinessUserByID(Integer businessUserId){
+        String sql="select bu.id,bu.name,bu.phone from b_business_user bu  where bu.id = ?";
+        return findFirst(sql,businessUserId);
+    }
 }

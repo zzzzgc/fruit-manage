@@ -33,6 +33,9 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
                 "\to.num,\n" +
                 "\to.original_price,\n" +
                 "\to.sell_price,\n" +
+
+                "\to.actual_send_goods_num,\n" +
+
                 "\tp.brand,\n" +
                 "\tps.gross_weight\n" +
                 "FROM\n" +

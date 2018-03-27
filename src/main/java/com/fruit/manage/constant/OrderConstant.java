@@ -17,16 +17,27 @@ public class OrderConstant {
     static {
         ORDER_STATUS_MAP = new LinkedHashMap<>();
 
-        // 商品状态，0-待确认；5-已确认；10-未配送；15-已配送；20-待付款；25-已完成(已配送 + 支付状态为=>已付款); 30-已退款; 40-已删除
-
+        /**
+         商品状态：
+         0-待确认；
+         5-已确认；
+         10-未配送（已配货）；
+         15-已配送；
+         20-已送达；
+         25-待付款；
+         30-已完成(已配送 + 支付状态为=>已付款);
+         40-已退款;
+         50已删除
+         */
         ORDER_STATUS_MAP.put(0, "待确认");
         ORDER_STATUS_MAP.put(5, "已确认");
-        ORDER_STATUS_MAP.put(10, "未配送");
+        ORDER_STATUS_MAP.put(10, "已配货");
         ORDER_STATUS_MAP.put(15, "已配送");
-        ORDER_STATUS_MAP.put(20, "待付款");
-        ORDER_STATUS_MAP.put(25, "已完成");
-        ORDER_STATUS_MAP.put(30, "已退款");
-        ORDER_STATUS_MAP.put(40, "已删除");
+        ORDER_STATUS_MAP.put(20, "已送达");
+        ORDER_STATUS_MAP.put(25, "待付款");
+        ORDER_STATUS_MAP.put(30, "已完成");
+        ORDER_STATUS_MAP.put(40, "已退款");
+        ORDER_STATUS_MAP.put(50,"已删除");
     }
 
     /**

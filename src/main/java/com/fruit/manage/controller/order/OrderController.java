@@ -11,16 +11,14 @@ import com.fruit.manage.util.IdUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.ext2.kit.DateTimeKit;
 import com.jfinal.ext2.kit.RandomKit;
+import com.jfinal.kit.StrKit;
 import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import org.apache.log4j.Logger;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 
 import java.math.BigDecimal;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author ZGC
@@ -347,5 +345,31 @@ public class OrderController extends BaseController {
         OrderDetail orderDetail = OrderDetail.dao.findById(orderDetailId);
         orderDetail.delete(UserTypeConstant.A_USER, uid);
         renderNull();
+    }
+
+    /**
+     * 保存配送信息
+     */
+    public void saveLogisticInfo(){
+        LogisticsInfo logisticsInfo=getModel(LogisticsInfo.class,"",true);
+        Integer businessUserID = getParaToInt("business_user_id");
+        Integer businessInfoID = getParaToInt("business_info_id");
+        String orderId= getPara("order_id");
+        BusinessInfo businessInfo= BusinessInfo.dao.getBusinessInfoByID(businessInfoID);
+        BusinessUser businessUser=BusinessUser.dao.getBusinessUserByID(businessUserID);
+        if(logisticsInfo!=null){
+            logisticsInfo.setBuyAddress(businessInfo.get("detailAddress"));
+            logisticsInfo.setBuyPhone(businessInfo.getPhone());
+            logisticsInfo.setBuyUserName(businessUser.getName());
+            logisticsInfo.setCreateTime(new Date());
+            logisticsInfo.setDeliveryType(businessInfo.getShipmentsType());
+            logisticsInfo.setOrderId(orderId);
+            logisticsInfo.setUId(businessUserID);
+            logisticsInfo.setUpdateTime(new Date());
+            logisticsInfo.setSendGoodsTime(new Date());
+            logisticsInfo.save();
+        }
+
+        renderJson(new ArrayList<>().add(0));
     }
 }
