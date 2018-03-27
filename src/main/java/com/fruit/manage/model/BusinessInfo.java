@@ -83,7 +83,7 @@ public class BusinessInfo extends BaseBusinessInfo<BusinessInfo> {
     public BusinessInfo getBusinessInfoByID(Integer businessInfoID){
 	    String sql="select bi.id,bi.phone,CONCAT(bi.address_province,bi.address_city,bi.address_shop) as detailAddress,bi.shipments_type\n" +
                 "\tfrom b_business_info bi\n" +
-                "\twhere bi.u_id = ? ";
+                "\twhere bi.id = ? ";
 	    return findFirst(sql,businessInfoID);
     }
 }
