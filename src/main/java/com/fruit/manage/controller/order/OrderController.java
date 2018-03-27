@@ -140,6 +140,19 @@ public class OrderController extends BaseController {
     }
 
     /**
+     * 修改订单状态(比如 5 -> 0 )
+     */
+    @Before(Tx.class)
+    public void setRollbackStatus() {
+        String orderId = getPara("orderId");
+        Order order = Order.dao.getOrder(orderId);
+        Integer orderStatus = order.getOrderStatus();
+        Integer rollbackStatus = OrderConstant.rollbackStatus(orderStatus);
+        order.setOrderStatus(rollbackStatus);
+        order.update();
+    }
+
+    /**
      * 获取单笔订单信息(编辑订单)
      */
     public void getOtherDataInfo() {
