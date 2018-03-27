@@ -40,9 +40,14 @@ public class intervalJob implements Runnable{
         Db.update("UPDATE b_order AS o\n" +
                 "INNER JOIN b_logistics_info AS li ON o.order_id = li.order_id\n" +
                 "SET \n" +
-                "\to.order_status = 20,\n" +
-                "\tli.take_goods_time = NOW()\n" +
-                "\n" +
+                "o.order_status = (\n" +
+                "\tCASE o.pay_status\n" +
+                "\tWHEN 5 THEN 30\n" +
+                "\tWHEN 0 THEN 20\n" +
+                "\tELSE 20\n" +
+                "\tEND\n" +
+                "),\n" +
+                " li.take_goods_time = NOW()\n" +
                 "WHERE\n" +
                 "\to.order_status = 15\n" +
                 "AND DATEDIFF(NOW(), li.send_goods_time) > 3");
