@@ -96,6 +96,7 @@ public class ProcurementPlan extends BaseProcurementPlan<ProcurementPlan> {
 		sql.append("and ol.product_standard_id=ps.id ");
 		sql.append("and ol.create_time BETWEEN ? and ? ");
 		sql.append("GROUP BY ol.product_standard_id ");
+		sql.append("HAVING purchaseNum > 0 ");
 		// 按采购量和售价降序排序
 		sql.append("order by purchaseNum desc,ps.sell_price desc ");
 		List<String> list=new ArrayList<>();
