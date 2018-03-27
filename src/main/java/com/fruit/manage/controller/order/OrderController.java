@@ -30,7 +30,9 @@ public class OrderController extends BaseController {
 
     private Logger log = Logger.getLogger(getClass());
 
-    private static long PAY_COUNT = 10000L;
+    public void test() {
+        System.out.println(new Date());
+    }
 
     /**
      * 获取所有订单的列表数据
