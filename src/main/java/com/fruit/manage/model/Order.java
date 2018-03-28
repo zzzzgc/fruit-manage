@@ -192,7 +192,7 @@ public class Order extends BaseOrder<Order> {
      */
     public Order getOtherDataInfo(String orderId) {
         String selectStr = "SELECT\n" +
-                "\to.id AS business_user_id,\n" +
+                "\tau.id AS business_user_id,\n" +
                 "\tau.`name` AS a_user_sales,\n" +
                 "\to.id,\n" +
                 "\to.u_id,\n" +
