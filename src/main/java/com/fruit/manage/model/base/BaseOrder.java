@@ -129,4 +129,12 @@ public abstract class BaseOrder<M extends BaseOrder<M>> extends Model<M> impleme
 		return get("update_time");
 	}
 
+	public void setPayRealityNeedMoney(java.math.BigDecimal payRealityNeedMoney) {
+		set("pay_reality_need_money", payRealityNeedMoney);
+	}
+
+	public java.math.BigDecimal getPayRealityNeedMoney() {
+		return get("pay_reality_need_money");
+	}
+
 }

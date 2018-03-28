@@ -1,25 +1,31 @@
 package com.fruit.manage.controller.common;
 
 import com.fruit.manage.base.BaseController;
-import com.fruit.manage.model.Order;
-import com.fruit.manage.model.ProcurementQuota;
-import com.fruit.manage.model.ProductStandard;
-import com.fruit.manage.model.User;
+import com.fruit.manage.constant.ShipmentConstant;
+import com.fruit.manage.model.*;
 import com.fruit.manage.util.Constant;
 import com.fruit.manage.util.ExcelCommon;
 import com.fruit.manage.util.excel.ExcelStyle;
 import com.fruit.manage.util.excelRd.ExcelRdException;
 import com.fruit.manage.util.excelRd.ExcelRdTypeEnum;
+import com.jfinal.aop.Before;
+import com.jfinal.ext2.kit.DateTimeKit;
+import com.jfinal.plugin.activerecord.Db;
+import com.jfinal.plugin.activerecord.tx.Tx;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.log4j.Logger;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.*;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -71,7 +77,7 @@ public class ExcelController extends BaseController {
     }
 
     /**
-     * 获取系统中的所有商品规格信息
+     * 导出商品库
      */
     public void getProductStandardAllInfoExcel() {
         Integer uid = getSessionAttr(Constant.SESSION_UID);
@@ -164,120 +170,232 @@ public class ExcelController extends BaseController {
 
     /**
      * 生成商家出货单
-     *
+     * <p>
      * 避免混乱,行和单元格都按照这个规范
-     *  row对象只创建一次,
-     *  每次都sheet.createRow(rowCount++)创建获取下一行并指向row引用
-     *  cellName = c + endColumn(start by 1)
-     *
-     *  excel格式
-     *  信息展示(没有固定宽度,默认为三列为一个单元,不够就加单元)
-     *  数据(每一列只占一列)
-     *  信息展示(没有固定宽度,默认为三列为一个单元,不够就加)
-     *
-     *  一般数据会比信息展示需要更多的列,所以大概的按3:1来放置
-     *
-     *  信息展示默认以三列为一个单元
+     * row对象只创建一次,
+     * 每次都sheet.createRow(rowCount++)创建获取下一行并指向row引用
+     * cellName = c + endColumn(start by 1)
+     * <p>
+     * excel格式
+     * 信息展示(没有固定宽度,默认为三列为一个单元,不够就加单元)
+     * 数据(每一列只占一列)
+     * 信息展示(没有固定宽度,默认为三列为一个单元,不够就加)
+     * <p>
+     * 一般数据会比信息展示需要更多的列,所以大概的按3:1来放置
+     * <p>
+     * 信息展示默认以三列为一个单元
      */
+    @Before(Tx.class)
     public void getBusinessSendGoodsBilling() {
-        List<Order> orders = Order.dao.find("");
-
-        int rowCount = 0;
+        int rowCount;
 
         // 创建Excel
         XSSFWorkbook wb = new XSSFWorkbook();
 
-        // 创建表
-        XSSFSheet sheet = wb.createSheet("_商家出货单");
-        // 去除网格线
-        sheet.setDisplayGridlines(false);
-
-        // 获取样式
-        XSSFCellStyle titleOne = ExcelStyle.getStyleTitle(wb, 1);
-        XSSFCellStyle titleTwo = ExcelStyle.getStyleTitle(wb, 2);
-
-        XSSFCellStyle textOne = ExcelStyle.getStyleText(wb, 3);
-        XSSFCellStyle textTwo = ExcelStyle.getStyleText(wb, 4);
-
-        // 规范: 设置为1-3合并 ?-6合并 ?-9合并的单元格名称.
-        XSSFCell c3;
-        XSSFCell c6;
-        XSSFCell c9;
-
+        Calendar calendar = Calendar.getInstance();
+        if (calendar.get(Calendar.HOUR_OF_DAY) < 12) {
+            // 超過11:59:59算明天的訂單
+            calendar.add(Calendar.DAY_OF_MONTH, -1);
+        }
+        String startDateStr = DateTimeKit.formatDateToStyle("yyyy-MM-dd", calendar.getTime()) + " 12:00:00";
+        calendar.add(Calendar.DAY_OF_MONTH, 1);
+        String endDateStr = DateTimeKit.formatDateToStyle("yyyy-MM-dd", calendar.getTime()) + " 12:00:00";
+        String sql = "SELECT " +
+                "o.order_id, " +
+                "bu.`name` AS business_user_name, " +
+                "linfo.buy_phone, " +
+                "linfo.buy_address, " +
+                "linfo.buy_user_name, " +
+                "linfo.delivery_type, " +
+                "au.`name` AS sales_name, " +
+                "au.phone AS sales_phone " +
+                "FROM " +
+                "b_order AS o " +
+                "INNER JOIN b_business_user AS bu ON o.u_id = bu.id " +
+                "INNER JOIN b_business_info AS info ON bu.id = info.u_id " +
+                "INNER JOIN a_user AS au ON bu.a_user_sales_id = au.id " +
+                "INNER JOIN b_logistics_info AS linfo ON linfo.order_id = o.order_id " +
+                "WHERE " +
+                "o.order_status in (15,20,25,30) " +
+                "AND o.create_time BETWEEN ? " +
+                "AND ? ";
+        System.out.println(sql);
+        System.out.println(startDateStr);
+        System.out.println(endDateStr);
+        List<Order> orders = Order.dao.find(sql, startDateStr, endDateStr);
         Date now = new Date();
 
-        // 1 line
-        XSSFRow row = sheet.createRow(rowCount++);
-        _mergedRegionNowRow(sheet, row, 1, 9);
-        c9 = row.createCell(0);
-        c9.setCellStyle(titleTwo);
-        c9.setCellValue(DateFormatUtils.format(now, "yyyy-MM-dd") + "广州嘻果出货单" + now.getTime());
+        for (Order order : orders) {
+            rowCount = 0;
+            String orderId = order.get("order_id");
+            String businessUserName = order.get("business_user_name");
+            String buyPhone = order.get("buy_phone");
+            String buyAddress = order.get("buy_address");
+            String buyUserName = order.get("buy_user_name");
+            Integer deliveryType = order.get("delivery_type");
+            String salesName = order.get("sales_name");
+            String salesPhone = order.get("sales_phone");
 
-        // 2 line
-        row = sheet.createRow(rowCount++);
-        _mergedRegionNowRow(sheet, row, 1, 3);
-        _mergedRegionNowRow(sheet, row, 4, 6);
-        _mergedRegionNowRow(sheet, row, 7, 9);
-        c3 = row.createCell(0);
-        c6 = row.createCell(3);
-        c9 = row.createCell(6);
-        c3.setCellStyle(textOne);
-        c6.setCellStyle(textOne);
-        c9.setCellStyle(textOne);
-        c3.setCellValue("商家名称:");
-        c6.setCellValue("联系人:");
-        c9.setCellValue("送货电话:");
+            // 创建表
+            XSSFSheet sheet = wb.createSheet(businessUserName + "_商家出货单");
+            // 去除网格线
+            sheet.setDisplayGridlines(false);
+//            sheet.setDefaultRowHeight((short)(20 * 256));
 
-        // 3 line
-        row = sheet.createRow(rowCount++);
-        _mergedRegionNowRow(sheet, row, 1, 9);
-        c9 = row.createCell(0);
-        c9.setCellStyle(textOne);
-        c9.setCellValue("商家地址: 梧州发指定车到梧州");
+            // 获取样式
+            XSSFCellStyle titleOne = ExcelStyle.getStyleTitle(wb, 1);
+            XSSFCellStyle titleTwo = ExcelStyle.getStyleTitle(wb, 2);
 
-        // 4 line
-        row = sheet.createRow(rowCount++);
-        _mergedRegionNowRow(sheet, row, 1, 3);
-        _mergedRegionNowRow(sheet, row, 4, 6);
-        _mergedRegionNowRow(sheet, row, 7, 9);
-        c3 = row.createCell(0);
-        c6 = row.createCell(3);
-        c9 = row.createCell(6);
-        c3.setCellStyle(textOne);
-        c6.setCellStyle(textOne);
-        c9.setCellStyle(textOne);
-        c3.setCellValue("发车类型: 市场车");
-        c6.setCellValue("负责销售: 老李");
-        c9.setCellValue("联系电话: 18819960688");
+            XSSFCellStyle textOne = ExcelStyle.getStyleText(wb, 3);
+            XSSFCellStyle textTwo = ExcelStyle.getStyleText(wb, 4);
 
-        // 5 line
-        row = sheet.createRow(rowCount++);
-        _mergedRegionNowRow(sheet, row, 1, 9);
-        c9 = row.createCell(0);
-        c9.setCellStyle(textOne);
-        c9.setCellValue("配货点：运城");
+            XSSFCellStyle tableOne = ExcelStyle.getStyleTableByOne(wb, 3);
+
+            // 规范: 设置为1-3合并 ?-6合并 ?-9合并的单元格名称.
+            XSSFCell c3;
+            XSSFCell c6;
+            XSSFCell c9;
 
 
-        // data
+            // 1 line
+            XSSFRow row = sheet.createRow(rowCount++);
+            _mergedRegionNowRow(sheet, row, 1, 9);
+            c9 = row.createCell(0);
+            c9.setCellStyle(titleTwo);
+            c9.setCellValue(DateFormatUtils.format(now, "yyyy-MM-dd") + "广州嘻果出货单" + now.getTime());
+
+            // 2 line
+            row = sheet.createRow(rowCount++);
+            _mergedRegionNowRow(sheet, row, 1, 3);
+            _mergedRegionNowRow(sheet, row, 4, 6);
+            _mergedRegionNowRow(sheet, row, 7, 9);
+            c3 = row.createCell(0);
+            c6 = row.createCell(3);
+            c9 = row.createCell(6);
+            c3.setCellStyle(textOne);
+            c6.setCellStyle(textOne);
+            c9.setCellStyle(textOne);
+            c3.setCellValue("商家名称:" + businessUserName);
+            c6.setCellValue("联系人:" + buyUserName);
+            c9.setCellValue("送货电话:" + buyPhone);
+
+            // 3 line
+            row = sheet.createRow(rowCount++);
+            _mergedRegionNowRow(sheet, row, 1, 9);
+            c9 = row.createCell(0);
+            c9.setCellStyle(textOne);
+            c9.setCellValue("商家地址:" + buyAddress);
+
+            // 4 line
+            row = sheet.createRow(rowCount++);
+            _mergedRegionNowRow(sheet, row, 1, 3);
+            _mergedRegionNowRow(sheet, row, 4, 6);
+            _mergedRegionNowRow(sheet, row, 7, 9);
+            c3 = row.createCell(0);
+            c6 = row.createCell(3);
+            c9 = row.createCell(6);
+            c3.setCellStyle(textOne);
+            c6.setCellStyle(textOne);
+            c9.setCellStyle(textOne);
+            c3.setCellValue("发车类型:" + ShipmentConstant.SHIPMENT_TYPE.get(deliveryType));
+            c6.setCellValue("负责销售:" + salesName);
+            c9.setCellValue("联系电话:" + salesPhone);
+
+            // 5 line
+            row = sheet.createRow(rowCount++);
+            _mergedRegionNowRow(sheet, row, 1, 9);
+            c9 = row.createCell(0);
+            c9.setCellStyle(textOne);
+            c9.setCellValue("配货点：广州江南市场");
 
 
 
+            XSSFCell c1;
+            XSSFCell c2;
+            XSSFCell c4;
+            XSSFCell c5;
+
+            // data
+            row = sheet.createRow(rowCount++);
+            c1 = row.createCell(1);
+            c2 = row.createCell(2);
+            c3 = row.createCell(3);
+            c4 = row.createCell(4);
+            c5 = row.createCell(5);
+            c6 = row.createCell(6);
+            c1.setCellStyle(tableOne);
+            c2.setCellStyle(tableOne);
+            c3.setCellStyle(tableOne);
+            c4.setCellStyle(tableOne);
+            c5.setCellStyle(tableOne);
+            c6.setCellStyle(tableOne);
+
+            c1.setCellValue("商品名称");
+            c2.setCellValue("规格名称");
+            c3.setCellValue("重量（斤）");
+            c4.setCellValue("下单数量");
+            c5.setCellValue("实发数量");
+            c6.setCellValue("商品备注");
+
+            sql = "SELECT " +
+                    "od.product_name, " +
+                    "od.product_standard_name, " +
+                    "ps.weight_price, " +
+                    "od.num, " +
+                    "od.actual_send_goods_num, " +
+                    "od.buy_remark " +
+                    "FROM " +
+                    "b_order AS o " +
+                    "INNER JOIN b_order_detail AS od ON o.order_id = od.order_id " +
+                    "INNER JOIN b_product_standard AS ps ON od.product_standard_id = ps.id " +
+                    "WHERE o.order_id = ? ";
+            List<OrderDetail> orderDetails = OrderDetail.dao.find(sql, orderId);
+            for (OrderDetail orderDetail : orderDetails) {
+                row = sheet.createRow(rowCount++);
+                c1 = row.createCell(1);
+                c2 = row.createCell(2);
+                c3 = row.createCell(3);
+                c4 = row.createCell(4);
+                c5 = row.createCell(5);
+                c6 = row.createCell(6);
+                c1.setCellStyle(tableOne);
+                c2.setCellStyle(tableOne);
+                c3.setCellStyle(tableOne);
+                c4.setCellStyle(tableOne);
+                c5.setCellStyle(tableOne);
+                c6.setCellStyle(tableOne);
+
+                c1.setCellValue(orderDetail.get("product_name").toString());
+                c2.setCellValue(orderDetail.get("product_standard_name").toString());
+                c3.setCellValue(orderDetail.get("weight_price").toString());
+                c4.setCellValue(orderDetail.get("num").toString());
+                c5.setCellValue(orderDetail.get("actual_send_goods_num").toString());
+                c6.setCellValue(orderDetail.get("buy_remark")+"");
+            }
+
+            // bottom 1 line
+            row = sheet.createRow(rowCount++);
+            _mergedRegionNowRow(sheet, row, 1, 9);
+            c9 = row.createCell(0);
+            c9.setCellStyle(textOne);
+            c9.setCellValue("温馨提示：运费和装车费、三轮车费、包装费、短途费/中转费，均按实际产生费用收取");
+
+            // bottom 2 line
 
 
-        // bottom 1 line
-        row = sheet.createRow(rowCount++);
-        _mergedRegionNowRow(sheet, row, 1, 9);
-        c9 = row.createCell(0);
-        c9.setCellStyle(textOne);
-        c9.setCellValue("温馨提示：运费和装车费、三轮车费、包装费、短途费/中转费，均按实际产生费用收取");
-
-        // bottom 2 line
-
+        }
 
         try {
-            FileOutputStream fout = new FileOutputStream("G:/students.xls");
-            wb.write(fout);
-            fout.close();
+//            FileOutputStream fout = new FileOutputStream("G:/students.xls");
+//            wb.write(fout);
+//            fout.close();
+            HttpServletResponse response = getResponse();
+            OutputStream output=response.getOutputStream();
+            getResponse().reset();
+            response.setHeader("Content-disposition", "attachment; filename=details.xls");
+            response.setContentType("application/msexcel");
+            wb.write(output);
+            output.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -285,6 +403,10 @@ public class ExcelController extends BaseController {
 
     private static void _mergedRegionNowRow(XSSFSheet sheet, XSSFRow row, int firstCol, int lastCol) {
         sheet.addMergedRegion(new CellRangeAddress(row.getRowNum(), row.getRowNum(), firstCol - 1, lastCol - 1));
+    }
+
+    public static void main(String[] args) {
+        System.out.println((short)(256 * 1.5));
     }
 
 
