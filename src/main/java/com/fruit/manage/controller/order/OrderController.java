@@ -260,7 +260,7 @@ public class OrderController extends BaseController {
                     orderDetail.setUId(business_user_id);
                     orderDetail.setUpdateTime(now);
                     orderDetail.setCreateTime(now);
-                    orderDetail.save(UserTypeConstant.A_USER,uid);
+                    orderDetail.save(UserTypeConstant.A_USER, uid);
                 }
                 nowOrder.setPayNeedMoney(payNeedMoney);
                 nowOrder.setUpdateTime(now);
@@ -350,14 +350,14 @@ public class OrderController extends BaseController {
     /**
      * 保存配送信息
      */
-    public void saveLogisticInfo(){
-        LogisticsInfo logisticsInfo=getModel(LogisticsInfo.class,"",true);
+    public void saveLogisticInfo() {
+        LogisticsInfo logisticsInfo = getModel(LogisticsInfo.class, "", true);
         Integer businessUserID = getParaToInt("business_user_id");
         Integer businessInfoID = getParaToInt("business_info_id");
-        String orderId= getPara("order_id");
-        BusinessInfo businessInfo= BusinessInfo.dao.getBusinessInfoByID(businessInfoID);
-        BusinessUser businessUser=BusinessUser.dao.getBusinessUserByID(businessUserID);
-        if(logisticsInfo!=null){
+        String orderId = getPara("order_id");
+        BusinessInfo businessInfo = BusinessInfo.dao.getBusinessInfoByID(businessInfoID);
+        BusinessUser businessUser = BusinessUser.dao.getBusinessUserByID(businessUserID);
+        if (logisticsInfo != null) {
             logisticsInfo.setBuyAddress(businessInfo.get("detailAddress"));
             logisticsInfo.setBuyPhone(businessInfo.getPhone());
             logisticsInfo.setBuyUserName(businessUser.getName());
@@ -367,9 +367,60 @@ public class OrderController extends BaseController {
             logisticsInfo.setUId(businessUserID);
             logisticsInfo.setUpdateTime(new Date());
             logisticsInfo.setSendGoodsTime(new Date());
+            //发货总费用(send_goods_total_cost)：打包费用（package_cost）+三路车费用（tricycle_cost）+发货和装车费用（freight_cost）+ 中转费用和短途费用（transshipment_cost）
+            BigDecimal packageCost=logisticsInfo.getPackageCost()==null?new BigDecimal(0):logisticsInfo.getPackageCost();
+            BigDecimal tricycleCost=logisticsInfo.getTricycleCost()==null?new BigDecimal(0):logisticsInfo.getTricycleCost();
+            BigDecimal freightCost=logisticsInfo.getFreightCost()==null?new BigDecimal(0):logisticsInfo.getFreightCost();
+            BigDecimal transshipmnetCost=logisticsInfo.getTransshipmentCost()==null?new BigDecimal(0):logisticsInfo.getTransshipmentCost();
+            // 计算发货总费用
+            BigDecimal sendGoodsTotalCost=packageCost.add(tricycleCost).add(freightCost).add(transshipmnetCost);
+            // 设置发货总费用
+            logisticsInfo.setSendGoodsTotalCost(sendGoodsTotalCost);
             logisticsInfo.save();
         }
 
         renderJson(new ArrayList<>().add(0));
+    }
+
+    /**
+     * 根据订单编号获取并最终算出要支付的总价格
+     */
+    public void getLogisticsCost() {
+        String orderId = getPara("orderId");
+        LogisticsInfo logisticsInfo = LogisticsInfo.dao.getLogisticeInfoByOrderID(orderId);
+        BigDecimal orderTotalPay = OrderDetail.dao.getOrderTotalCost(orderId);
+        if (logisticsInfo.getSendGoodsTotalCost() == null) {
+            logisticsInfo.setSendGoodsTotalCost(new BigDecimal(0));
+        }
+        BigDecimal allTotalCost = orderTotalPay.add(logisticsInfo.getSendGoodsTotalCost());
+        List list = new ArrayList<>();
+        list.add(allTotalCost);
+        renderJson(list);
+    }
+
+    /**
+     * 修改订单为支付状态
+     */
+    @Before(Tx.class)
+    public void updatePayStatus() {
+        try {
+            String orderId = null;
+            orderId = getPara("orderId");
+            LogisticsInfo logisticsInfo = LogisticsInfo.dao.getLogisticeInfoByOrderID(orderId);
+            BigDecimal orderTotalPay = OrderDetail.dao.getOrderTotalCost(orderId);
+            if(logisticsInfo==null)
+                logisticsInfo=new LogisticsInfo();
+            if (logisticsInfo.getSendGoodsTotalCost() == null) {
+                logisticsInfo.setSendGoodsTotalCost(new BigDecimal(0));
+            }
+            BigDecimal allTotalCost = orderTotalPay.add(logisticsInfo.getSendGoodsTotalCost());
+            //根据订单编号修改订单状态
+            Order.dao.updateOrderPayStatus(5,allTotalCost, orderId);
+            //如果是送达并确认付款，那就修改订单状态为已完成订单
+            Order.dao.updateOrderStatus(orderId);
+            renderNull();
+        } catch (Exception e) {
+            renderErrorText("确认支付失败!");
+        }
     }
 }

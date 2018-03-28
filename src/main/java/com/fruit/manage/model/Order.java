@@ -1,5 +1,6 @@
 package com.fruit.manage.model;
 
+import java.math.BigDecimal;
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -7,6 +8,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import com.jfinal.plugin.activerecord.Db;
 import org.apache.commons.lang3.ArrayUtils;
 
 import com.fruit.manage.model.base.BaseOrder;
@@ -114,9 +116,14 @@ public class Order extends BaseOrder<Order> {
                 "INNER JOIN b_product as p on p.id = od.product_id "+
                 "inner join b_product_standard ps  on ps.product_id=p.id "+
                 "WHERE 1 = 1 ");
-        // 必须添加订单订单状态
-        sql.append("AND o.order_status = ? ");
-        params.add(orderStatus);
+        // 判断是否为待付款 25:为待付款
+        if("25".equals(orderStatus)){
+            sql.append("AND o.pay_status = 0 and o.order_status <> 50 ");
+        }else {
+            // 必须添加订单订单状态
+            sql.append("AND o.order_status = ? ");
+            params.add(orderStatus);
+        }
 
         String noStr = "全部";
         if(StrKit.notBlank((String)map.get("searchProvince")) && !noStr.equals(map.get("searchProvince"))){
@@ -211,5 +218,31 @@ public class Order extends BaseOrder<Order> {
         sql.append("AND o.order_id = ? ");
         System.out.println(selectStr + sql.toString());
         return dao.findFirst(selectStr+sql,orderId);
+    }
+
+    /**
+     * 根据订单编号修改支付状态
+     * @param payStatus
+     * @param orderId
+     * @return
+     */
+    public boolean updateOrderPayStatus(Integer payStatus, BigDecimal payTotalMoney,String orderId) {
+        String sql="update b_order set pay_status=?,pay_total_money=? where order_id = ?";
+        if(Db.update(sql,payStatus,payTotalMoney,orderId)>0){
+                return true;
+        }
+        return false;
+    }
+
+    /**
+     * 根据订单修改订单状态
+     * @param orderId
+     * @return
+     */
+    public boolean updateOrderStatus(String orderId){
+        String sql="update b_order o set order_status = 30 where o.order_id=? and o.order_status = 20\n";
+        if(Db.update(sql,orderId)>0)
+            return true;
+        return false;
     }
 }

@@ -3,8 +3,12 @@ package com.fruit.manage.model;
 import com.fruit.manage.constant.UserTypeConstant;
 import com.fruit.manage.model.base.BaseOrderDetail;
 import com.jfinal.aop.Before;
+import com.jfinal.plugin.activerecord.Db;
+import com.jfinal.plugin.activerecord.IAtom;
 import com.jfinal.plugin.activerecord.tx.Tx;
 
+import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 
@@ -57,6 +61,16 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
         orderLog.setCreateTime(new Date());
         orderLog.setChangeNum(changeNum);
         return orderLog;
+    }
+
+    /**
+     * 根据订单编号获取总额
+     * @param orderId
+     * @return
+     */
+    public BigDecimal getOrderTotalCost(String orderId){
+        String sql="select sum(od.total_pay) from b_order_detail od where od.order_id= ? ";
+        return Db.queryBigDecimal(sql,orderId);
     }
 
     private OrderLog getOrderLog(String orderId, Integer productId, Integer productStandardId, Integer changeNum) {
