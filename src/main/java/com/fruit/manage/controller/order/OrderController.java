@@ -128,10 +128,15 @@ public class OrderController extends BaseController {
         } else {
             // 删除
             order.setOrderStatus(OrderStatusCode.DELETED.getStatus());
-            order.update();
+            order.delete();
             List<OrderDetail> orderDetails = OrderDetail.dao.getOrderDetails(orderId);
+            orderId = "x" + order.getOrderId();
+            order.setOrderId(orderId);
+            order.save();
             for (OrderDetail orderDetail : orderDetails) {
                 orderDetail.delete(UserTypeConstant.A_USER, uid);
+                orderDetail.setOrderId(orderId);
+                orderDetail.save();
             }
         }
         renderNull();
@@ -260,7 +265,7 @@ public class OrderController extends BaseController {
                     orderDetail.setUId(business_user_id);
                     orderDetail.setUpdateTime(now);
                     orderDetail.setCreateTime(now);
-                    orderDetail.save(UserTypeConstant.A_USER,uid);
+                    orderDetail.save(UserTypeConstant.A_USER, uid);
                 }
                 nowOrder.setPayNeedMoney(payNeedMoney);
                 nowOrder.setUpdateTime(now);
@@ -350,14 +355,14 @@ public class OrderController extends BaseController {
     /**
      * 保存配送信息
      */
-    public void saveLogisticInfo(){
-        LogisticsInfo logisticsInfo=getModel(LogisticsInfo.class,"",true);
+    public void saveLogisticInfo() {
+        LogisticsInfo logisticsInfo = getModel(LogisticsInfo.class, "", true);
         Integer businessUserID = getParaToInt("business_user_id");
         Integer businessInfoID = getParaToInt("business_info_id");
-        String orderId= getPara("order_id");
-        BusinessInfo businessInfo= BusinessInfo.dao.getBusinessInfoByID(businessInfoID);
-        BusinessUser businessUser=BusinessUser.dao.getBusinessUserByID(businessUserID);
-        if(logisticsInfo!=null){
+        String orderId = getPara("order_id");
+        BusinessInfo businessInfo = BusinessInfo.dao.getBusinessInfoByID(businessInfoID);
+        BusinessUser businessUser = BusinessUser.dao.getBusinessUserByID(businessUserID);
+        if (logisticsInfo != null) {
             logisticsInfo.setBuyAddress(businessInfo.get("detailAddress"));
             logisticsInfo.setBuyPhone(businessInfo.getPhone());
             logisticsInfo.setBuyUserName(businessUser.getName());
