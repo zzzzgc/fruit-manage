@@ -80,17 +80,16 @@ public class OrderConstant {
                 if (rollbackTemp != -1) {
                     return rollbackTemp;
                 }
-                throw new RuntimeException("不存在的状态码或");
+                throw new RuntimeException("不能再退了这是最初的状态了");
             }
             rollbackTemp = next;
         }
-        throw new RuntimeException("不存在的状态码或");
+        throw new RuntimeException("不存在的状态码");
     }
 
     public static void main(String[] args) {
         System.out.println(nextStatus(15));
         System.out.println(rollbackStatus(15));
     }
-
 
 }

@@ -128,10 +128,15 @@ public class OrderController extends BaseController {
         } else {
             // 删除
             order.setOrderStatus(OrderStatusCode.DELETED.getStatus());
-            order.update();
+            order.delete();
             List<OrderDetail> orderDetails = OrderDetail.dao.getOrderDetails(orderId);
+            orderId = "x" + order.getOrderId();
+            order.setOrderId(orderId);
+            order.save();
             for (OrderDetail orderDetail : orderDetails) {
                 orderDetail.delete(UserTypeConstant.A_USER, uid);
+                orderDetail.setOrderId(orderId);
+                orderDetail.save();
             }
         }
         renderNull();

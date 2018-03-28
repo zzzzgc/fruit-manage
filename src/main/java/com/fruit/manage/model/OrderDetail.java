@@ -37,6 +37,7 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
                 "\to.num,\n" +
                 "\to.original_price,\n" +
                 "\to.sell_price,\n" +
+                "\to.sell_price,\n" +
 
                 "\to.actual_send_goods_num,\n" +
 
@@ -58,8 +59,8 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
         orderLog.setOrderId(orderId);
         orderLog.setProductId(productId);
         orderLog.setProductStandardId(productStandardId);
-        orderLog.setCreateTime(new Date());
         orderLog.setChangeNum(changeNum);
+        orderLog.setCreateTime(new Date());
         return orderLog;
     }
 
@@ -80,8 +81,8 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
         orderLog.setOrderId(orderId);
         orderLog.setProductId(productId);
         orderLog.setProductStandardId(productStandardId);
-        orderLog.setCreateTime(new Date());
         orderLog.setChangeNum(changeNum);
+        orderLog.setCreateTime(new Date());
         return orderLog;
     }
 
@@ -105,8 +106,8 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
     @Override
     @Before(Tx.class)
     public boolean save() {
-        super.save();
-        return getOrderLog(super.getOrderId(), super.getProductId(), super.getProductStandardId(), super.getNum()).save();
+        // 删除并添加删除的 x + orderId的订单的时候需要使用不计入日志的方法
+        return super.save();
     }
     @Deprecated
     @Override

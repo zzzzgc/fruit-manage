@@ -1,17 +1,23 @@
 package com.fruit.manage.controller.common;
 
 import com.fruit.manage.base.BaseController;
+import com.fruit.manage.model.Order;
 import com.fruit.manage.model.ProcurementQuota;
 import com.fruit.manage.model.ProductStandard;
 import com.fruit.manage.model.User;
 import com.fruit.manage.util.Constant;
 import com.fruit.manage.util.ExcelCommon;
+import com.fruit.manage.util.excel.ExcelStyle;
 import com.fruit.manage.util.excelRd.ExcelRdException;
 import com.fruit.manage.util.excelRd.ExcelRdTypeEnum;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.log4j.Logger;
+import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.xssf.usermodel.*;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -153,6 +159,132 @@ public class ExcelController extends BaseController {
             e.printStackTrace();
         }
         renderErrorText("导入失败,请联系技术修复");
+    }
+
+
+    /**
+     * 生成商家出货单
+     *
+     * 避免混乱,行和单元格都按照这个规范
+     *  row对象只创建一次,
+     *  每次都sheet.createRow(rowCount++)创建获取下一行并指向row引用
+     *  cellName = c + endColumn(start by 1)
+     *
+     *  excel格式
+     *  信息展示(没有固定宽度,默认为三列为一个单元,不够就加单元)
+     *  数据(每一列只占一列)
+     *  信息展示(没有固定宽度,默认为三列为一个单元,不够就加)
+     *
+     *  一般数据会比信息展示需要更多的列,所以大概的按3:1来放置
+     *
+     *  信息展示默认以三列为一个单元
+     */
+    public void getBusinessSendGoodsBilling() {
+        List<Order> orders = Order.dao.find("");
+
+        int rowCount = 0;
+
+        // 创建Excel
+        XSSFWorkbook wb = new XSSFWorkbook();
+
+        // 创建表
+        XSSFSheet sheet = wb.createSheet("_商家出货单");
+        // 去除网格线
+        sheet.setDisplayGridlines(false);
+
+        // 获取样式
+        XSSFCellStyle titleOne = ExcelStyle.getStyleTitle(wb, 1);
+        XSSFCellStyle titleTwo = ExcelStyle.getStyleTitle(wb, 2);
+
+        XSSFCellStyle textOne = ExcelStyle.getStyleText(wb, 3);
+        XSSFCellStyle textTwo = ExcelStyle.getStyleText(wb, 4);
+
+        // 规范: 设置为1-3合并 ?-6合并 ?-9合并的单元格名称.
+        XSSFCell c3;
+        XSSFCell c6;
+        XSSFCell c9;
+
+        Date now = new Date();
+
+        // 1 line
+        XSSFRow row = sheet.createRow(rowCount++);
+        _mergedRegionNowRow(sheet, row, 1, 9);
+        c9 = row.createCell(0);
+        c9.setCellStyle(titleTwo);
+        c9.setCellValue(DateFormatUtils.format(now, "yyyy-MM-dd") + "广州嘻果出货单" + now.getTime());
+
+        // 2 line
+        row = sheet.createRow(rowCount++);
+        _mergedRegionNowRow(sheet, row, 1, 3);
+        _mergedRegionNowRow(sheet, row, 4, 6);
+        _mergedRegionNowRow(sheet, row, 7, 9);
+        c3 = row.createCell(0);
+        c6 = row.createCell(3);
+        c9 = row.createCell(6);
+        c3.setCellStyle(textOne);
+        c6.setCellStyle(textOne);
+        c9.setCellStyle(textOne);
+        c3.setCellValue("商家名称:");
+        c6.setCellValue("联系人:");
+        c9.setCellValue("送货电话:");
+
+        // 3 line
+        row = sheet.createRow(rowCount++);
+        _mergedRegionNowRow(sheet, row, 1, 9);
+        c9 = row.createCell(0);
+        c9.setCellStyle(textOne);
+        c9.setCellValue("商家地址: 梧州发指定车到梧州");
+
+        // 4 line
+        row = sheet.createRow(rowCount++);
+        _mergedRegionNowRow(sheet, row, 1, 3);
+        _mergedRegionNowRow(sheet, row, 4, 6);
+        _mergedRegionNowRow(sheet, row, 7, 9);
+        c3 = row.createCell(0);
+        c6 = row.createCell(3);
+        c9 = row.createCell(6);
+        c3.setCellStyle(textOne);
+        c6.setCellStyle(textOne);
+        c9.setCellStyle(textOne);
+        c3.setCellValue("发车类型: 市场车");
+        c6.setCellValue("负责销售: 老李");
+        c9.setCellValue("联系电话: 18819960688");
+
+        // 5 line
+        row = sheet.createRow(rowCount++);
+        _mergedRegionNowRow(sheet, row, 1, 9);
+        c9 = row.createCell(0);
+        c9.setCellStyle(textOne);
+        c9.setCellValue("配货点：运城");
+
+
+        // data
+
+
+
+
+
+        // bottom 1 line
+        row = sheet.createRow(rowCount++);
+        _mergedRegionNowRow(sheet, row, 1, 9);
+        c9 = row.createCell(0);
+        c9.setCellStyle(textOne);
+        c9.setCellValue("温馨提示：运费和装车费、三轮车费、包装费、短途费/中转费，均按实际产生费用收取");
+
+        // bottom 2 line
+
+
+        try {
+            FileOutputStream fout = new FileOutputStream("G:/students.xls");
+            wb.write(fout);
+            fout.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void _mergedRegionNowRow(XSSFSheet sheet, XSSFRow row, int firstCol, int lastCol) {
+        sheet.addMergedRegion(new CellRangeAddress(row.getRowNum(), row.getRowNum(), firstCol - 1, lastCol - 1));
     }
 
 
