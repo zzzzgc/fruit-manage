@@ -153,6 +153,10 @@ public class PlanController extends BaseController {
 //        List<String[]> listData = new ArrayList<String[]>();
         String zipFileName = "file_zip_plan" + System.currentTimeMillis();
         String zipFolder = CommonController.FILE_PATH + File.separator + zipFileName;
+        File zipFolderFile = new File(zipFolder);
+        if (zipFolderFile.exists()) {
+            zipFolderFile.mkdirs();
+        }
         for (ProcurementPlan procurementPlan : planList) {
             // 根据采购人分别保存信息,用来区分不同的采购采购的东西
             Map<String, Object> excelInfo = excelInfoList.get(procurementPlan.get("procurement_id"));
@@ -234,7 +238,7 @@ public class PlanController extends BaseController {
         }
         String zipName  = zipFileName + ".zip";
         boolean b = fileToZip(zipFolder, CommonController.FILE_PATH, zipFileName);
-        HashMap<Object, Object> objectObjectHashMap = new HashMap<>();
+        HashMap<Object, Object> objectObjectHashMap = new HashMap<>(1);
         objectObjectHashMap.put("zipName",zipName);
         renderJson(objectObjectHashMap);
     }
