@@ -65,12 +65,22 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
     }
 
     /**
-     * 根据订单编号获取总额
+     * 根据订单编号获取总额=（子订单=售价*下单量）的和
      * @param orderId
      * @return
      */
     public BigDecimal getOrderTotalCost(String orderId){
         String sql="select sum(od.total_pay) from b_order_detail od where od.order_id= ? ";
+        return Db.queryBigDecimal(sql,orderId);
+    }
+
+    /**
+     * 根据订单编号获取实际需要支付的订单总金额 = (子订单=售价*实际发货数量)的和
+     * @param orderId
+     * @return
+     */
+    public BigDecimal getOrderPayRealityNeedMoneyByOrderID(String orderId){
+        String sql="select o.pay_reality_need_money from b_order  o where o.order_id = ?";
         return Db.queryBigDecimal(sql,orderId);
     }
 

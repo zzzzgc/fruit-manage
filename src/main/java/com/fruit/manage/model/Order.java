@@ -106,7 +106,8 @@ public class Order extends BaseOrder<Order> {
                 "\t\tinfo.address_province,\n" +
                 "\t\tinfo.address_city,\n" +
                 "\t\tinfo.address_detail\n" +
-                "\t) AS address ";
+                "\t) AS address, " +
+                " o.pay_reality_need_money ";
         sql.append("FROM\n" +
                 "\tb_order AS o\n" +
                 "INNER JOIN b_business_user AS u ON o.u_id = u.id\n" +
