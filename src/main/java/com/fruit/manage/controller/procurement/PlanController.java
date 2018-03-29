@@ -142,7 +142,7 @@ public class PlanController extends BaseController {
         createTimes[1] = createTimeStr + " 11:59:59";
         // 获取要导出数据
         List<ProcurementPlan> planList = ProcurementPlan.dao.getExportDataByPPlanID(createTimes);
-        //行头
+        // 行头
         String[] header = {"商品名", "规格名", "规格编码", "重量(斤)", "报价", "下单量", "库存量", "采购量", "采购单价", "下单备注"};
         // 先执行删除操作
         ProcurementPlanDetail.dao.delPPlanDetail(createTimes);
@@ -156,6 +156,10 @@ public class PlanController extends BaseController {
         File zipFolderFile = new File(zipFolder);
         if (zipFolderFile.exists()) {
             zipFolderFile.mkdirs();
+        }
+        if (planList.size() <1) {
+            renderErrorText("一条订单都没有");
+            return;
         }
         for (ProcurementPlan procurementPlan : planList) {
             // 根据采购人分别保存信息,用来区分不同的采购采购的东西
