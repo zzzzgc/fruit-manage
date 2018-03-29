@@ -201,6 +201,7 @@ public class Order extends BaseOrder<Order> {
                 "\to.order_status,\n" +
                 "\to.create_time,\n" +
                 "\to.pay_need_money,\n" +
+                " o.pay_reality_need_money,"+
                 "\tinfo.business_name,\n" +
                 "\tli.buy_address,\n" +
                 "\tli.buy_phone,\n" +

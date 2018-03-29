@@ -38,13 +38,16 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
                 "\to.original_price,\n" +
                 "\to.sell_price,\n" +
                 "\to.actual_deliver_num,\n" +
-
+                " b_o.pay_reality_need_money," +
                 "\to.actual_send_goods_num,\n" +
 
                 "\tp.brand,\n" +
                 "\tps.gross_weight\n" +
                 "FROM\n" +
                 "\tb_order_detail AS o\n" +
+
+                "INNER JOIN b_order AS b_o ON o.order_id= b_o.order_id\n" +
+
                 "INNER JOIN b_product AS p ON o.product_id = p.id\n" +
                 "INNER JOIN b_product_standard AS ps ON o.product_standard_id = ps.id\n" +
                 "WHERE\n" +
