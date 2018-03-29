@@ -126,7 +126,7 @@ public class OrderController extends BaseController {
             order.setOrderStatus(nextStatus);
             order.update();
         } else {
-            // 删除
+            // 删除 TODO 叠加删除的订单
             order.setOrderStatus(OrderStatusCode.DELETED.getStatus());
             order.delete();
             List<OrderDetail> orderDetails = OrderDetail.dao.getOrderDetails(orderId);

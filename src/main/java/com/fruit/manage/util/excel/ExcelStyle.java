@@ -1,7 +1,5 @@
 package com.fruit.manage.util.excel;
 
-import org.apache.poi.hssf.usermodel.HSSFCellStyle;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.HorizontalAlignment;
@@ -13,7 +11,12 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 public abstract class ExcelStyle extends ExcelBase {
 
     /**
-     * 无边框居中样式
+     * 默认边框线样式
+     */
+    private static BorderStyle DEFAULT_BORDER = BorderStyle.THIN;
+
+    /**
+     * 通用:无边框居中样式
      *
      * @param wb 表格对象
      * @return XSSFCellStyle
@@ -26,21 +29,20 @@ public abstract class ExcelStyle extends ExcelBase {
     }
 
     /**
-     * 无边框居左样式(默认)
+     * 通用:无边框居左样式(默认)
      *
      * @param wb 表格对象
      * @return XSSFCellStyle
      */
     public static XSSFCellStyle getNoBorderStyle(XSSFWorkbook wb) {
         XSSFCellStyle style = wb.createCellStyle();
-        //+style.setAlignment(HorizontalAlignment.CENTER);
         style.setVerticalAlignment(VerticalAlignment.CENTER);
         return style;
     }
 
 
     /**
-     * 多等级标题样式(默认居中)
+     * 标题:多等级标题样式(默认居中)
      *
      * @param wb         XSSFWorkbook的Excel对象
      * @param titleLevel 标题等级
@@ -54,7 +56,7 @@ public abstract class ExcelStyle extends ExcelBase {
     }
 
     /**
-     * 多等级是文本样式(默认居左)
+     * 文本:多等级是文本样式(默认居左)
      *
      * @param wb         XSSFWorkbook的Excel对象
      * @param titleLevel 标题等级
@@ -62,6 +64,55 @@ public abstract class ExcelStyle extends ExcelBase {
      */
     public static XSSFCellStyle getStyleText(XSSFWorkbook wb, int titleLevel) {
         XSSFCellStyle style = getNoBorderStyle(wb);
+        XSSFFont font = getXssfFont(wb, titleLevel);
+        style.setFont(font);
+        return style;
+    }
+
+    /**
+     * 列表:上下边框列表单元格(居中)
+     * --------------------------------
+     * 表头    表头      表头       表头
+     * --------------------------------
+     * 内容    内容      内容       内容
+     * --------------------------------
+     * 内容    内容      内容       内容
+     * ------------------------------
+     * --
+     *
+     * @param wb
+     * @param titleLevel
+     * @return
+     */
+    public static XSSFCellStyle getStyleTableByOne(XSSFWorkbook wb, int titleLevel){
+        XSSFCellStyle style = getNoBorderStyle(wb);
+        style.setBorderTop(DEFAULT_BORDER);
+        style.setBorderBottom(DEFAULT_BORDER);
+        XSSFFont font = getXssfFont(wb, titleLevel);
+        style.setFont(font);
+        return style;
+    }
+
+    /**
+     * 列表:全边框列表单元格(居中)
+     * -------------------------------------
+     * |表头  |  表头   |   表头    |   表头 |
+     * -------------------------------------
+     * |内容  |  内容   |   内容    |   内容 |
+     * -------------------------------------
+     * |内容  |  内容   |   内容    |   内容 |
+     * -------------------------------------
+     *
+     * @param wb
+     * @param titleLevel
+     * @return
+     */
+    public static XSSFCellStyle getStyleTableByTwo(XSSFWorkbook wb, int titleLevel){
+        XSSFCellStyle style = getNoBorderStyle(wb);
+        style.setBorderTop(DEFAULT_BORDER);
+        style.setBorderLeft(DEFAULT_BORDER);
+        style.setBorderRight(DEFAULT_BORDER);
+        style.setBorderBottom(DEFAULT_BORDER);
         XSSFFont font = getXssfFont(wb, titleLevel);
         style.setFont(font);
         return style;
