@@ -428,4 +428,16 @@ public class OrderController extends BaseController {
             renderErrorText("确认支付失败!");
         }
     }
+
+    /**
+     * 根据订单编号删除物流信息
+     */
+    public void delLogisticsInfo(){
+        String orderId=getPara("orderID");
+        try {
+            LogisticsInfo.dao.delLogisticsInfoByOrderID(orderId);
+            renderNull();
+        } catch (Exception e) {
+        }
+    }
 }
