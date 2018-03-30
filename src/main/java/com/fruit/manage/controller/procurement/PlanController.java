@@ -10,6 +10,7 @@ import com.fruit.manage.util.DateAndStringFormat;
 import com.fruit.manage.util.ExcelCommon;
 import com.fruit.manage.util.IdUtil;
 import com.fruit.manage.util.excel.ExcelException;
+import com.jfinal.ext.kit.DateKit;
 import com.jfinal.plugin.activerecord.Page;
 import org.apache.log4j.Logger;
 
@@ -135,6 +136,7 @@ public class PlanController extends BaseController {
         Integer uid = getSessionAttr(Constant.SESSION_UID);
         // 获取当前操作用户
         User user = User.dao.findById(uid);
+
         Date createTime = getParaToDate("createTime");
         String createTimeStr = DateAndStringFormat.getStringDateShort(createTime);
         String[] createTimes = new String[2];
@@ -142,6 +144,7 @@ public class PlanController extends BaseController {
         createTimes[1] = createTimeStr + " 11:59:59";
         // 获取要导出数据
         List<ProcurementPlan> planList = ProcurementPlan.dao.getExportDataByPPlanID(createTimes);
+
         // 行头
         String[] header = {"商品名", "规格名", "规格编码", "重量(斤)", "报价", "下单量", "库存量", "采购量", "采购单价", "下单备注"};
         // 先执行删除操作
@@ -150,8 +153,9 @@ public class PlanController extends BaseController {
         // excel表格信息
         HashMap<Integer, Map<String, Object>> excelInfoList = new HashMap<>(5);
 
+
 //        List<String[]> listData = new ArrayList<String[]>();
-        String zipFileName = "file_zip_plan" + System.currentTimeMillis();
+        String zipFileName = createTimeStr+"订单周期的采购计划表.zip";
         String zipFolder = CommonController.FILE_PATH + File.separator + zipFileName;
         File zipFolderFile = new File(zipFolder);
         if (zipFolderFile.exists()) {

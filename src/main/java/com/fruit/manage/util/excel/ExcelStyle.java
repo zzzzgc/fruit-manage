@@ -85,6 +85,7 @@ public abstract class ExcelStyle extends ExcelBase {
      * @return
      */
     public static XSSFCellStyle getStyleTableByOne(XSSFWorkbook wb, int titleLevel){
+
         XSSFCellStyle style = getNoBorderStyle(wb);
         style.setBorderTop(DEFAULT_BORDER);
         style.setBorderBottom(DEFAULT_BORDER);

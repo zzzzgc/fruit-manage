@@ -4,13 +4,13 @@ import com.fruit.manage.base.BaseController;
 import com.fruit.manage.constant.ShipmentConstant;
 import com.fruit.manage.model.*;
 import com.fruit.manage.util.Constant;
+import com.fruit.manage.util.DateAndStringFormat;
 import com.fruit.manage.util.ExcelCommon;
 import com.fruit.manage.util.excel.ExcelStyle;
 import com.fruit.manage.util.excelRd.ExcelRdException;
 import com.fruit.manage.util.excelRd.ExcelRdTypeEnum;
 import com.jfinal.aop.Before;
 import com.jfinal.ext2.kit.DateTimeKit;
-import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
@@ -21,14 +21,11 @@ import org.apache.poi.xssf.usermodel.*;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.net.URLEncoder;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * excel导入导出集合
@@ -246,15 +243,15 @@ public class ExcelController extends BaseController {
                 sheet.setDefaultRowHeight((short) (512));
 
                 // 标题样式
-                XSSFCellStyle styleTitle = ExcelStyle.getStyleTitle(wb, 2);
+                XSSFCellStyle styleTitle = ExcelStyle.getStyleTitle(wb, 1);
 
                 // 文本样式
                 XSSFCellStyle styleText = ExcelStyle.getStyleText(wb, 3);
-                int textHeight = 30;
+                int textHeight = 20;
 
                 // 表样式
                 XSSFCellStyle styleTable = ExcelStyle.getStyleTableByOne(wb, 3);
-                int tableHeight = 22;
+                int tableHeight = 30;
 
                 // 规范: 设置为1-3合并 ?-6合并 ?-9合并的单元格名称.
                 XSSFCell c3;
@@ -417,16 +414,15 @@ public class ExcelController extends BaseController {
 
             }
 
-
             HttpServletResponse response = getResponse();
             OutputStream output = response.getOutputStream();
             response.reset();
-            response.setHeader("Content-disposition", "attachment; filename=" + DateFormatUtils.format(now, "yyyy年MM月dd日") + "商家出货单.xls");
+            response.setHeader("Content-disposition", "attachment; filename=" + URLEncoder.encode(DateFormatUtils.format(now, "yyyy年MM月dd日") + "商家出货单.xlsx", "UTF-8"));
             response.setContentType("application/excel");
             wb.write(output);
             output.close();
         } catch (Exception e) {
-            renderErrorText("导出失败,出现未知异常,请联系技术,时间为:"+DateFormatUtils.format(new Date(), "yyyy-MM-dd hh:ss:mm"));
+            renderErrorText("导出失败,出现未知异常,请联系技术,时间为:" + DateFormatUtils.format(new Date(), "yyyy-MM-dd hh:ss:mm"));
             e.printStackTrace();
         }
     }
@@ -515,11 +511,11 @@ public class ExcelController extends BaseController {
 
             // 文本样式
             XSSFCellStyle styleText = ExcelStyle.getStyleText(wb, 3);
-            int textHeight = 30;
+            int textHeight = 20;
 
             // 表样式
             XSSFCellStyle styleTable = ExcelStyle.getStyleTableByOne(wb, 3);
-            int tableHeight = 22;
+            int tableHeight = 30;
 
             // 规范: 设置为1-3合并 ?-6合并 ?-9合并的单元格名称.
             XSSFCell c3;
@@ -670,13 +666,14 @@ public class ExcelController extends BaseController {
             HttpServletResponse response = getResponse();
             OutputStream output = response.getOutputStream();
             response.reset();
-            response.setHeader("Content-disposition", "attachment; filename=" + DateFormatUtils.format(now, "yyyy年MM月dd日") + "商家出货单.xls");
+            response.setHeader("Content-disposition", "attachment; filename=" + URLEncoder.encode(DateFormatUtils.format(now, "yyyy年MM月dd日") + "商家收款单.xlsx", "UTF-8"));
             response.setContentType("application/excel");
             wb.write(output);
             output.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
+        renderNull();
     }
 
 
@@ -684,9 +681,261 @@ public class ExcelController extends BaseController {
         sheet.addMergedRegion(new CellRangeAddress(row.getRowNum(), row.getRowNum(), firstCol - 1, lastCol - 1));
     }
 
-    public static void main(String[] args) {
-        System.out.println((short) (256 * 1.5));
+
+    /**
+     * 采购:根据采购计划ID导出采购计划单
+     */
+    public void getProcurementPlanBilling() {
+        Integer uid = getSessionAttr(Constant.SESSION_UID);
+
+        User user = User.dao.findById(uid);
+
+        Date createTime = getParaToDate("createTime");
+
+        String[] createTimes = new String[2];
+
+        if (createTime != null) {
+            // 使用指定时间导出采购计划
+            String createTimeStr = DateAndStringFormat.getStringDateShort(createTime);
+            createTimes[0] = DateAndStringFormat.getNextDay(createTimeStr, "-1") + " 12:00:00";
+            createTimes[1] = createTimeStr + " 11:59:59";
+        } else {
+            // 使用当前时间导出采购计划
+            Calendar nowCalendar = Calendar.getInstance();
+            if (nowCalendar.get(Calendar.HOUR_OF_DAY) < 12) {
+                nowCalendar.add(Calendar.DAY_OF_MONTH, 1);
+            }
+            createTimes[0] = DateFormatUtils.format(nowCalendar.getTime(), "yyyy-MM-dd") + " 12:00:00";
+            nowCalendar.add(Calendar.DAY_OF_MONTH, 1);
+            createTimes[1] = DateFormatUtils.format(nowCalendar.getTime(), "yyyy-MM-dd") + " 12:00:00";
+            createTime = nowCalendar.getTime();
+        }
+
+        // 获取要导出数据
+        List<ProcurementPlan> planList = ProcurementPlan.dao.getExportDataByPPlanID(createTimes);
+
+        Map<String, List<ProcurementPlan>> procurementPlanGroup = planList.stream().collect(
+                Collectors.groupingBy(
+                        plan -> plan.get("procurement_name")
+                )
+        );
+        String[] headers = {"商品名", "规格名", "规格编码", "重量(斤)", "报价", "下单量", "库存量", "采购量", "采购单价", "下单备注"};
+
+        XSSFWorkbook wb = new XSSFWorkbook();
+
+        // 标题样式
+        XSSFCellStyle styleTitle = ExcelStyle.getStyleTitle(wb, 2);
+
+        // 文本样式
+        XSSFCellStyle styleText = ExcelStyle.getStyleText(wb, 3);
+        int textHeight = 20;
+
+        // 表样式
+        XSSFCellStyle styleTable = ExcelStyle.getStyleTableByOne(wb, 3);
+        int tableHeight = 30;
+
+
+        procurementPlanGroup.forEach(
+                (productStandardName, procurementPlanList) -> {
+                    try {
+                        XSSFSheet sheet = wb.createSheet();
+                        sheet.setDisplayGridlines(false);
+                        sheet.setDefaultRowHeight((short) (512));
+
+                        int rowCount = 0;
+                        XSSFRow row;
+
+                        // 标题
+                        row = sheet.createRow(rowCount++);
+                        _mergedRegionNowRow(sheet, row, 1, headers.length);
+                        XSSFCell titleCell = row.createCell(0);
+                        titleCell.setCellStyle(styleTitle);
+                        titleCell.setCellValue("采购计划表");
+
+                        // 其他信息
+                        row = sheet.createRow(rowCount++);
+                        _mergedRegionNowRow(sheet,row,1,3);
+                        _mergedRegionNowRow(sheet,row,4,7);
+                        XSSFCell nowTime = row.createCell(0);
+                        XSSFCell createBy = row.createCell(3);
+                        nowTime.setCellStyle(styleText);
+                        nowTime.setCellValue("创建时间: "+DateFormatUtils.format(new Date(), "yyyy-MM-dd hh:ss:mm"));
+                        createBy.setCellStyle(styleText);
+                        createBy.setCellValue("采购人:" + productStandardName);
+
+
+                        row = sheet.createRow(rowCount++);
+                        int cellCount = 0;
+                        for (String header : headers) {
+                            XSSFCell cell = row.createCell(cellCount++);
+                            cell.setCellStyle(styleTable);
+                            cell.setCellValue(header);
+                        }
+
+                        for (ProcurementPlan procurementPlan : procurementPlanList) {
+                            cellCount = 0;
+                            row = sheet.createRow(rowCount++);
+                            XSSFCell c1 = row.createCell(cellCount++);
+                            XSSFCell c2 = row.createCell(cellCount++);
+                            XSSFCell c3 = row.createCell(cellCount++);
+                            XSSFCell c4 = row.createCell(cellCount++);
+                            XSSFCell c5 = row.createCell(cellCount++);
+                            XSSFCell c6 = row.createCell(cellCount++);
+                            XSSFCell c7 = row.createCell(cellCount++);
+                            XSSFCell c8 = row.createCell(cellCount++);
+                            XSSFCell c9 = row.createCell(cellCount++);
+                            XSSFCell c10 = row.createCell(cellCount++);
+                            c1.setCellStyle(styleTable);
+                            c2.setCellStyle(styleTable);
+                            c3.setCellStyle(styleTable);
+                            c4.setCellStyle(styleTable);
+                            c5.setCellStyle(styleTable);
+                            c6.setCellStyle(styleTable);
+                            c7.setCellStyle(styleTable);
+                            c8.setCellStyle(styleTable);
+                            c9.setCellStyle(styleTable);
+                            c10.setCellStyle(styleTable);
+                            c3.setCellType(CellType.NUMERIC);
+                            c4.setCellType(CellType.NUMERIC);
+                            c5.setCellType(CellType.NUMERIC);
+                            c6.setCellType(CellType.NUMERIC);
+                            c7.setCellType(CellType.NUMERIC);
+                            c8.setCellType(CellType.NUMERIC);
+                            c9.setCellType(CellType.NUMERIC);
+                            c1.setCellValue(procurementPlan.get("productName") + "");
+                            c2.setCellValue(procurementPlan.get("productStandardName") + "");
+                            c3.setCellValue(procurementPlan.get("productStandardID") + "");
+                            c4.setCellValue(procurementPlan.get("fruitWeight") + "");
+                            c5.setCellValue(procurementPlan.get("sellPrice") + "");
+                            c6.setCellValue(procurementPlan.get("purchaseNum") + "");
+                            c7.setCellValue(procurementPlan.get("inventoryNum") + "");
+                            c8.setCellValue(procurementPlan.get("procurementNum") + "");
+                            c9.setCellValue(procurementPlan.get("procurementPrice") + "");
+                            c10.setCellValue(procurementPlan.get("procurementRemark") + "");
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+        );
+
+        try {
+            HttpServletResponse response = getResponse();
+            OutputStream output = response.getOutputStream();
+            response.reset();
+            response.setHeader("Content-disposition", "attachment; filename=" + URLEncoder.encode(DateFormatUtils.format(createTime, "yyyy年MM月dd日") + "采购计划.xlsx", "UTF-8"));
+            response.setContentType("application/excel");
+            wb.write(output);
+            output.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        renderNull();
+
+
+        // 先执行删除操作
+//        ProcurementPlanDetail.dao.delPPlanDetail(createTimes);
+
+        // excel表格信息
+//        HashMap<Integer, Map<String, Object>> excelInfoList = new HashMap<>(5);
+//
+//        ArrayList<Object> objects = new ArrayList<>();
+
+
+//        List<String[]> listData = new ArrayList<String[]>();
+//        String zipFileName = createTimes[1] + "订单周期的采购计划表.xlsx";
+//        String zipFolder = CommonController.FILE_PATH + File.separator + zipFileName;
+//        File zipFolderFile = new File(zipFolder);
+//        if (zipFolderFile.exists()) {
+//            zipFolderFile.mkdirs();
+//        }
+//        if (planList.size() < 1) {
+//            renderErrorText("一条订单都没有");
+//            return;
+//        }
+//        for (ProcurementPlan procurementPlan : planList) {
+//            // 根据采购人分别保存信息,用来区分不同的采购采购的东西
+//            Map<String, Object> excelInfo = excelInfoList.get(procurementPlan.get("procurement_id"));
+//            List<Object[]> listData = null;
+//            if (excelInfo == null) {
+//                excelInfo = new HashMap<>(20);
+//                excelInfoList.put(procurementPlan.get("procurement_id"), excelInfo);
+//                excelInfo.put("path", zipFolder);
+//                excelInfo.put("fileName", "file_" + UUID.randomUUID().toString().replaceAll("-", "") + ".xlsx");
+//                excelInfo.put("title", "采购计划表");
+//                excelInfo.put("createBy", procurementPlan.get("procurement_name"));
+//                excelInfo.put("header", header);
+//                excelInfo.put("listData", new ArrayList<Object[]>());
+//                listData = (List<Object[]>) excelInfo.get("listData");
+//            } else {
+//                listData = (List<Object[]>) excelInfo.get("listData");
+//            }
+//            Object[] str = new Object[header.length];
+//            Integer productId = procurementPlan.get("productId");
+//            // 商品名
+//            str[0] = procurementPlan.get("productName");
+//            // 规格名
+//            str[1] = procurementPlan.get("productStandardName");
+//            // 规格编号
+//            str[2] = procurementPlan.get("productStandardID");
+//            // 水果重量
+//            str[3] = procurementPlan.get("fruitWeight");
+//            // 报价
+//            str[4] = procurementPlan.get("sellPrice");
+//            str[5] = procurementPlan.get("purchaseNum");
+//            str[6] = procurementPlan.get("inventoryNum");
+//            str[7] = procurementPlan.get("procurementNum");
+//            str[8] = procurementPlan.get("procurementPrice");
+//            // TODO 需要改成订单备注
+//            str[9] = procurementPlan.get("procurementRemark");
+//            listData.add(str);
+//            ProcurementPlanDetail procurementPlanDetail = new ProcurementPlanDetail();
+//            procurementPlanDetail.setProductId(productId);
+//            procurementPlanDetail.setProductStandardId(procurementPlan.get("productStandardID"));
+//            procurementPlanDetail.setProcurementId(uid);
+//            procurementPlanDetail.setProductName(procurementPlan.get("productName"));
+//            procurementPlanDetail.setProductStandardName(procurementPlan.get("productStandardName"));
+//            procurementPlanDetail.setSellPrice(procurementPlan.get("sellPrice"));
+//            procurementPlanDetail.setInventoryNum(Integer.parseInt(procurementPlan.get("inventoryNum") + ""));
+//            procurementPlanDetail.setProcurementNum(Integer.parseInt(procurementPlan.get("procurementNum") + ""));
+//            procurementPlanDetail.setProductStandardNum(Integer.parseInt(procurementPlan.get("productStandardNum") + ""));
+//            procurementPlanDetail.setProcurementNeedPrice(BigDecimal.valueOf(procurementPlan.get("procurementNeedPrice")));
+//            procurementPlanDetail.setProcurementTotalPrice(BigDecimal.valueOf(procurementPlan.get("procurementTotalPrice")));
+//            procurementPlanDetail.setOrderRemark(procurementPlan.get("orderRemark"));
+//            procurementPlanDetail.setProcurementRemark(procurementPlan.get("procurementRemark"));
+//            procurementPlanDetail.setCreateTime(createTime);
+//            procurementPlanDetail.setUpdateTime(new Date());run dv
+//            procurementPlanDetail.save();
     }
 
-
+    //保存路径
+//        String savePath = getRequest().getSession().getServletContext().getRealPath("static/excel");
+//        System.out.println("\n" + savePath);
+//        String fpath = getSession().getServletContext().getRealPath("static/excel");
+//        String fileName = "file_" + UUID.randomUUID().toString().replaceAll("-", "") + ".xlsx";
+//        System.out.println(fpath + "\n");
+//        Map map = new HashMap(12);
+//        map.put("path", savePath);
+//        map.put("fileName", fileName);
+//        map.put("title", "采购计划表");
+//        map.put("createBy", user.getName());
+//        map.put("header", header);
+//        map.put("listData", listData);
+//        ArrayList<File> files = new ArrayList<>();
+//        for (Integer integer : excelInfoList.keySet()) {
+//            Map<String, Object> stringObjectMap = excelInfoList.get(integer);
+//            String file = null;
+//            try {
+//                file = ExcelCommon.createExcelModul(stringObjectMap);
+//            } catch (ExcelException e) {
+//                renderErrorText(e.getMessage());
+//            }
+//            files.add(new File(file));
+//        }
+//        String zipName = zipFileName + ".zip";
+//        boolean b = fileToZip(zipFolder, CommonController.FILE_PATH, zipFileName);
+//        HashMap<Object, Object> objectObjectHashMap = new HashMap<>(1);
+//        objectObjectHashMap.put("zipName",zipName);
+//        renderJson(objectObjectHashMap);
+//}
 }
