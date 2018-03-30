@@ -79,7 +79,7 @@ public class ProcurementPlan extends BaseProcurementPlan<ProcurementPlan> {
 		sql.append("and od2.product_standard_id=ol.product_standard_id ");
 		sql.append("group by od2.product_standard_id ");
 		sql.append(") as purchaseNum, ");
-		sql.append("(select 0) as inventoryNum, ");
+		sql.append("ps.stock as inventoryNum, ");
 		sql.append("(select 0) as procurementNum, ");
 		sql.append("(select 0) as procurementPrice, ");
 		sql.append("(select '') as procurementRemark, ");
