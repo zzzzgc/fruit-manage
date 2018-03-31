@@ -12,7 +12,9 @@ import com.fruit.manage.util.excelRd.ExcelRd;
 import com.fruit.manage.util.excelRd.ExcelRdException;
 import com.fruit.manage.util.excelRd.ExcelRdRow;
 import com.fruit.manage.util.excelRd.ExcelRdTypeEnum;
+import com.jfinal.aop.Before;
 import com.jfinal.plugin.activerecord.Page;
+import com.jfinal.plugin.activerecord.tx.Tx;
 import com.jfinal.upload.UploadFile;
 import org.apache.log4j.Logger;
 
@@ -69,8 +71,8 @@ public class PlanDetailController extends BaseController{
 
     /**
      * 根据时间字段更新采购计划
-     * TODO 缺少事务
      */
+    @Before(Tx.class)
     public void updatePPlanDetail(){
         Integer uid = getSessionAttr(Constant.SESSION_UID);
         // 获取当前操作用户

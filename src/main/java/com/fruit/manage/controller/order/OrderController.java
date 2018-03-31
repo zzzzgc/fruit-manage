@@ -150,6 +150,16 @@ public class OrderController extends BaseController {
         String orderId = getPara("orderId");
         Order order = Order.dao.getOrder(orderId);
         Integer orderStatus = order.getOrderStatus();
+        // 判断是否为已配货
+        if(OrderStatusCode.WAIT_DISTRIBUTION.getStatus().equals(orderStatus)){
+            List<OrderDetail> details = OrderDetail.dao.getOrderDetailSingleTable(orderId);
+            for (OrderDetail detail : details) {
+                ProductStandard productStandard = ProductStandard.dao.getProductStandardById(detail.getProductStandardId());
+                // 修改库存数量=把现有的库存加上实际发货的数量
+                productStandard.setStock(productStandard.getStock()+detail.getActualSendGoodsNum());
+                productStandard.update();
+            }
+        }
         Integer rollbackStatus = OrderConstant.rollbackStatus(orderStatus);
         order.setOrderStatus(rollbackStatus);
         order.update();
@@ -188,8 +198,19 @@ public class OrderController extends BaseController {
                 BigDecimal sellPrice = orderDetail.getSellPrice();
                 BigDecimal totalPay = sellPrice.multiply(new BigDecimal(num));
                 Integer actualSendGoodsNum=orderDetail.getActualSendGoodsNum();
+                // 有实际发货的数量,在配货的时候减库存
                 if(actualSendGoodsNum != null && actualSendGoodsNum!=0){
-                    // 实际需要支付金额 = （所有子订单=销售价*实际发货数量）的和
+                    //根据商品规格编号获取商品规格信息
+                    ProductStandard productStandard=ProductStandard.dao.findById(orderDetail.getProductStandardId());
+                    //判断仓库数量是否小于实发数数量
+                    if(productStandard!=null && productStandard.getStock()>=actualSendGoodsNum) {
+                        // 执行出库操作：库存量-发货量
+                        productStandard.setStock(productStandard.getStock()-actualSendGoodsNum);
+                        productStandard.update();
+                    }else{
+                        throw new RuntimeException("");
+                    }
+                    // 实际需要支付金额 = （所有子订单=销售价*实际发货数量）
                     payRealityNeedMoney=payRealityNeedMoney.add(sellPrice.multiply(new BigDecimal(actualSendGoodsNum)));
                 }
                 orderDetail.setTotalPay(totalPay);
@@ -240,7 +261,6 @@ public class OrderController extends BaseController {
                 order.save();
             } else {
                 // 如果有相同订单周期的订单,就叠加商品.这次添加视为补充商品.因为想修改商品应该去编辑才对,而不是添加.
-
                 // 具有完整字段的对象,用于作为更新模板和核对是否叠加
                 List<OrderDetail> nowOrderDetails = OrderDetail.dao.getOrderDetails(orderId);
                 // 导入的订单

@@ -38,18 +38,34 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
                 "\to.original_price,\n" +
                 "\to.sell_price,\n" +
                 "\to.actual_deliver_num,\n" +
-
+                " b_o.pay_reality_need_money," +
+                " ps.stock, " +
+                " o.product_standard_id, "+
                 "\to.actual_send_goods_num,\n" +
 
                 "\tp.brand,\n" +
                 "\tps.gross_weight\n" +
                 "FROM\n" +
                 "\tb_order_detail AS o\n" +
+
+                "INNER JOIN b_order AS b_o ON o.order_id= b_o.order_id\n" +
+
                 "INNER JOIN b_product AS p ON o.product_id = p.id\n" +
                 "INNER JOIN b_product_standard AS ps ON o.product_standard_id = ps.id\n" +
                 "WHERE\n" +
                 "\to.order_id = ?  ";
         return dao.find(sql, orderid);
+    }
+
+
+    /**
+     * 根据订单编号获取订单详情单个表操作
+     * @param orderId 订单ID
+     * @return 订单详情集合
+     */
+    public List<OrderDetail> getOrderDetailSingleTable(String orderId){
+        String sql = "select od.id,od.product_standard_id,od.actual_send_goods_num from b_order_detail od where od.order_id = ? ";
+        return  find(sql,orderId);
     }
 
     private OrderLog getOrderLog(UserTypeConstant type, Integer uid, String orderId, Integer productId, Integer productStandardId, Integer changeNum) {
