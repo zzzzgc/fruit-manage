@@ -2,10 +2,7 @@ package com.fruit.manage.controller.procurement;
 
 import com.fruit.manage.base.BaseController;
 import com.fruit.manage.controller.common.CommonController;
-import com.fruit.manage.model.ProcurementPlan;
-import com.fruit.manage.model.ProcurementPlanDetail;
-import com.fruit.manage.model.Product;
-import com.fruit.manage.model.User;
+import com.fruit.manage.model.*;
 import com.fruit.manage.util.Constant;
 import com.fruit.manage.util.DateAndStringFormat;
 import com.fruit.manage.util.excelRd.ExcelRd;
@@ -357,6 +354,8 @@ public class PlanDetailController extends BaseController{
                         pPDtailTwo.setId(null);
                         pPDtailTwo.setProductStandardId((int)row.get(0));
                         pPDtailTwo.setProductName((String)row.get(1));
+                        //执行入库操作
+                        // putInStore((Integer)row.get(0),(Integer)row.get(3));
                         pPDtailTwo.setProductStandardName((String)row.get(2));
                         pPDtailTwo.setProcurementNum((int)row.get(3));
                         pPDtailTwo.setProcurementNeedPrice(new BigDecimal((Double) row.get(4)));
@@ -372,6 +371,8 @@ public class PlanDetailController extends BaseController{
                         if(pPDtailOne!=null){
                             pPDtailOne.setId(null);
                             pPDtailOne.setProductStandardId((int)row.get(0));
+                            //执行入库操作
+//                            putInStore((Integer)row.get(0),(Integer)row.get(3));
                             pPDtailOne.setProductName((String)row.get(1));
                             pPDtailOne.setProductStandardName((String)row.get(2));
                             pPDtailOne.setProcurementNum((int)row.get(3));
@@ -394,5 +395,12 @@ public class PlanDetailController extends BaseController{
         }
     }
 
+    public void putInStore(Integer productStandardId,Integer changeNum){
+        ProductStandard productStandard =ProductStandard.dao.getProductStandardById(productStandardId);
+        if(productStandard!=null){
+            productStandard.setStock(productStandard.getStock()+changeNum);
+            productStandard.update();
+        }
+    }
 
 }

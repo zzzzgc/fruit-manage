@@ -30,6 +30,7 @@ public class ProcurementPlanDetail extends BaseProcurementPlanDetail<Procurement
 		ArrayList<Object> params = new ArrayList<Object>();
 		String selectStr="select ppd.id,ppd.product_id,ppd.product_standard_id,ppd.procurement_id, " +
 				"ppd.product_name,ppd.product_standard_name,ppd.sell_price,ppd.inventory_num, " +
+				"(select ps.stock from b_product_standard ps where ps.id=ppd.product_standard_id) as stock, "+
 				"ppd.procurement_num,ppd.product_standard_num,ppd.procurement_need_price, " +
 				"ppd.procurement_total_price,ppd.order_remark,ppd.procurement_remark,ppd.create_time,ppd.update_time,u.`name` as userName ";
 		StringBuilder sql=new StringBuilder();

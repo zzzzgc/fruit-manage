@@ -151,7 +151,7 @@ public class OrderController extends BaseController {
         Order order = Order.dao.getOrder(orderId);
         Integer orderStatus = order.getOrderStatus();
         // 判断是否为已配货
-        if(OrderStatusCode.WAIT_DISTRIBUTION.getStatus().equals(orderStatus)){
+       /* if(OrderStatusCode.WAIT_DISTRIBUTION.getStatus().equals(orderStatus)){
             List<OrderDetail> details = OrderDetail.dao.getOrderDetailSingleTable(orderId);
             for (OrderDetail detail : details) {
                 ProductStandard productStandard = ProductStandard.dao.getProductStandardById(detail.getProductStandardId());
@@ -159,7 +159,7 @@ public class OrderController extends BaseController {
                 productStandard.setStock(productStandard.getStock()+detail.getActualSendGoodsNum());
                 productStandard.update();
             }
-        }
+        }*/
         Integer rollbackStatus = OrderConstant.rollbackStatus(orderStatus);
         order.setOrderStatus(rollbackStatus);
         order.update();
@@ -200,7 +200,7 @@ public class OrderController extends BaseController {
                 Integer actualSendGoodsNum=orderDetail.getActualSendGoodsNum();
                 // 有实际发货的数量,在配货的时候减库存
                 if(actualSendGoodsNum != null && actualSendGoodsNum!=0){
-                    //根据商品规格编号获取商品规格信息
+                    /*//根据商品规格编号获取商品规格信息
                     ProductStandard productStandard=ProductStandard.dao.findById(orderDetail.getProductStandardId());
                     //判断仓库数量是否小于实发数数量
                     if(productStandard!=null && productStandard.getStock()>=actualSendGoodsNum) {
@@ -209,7 +209,7 @@ public class OrderController extends BaseController {
                         productStandard.update();
                     }else{
                         throw new RuntimeException("");
-                    }
+                    }*/
                     // 实际需要支付金额 = （所有子订单=销售价*实际发货数量）
                     payRealityNeedMoney=payRealityNeedMoney.add(sellPrice.multiply(new BigDecimal(actualSendGoodsNum)));
                 }
