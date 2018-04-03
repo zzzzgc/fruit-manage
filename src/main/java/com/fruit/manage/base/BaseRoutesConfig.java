@@ -19,6 +19,8 @@ import com.fruit.manage.controller.user.RolesController;
 import com.fruit.manage.controller.user.UserController;
 import com.fruit.manage.controller.warehouse.inventory.CheckInventoryController;
 import com.fruit.manage.controller.warehouse.inventory.CheckInventoryDetailController;
+import com.fruit.manage.controller.warehouse.out.WarehouseOutContrller;
+import com.fruit.manage.controller.warehouse.out.WarehouseOutDetailContrller;
 import com.fruit.manage.controller.warehouse.put.WarehousePutController;
 import com.fruit.manage.controller.warehouse.put.WarehousePutDetailController;
 import com.fruit.manage.model.CheckInventoryDetail;
@@ -53,6 +55,8 @@ public class BaseRoutesConfig extends Routes {
 		add("/manage/procurement/plan/detail", PlanDetailController.class);
 		add("/manage/warehouse/put",WarehousePutController.class);
 		add("/manage/warehouse/put/detail",WarehousePutDetailController.class);
+		add("/manage/warehouse/out",WarehouseOutContrller.class);
+		add("/manage/warehouse/out/detail",WarehouseOutDetailContrller.class);
 		add("/manage/warehouse/inventory", CheckInventoryController.class);
 		add("/manage/warehouse/inventory/detail", CheckInventoryDetailController.class);
 	}
