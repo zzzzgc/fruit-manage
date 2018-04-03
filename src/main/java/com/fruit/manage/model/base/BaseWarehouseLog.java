@@ -49,6 +49,14 @@ public abstract class BaseWarehouseLog<M extends BaseWarehouseLog<M>> extends Mo
 		return getInt("change_num");
 	}
 
+	public void setChangeType(java.lang.String changeType) {
+		set("change_type", changeType);
+	}
+
+	public java.lang.String getChangeType() {
+		return getStr("change_type");
+	}
+
 	public void setIsStatistical(java.lang.Integer isStatistical) {
 		set("is_statistical", isStatistical);
 	}
