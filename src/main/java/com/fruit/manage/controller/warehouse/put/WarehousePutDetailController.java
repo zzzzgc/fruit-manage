@@ -1,9 +1,11 @@
 package com.fruit.manage.controller.warehouse.put;
 
 import com.fruit.manage.base.BaseController;
+import com.fruit.manage.constant.UserTypeConstant;
 import com.fruit.manage.controller.common.CommonController;
 import com.fruit.manage.controller.procurement.PlanDetailController;
 import com.fruit.manage.model.*;
+import com.fruit.manage.util.Constant;
 import com.fruit.manage.util.DateAndStringFormat;
 import com.fruit.manage.util.excelRd.ExcelRd;
 import com.fruit.manage.util.excelRd.ExcelRdException;
@@ -140,6 +142,9 @@ public class WarehousePutDetailController extends BaseController {
                     putWarehouseDetail.setCreateTime(currentTime);
                     putWarehouseDetail.save();
 
+                    // 根据商品规格编号修改商品规格的库存量
+                    updateProductStandardStore(putWarehouseDetail.getProductStandardId(),putWarehouseDetail.getPutNum());
+
 
                     PutWarehouse putWarehouse = PutWarehouse.dao.getPutWarehouseById(putId);
                     putWarehouse.setPutTime(currentTime);
@@ -169,6 +174,9 @@ public class WarehousePutDetailController extends BaseController {
                     putWarehouseDetail.setProductWeight((Double) list.get(3));
                     putWarehouseDetail.setBoothCost(boothCost);
                     putWarehouseDetail.update();
+
+                    // 根据商品规格编号修改商品规格的库存量
+                    updateProductStandardStore(putWarehouseDetail.getProductStandardId(), differPutNum.intValue());
 
                     PutWarehouse putWarehouse = PutWarehouse.dao.getPutWarehouseById(putWarehouseDetail.getPutId());
                     putWarehouse.setPutNum(putWarehouse.getPutNum() - differPutNum);
@@ -204,7 +212,7 @@ public class WarehousePutDetailController extends BaseController {
             BigDecimal procurementTotalPrice = putNumUpdate.multiply(putWarehouseDetail.getProcurementPrice());
             PutWarehouseDetail putWarehouseDetail2 = PutWarehouseDetail.dao.getPutDetailById(putWarehouseDetail.getId());
             // PutNum相差的值
-            Integer differPutNum = putWarehouseDetail2.getPutNum() - putNumUpdate.intValue();
+            Integer differPutNum = putNumUpdate.intValue() - putWarehouseDetail2.getPutNum();
             // 摊位分相差值
             BigDecimal differBoothCost = putWarehouseDetail2.getBoothCost().subtract(putWarehouseDetail.getBoothCost());
             // 入库数量的相差值
@@ -223,6 +231,8 @@ public class WarehousePutDetailController extends BaseController {
 //        putWarehouseDetail2.setPutAveragePrice((procurementTotalPrice.add(putWarehouseDetail2.getBoothCost())).divide(new BigDecimal(putWarehouseDetail2.getPutNum())));
             putWarehouseDetail2.update();
 
+            // 根据商品规格编号修改商品规格的库存量
+            updateProductStandardStore(putWarehouseDetail2.getProductStandardId(), differPutNum.intValue());
 
             PutWarehouse putWarehouse = PutWarehouse.dao.getPutWarehouseById(putWarehouseDetail.getPutId());
             putWarehouse.setPutNum(putWarehouse.getPutNum() - differPutNum);
@@ -249,6 +259,9 @@ public class WarehousePutDetailController extends BaseController {
             putWarehouseDetail.setCreateTime(new Date());
             putWarehouseDetail.save();
 
+            // 根据商品规格编号修改商品规格的库存量
+            updateProductStandardStore(putWarehouseDetail.getProductStandardId(), putNum);
+
             PutWarehouse putWarehouse = PutWarehouse.dao.getPutWarehouseById(putWarehouseDetail.getPutId());
             putWarehouse.setPutTime(currentTime);
             putWarehouse.setUpdateTime(currentTime);
@@ -260,5 +273,18 @@ public class WarehousePutDetailController extends BaseController {
             putWarehouse.update();
             renderNull();
         }
+    }
+
+    /**
+     * 根据商品规格编号（product_standard_id）修改商品规格的库存
+     * @param psId
+     * @param putNum
+     * @return
+     */
+    public boolean updateProductStandardStore(Integer psId,Integer putNum){
+        ProductStandard productStandard = ProductStandard.dao.getProductStandardById(psId);
+        productStandard.setStock(productStandard.getStock() + putNum);
+        Integer uid = getSessionAttr(Constant.SESSION_UID);
+        return productStandard.update(UserTypeConstant.A_USER,uid,productStandard.getStock()+putNum,productStandard.getStock(),"0");
     }
 }

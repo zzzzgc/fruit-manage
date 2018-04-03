@@ -150,33 +150,34 @@ public class ProductStandard extends BaseProductStandard<ProductStandard> {
      * @param changeNum
      * @return
      */
-    public WarehouseLog getWarehouseLog(UserTypeConstant type,Integer userId,Integer productStandardId,Integer changeNum){
+    public WarehouseLog getWarehouseLog(UserTypeConstant type,Integer userId,Integer productStandardId,Integer changeNum,String changeType){
         WarehouseLog warehouseLog=new WarehouseLog();
         warehouseLog.setUserId(userId);
         warehouseLog.setUserType(type.getValue());
         warehouseLog.setProductStandardId(productStandardId);
         warehouseLog.setChangeNum(changeNum);
+        warehouseLog.setChangeType(changeType);
         warehouseLog.setCreateTime(new Date());
         return warehouseLog;
     }
 
 
     @Before(Tx.class)
-    public boolean delete(UserTypeConstant type,Integer userId) {
+    public boolean delete(UserTypeConstant type,Integer userId,String changeType) {
         super.delete();
-        return getWarehouseLog(type,userId,super.getId(),~super.getStock()+1).save();
+        return getWarehouseLog(type,userId,super.getId(),~super.getStock()+1,changeType).save();
     }
 
     @Before(Tx.class)
-    public boolean save(UserTypeConstant type,Integer userId) {
+    public boolean save(UserTypeConstant type,Integer userId,String changeType) {
         super.save();
-        return getWarehouseLog(type,userId,super.getId(),super.getStock()).save();
+        return getWarehouseLog(type,userId,super.getId(),super.getStock(),changeType).save();
     }
 
     @Before(Tx.class)
-    public boolean update(UserTypeConstant type,Integer userId,Integer afterNum,Integer beforeNum) {
+    public boolean update(UserTypeConstant type,Integer userId,Integer afterNum,Integer beforeNum,String changeType) {
         super.update();
-        return getWarehouseLog(type,userId,super.getId(),afterNum-beforeNum).save();
+        return getWarehouseLog(type,userId,super.getId(),afterNum-beforeNum,changeType).save();
     }
 
     // 修改完状态，刷新商品列表
