@@ -48,7 +48,7 @@ public class WarehouseOutDetailContrller extends BaseController {
         if (outWarehouseDetail.getId() != null) {
             OutWarehouseDetail oldOutWarehouseDetail = OutWarehouseDetail.dao.findById(outWarehouseDetail.getId());
             outWarehouseDetail.update();
-            updateProductStandardStore(outWarehouseDetail.getProductStandardId(),outWarehouseDetail.getOutNum() - oldOutWarehouseDetail.getOutNum());
+            updateProductStandardStore(outWarehouseDetail.getProductStandardId(),outWarehouseDetail.getOutNum() - oldOutWarehouseDetail.getOutNum(),outWarehouseDetail.getProductStandardName(),outWarehouseDetail.getProductId(),outWarehouseDetail.getProductName());
         } else {
             outWarehouseDetail.setOutPrice(new BigDecimal(0) );
             outWarehouseDetail.setOutType(0);
@@ -57,7 +57,7 @@ public class WarehouseOutDetailContrller extends BaseController {
             outWarehouseDetail.setUpdateTime(new Date());
             outWarehouseDetail.setCreateTime(new Date());
             outWarehouseDetail.save();
-            updateProductStandardStore(outWarehouseDetail.getProductStandardId(),outWarehouseDetail.getOutNum());
+            updateProductStandardStore(outWarehouseDetail.getProductStandardId(),outWarehouseDetail.getOutNum(),outWarehouseDetail.getProductStandardName(),outWarehouseDetail.getProductId(),outWarehouseDetail.getProductName());
         }
         renderNull();
     }
@@ -65,14 +65,14 @@ public class WarehouseOutDetailContrller extends BaseController {
     /**
      * 根据商品规格编号（product_standard_id）修改商品规格的库存
      * @param psId
-     * @param putNum
+     * @param changeNum
      * @return
      */
-    public boolean updateProductStandardStore(Integer psId,Integer putNum){
+    public boolean updateProductStandardStore(Integer psId,Integer changeNum,String productStandardName,Integer productId,String productName){
         ProductStandard productStandard = ProductStandard.dao.getProductStandardById(psId);
-        productStandard.setStock(productStandard.getStock() + putNum);
+        productStandard.setStock(productStandard.getStock() + changeNum);
         Integer uid = getSessionAttr(Constant.SESSION_UID);
-        return productStandard.update(UserTypeConstant.A_USER,uid,productStandard.getStock()+putNum,productStandard.getStock(),"0");
+        return productStandard.update(UserTypeConstant.A_USER,uid,productStandard.getStock()+changeNum,productStandard.getStock(),"0",productStandardName,productId,productName);
     }
 
 

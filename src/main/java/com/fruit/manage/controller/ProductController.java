@@ -44,12 +44,13 @@ public class ProductController extends BaseController {
 	}
 
 	@RequiresPermissions("product:edit")
-	public void info(Integer id) {
+	public void info() {
+		Integer id = getParaToInt("id");
 		if(id == null) {
 			renderErrorText("商品ID不能为null");
 			return;
 		}
-	    Product product = Product.dao.getById(id);
+		Product product = Product.dao.getById(id);
 		if(product == null) {
 			renderErrorText("商品不存在");
 			return;
