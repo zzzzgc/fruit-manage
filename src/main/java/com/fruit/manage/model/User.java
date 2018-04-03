@@ -136,6 +136,10 @@ public class User extends BaseUser<User> {
 		return true;
 	}
 
+	public User getUserById(Integer id) {
+		String sql = "select * from a_user where id = ? ";
+		return findFirst(sql, id);
+	}
 	/**
 	 * 获取所有的用户编号和用户名
 	 * @return 所有的用户编号和用户名
