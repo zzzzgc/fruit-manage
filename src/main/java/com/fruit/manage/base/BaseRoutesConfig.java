@@ -17,8 +17,11 @@ import com.fruit.manage.controller.procurement.PlanDetailController;
 import com.fruit.manage.controller.procurement.QuotaContrller;
 import com.fruit.manage.controller.user.RolesController;
 import com.fruit.manage.controller.user.UserController;
+import com.fruit.manage.controller.warehouse.inventory.CheckInventoryController;
+import com.fruit.manage.controller.warehouse.inventory.CheckInventoryDetailController;
 import com.fruit.manage.controller.warehouse.put.WarehousePutController;
 import com.fruit.manage.controller.warehouse.put.WarehousePutDetailController;
+import com.fruit.manage.model.CheckInventoryDetail;
 import com.jfinal.config.Routes;
 
 /**
@@ -50,6 +53,8 @@ public class BaseRoutesConfig extends Routes {
 		add("/manage/procurement/plan/detail", PlanDetailController.class);
 		add("/manage/warehouse/put",WarehousePutController.class);
 		add("/manage/warehouse/put/detail",WarehousePutDetailController.class);
+		add("/manage/warehouse/inventory", CheckInventoryController.class);
+		add("/manage/warehouse/inventory/detail", CheckInventoryDetailController.class);
 	}
 
 }

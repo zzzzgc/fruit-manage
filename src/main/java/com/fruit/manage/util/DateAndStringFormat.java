@@ -62,6 +62,16 @@ public class DateAndStringFormat {
         String dateString = formatter.format(currentTime);
         return dateString;
     }
+    /**
+     * 获取现在时间没有“-”格式
+     * @param
+     * @return 返回短时间字符串格式yyyy-MM-dd
+     */
+    public static String getStringDateLong(Date currentTime) {
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmm");
+        String dateString = formatter.format(currentTime);
+        return dateString;
+    }
 
     /**
      * 得到现在小时

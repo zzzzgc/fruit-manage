@@ -81,6 +81,14 @@ public abstract class BaseCheckInventoryDetail<M extends BaseCheckInventoryDetai
 		return getInt("inventory_num");
 	}
 
+	public void setCheckInventoryNum(java.lang.Integer checkInventoryNum) {
+		set("check_inventory_num", checkInventoryNum);
+	}
+
+	public java.lang.Integer getCheckInventoryNum() {
+		return getInt("check_inventory_num");
+	}
+
 	public void setInventoryTotalPrice(java.math.BigDecimal inventoryTotalPrice) {
 		set("inventory_total_price", inventoryTotalPrice);
 	}
@@ -111,6 +119,22 @@ public abstract class BaseCheckInventoryDetail<M extends BaseCheckInventoryDetai
 
 	public java.lang.String getInventoryRemark() {
 		return getStr("inventory_remark");
+	}
+
+	public void setCreateTime(java.util.Date createTime) {
+		set("create_time", createTime);
+	}
+
+	public java.util.Date getCreateTime() {
+		return get("create_time");
+	}
+
+	public void setUpdateTime(java.util.Date updateTime) {
+		set("update_time", updateTime);
+	}
+
+	public java.util.Date getUpdateTime() {
+		return get("update_time");
 	}
 
 }

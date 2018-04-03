@@ -6,6 +6,7 @@ import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Random;
 
 /**
  * @author partner
@@ -51,6 +52,23 @@ public class IdUtil {
      */
     public static String getOrderId (Date date,Integer business_user_id) {
         return DateTimeKit.formatDateToStyle("yyMMdd", date) + "-" + business_user_id;
+    }
+
+    /**
+     * 获取盘点单的编号
+     * @return
+     */
+    public static String getCheckInventoryId(Date date){
+        return "ci-"+DateAndStringFormat.getStringDateLong(date);
+    }
+
+    /**
+     * 获取盘点单详细的编号
+     * @param date
+     * @return
+     */
+    public static String getCheckInventoryDetailId(Date date,Integer psId) {
+        return "cid-" + DateAndStringFormat.getStringDateLong(date)+"-"+psId;
     }
 
     public static void main(String[] args) {

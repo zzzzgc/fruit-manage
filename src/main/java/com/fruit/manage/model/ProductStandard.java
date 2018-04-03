@@ -143,6 +143,16 @@ public class ProductStandard extends BaseProductStandard<ProductStandard> {
     }
 
     /**
+     * 根据规格编号获取商品编号
+     * @param psId 规格编号
+     * @return 商品编号
+     */
+    public Integer getProductIdByPSId(Integer psId) {
+        String sql = "SELECT product_id from b_product_standard ps where ps.id = ? ";
+        return Db.queryInt(sql,psId);
+    }
+
+    /**
      * 仓库（warehouse）的构造函数的封装
      * @param type
      * @param userId
@@ -150,34 +160,37 @@ public class ProductStandard extends BaseProductStandard<ProductStandard> {
      * @param changeNum
      * @return
      */
-    public WarehouseLog getWarehouseLog(UserTypeConstant type,Integer userId,Integer productStandardId,Integer changeNum,String changeType){
+    public WarehouseLog getWarehouseLog(UserTypeConstant type,Integer userId,Integer productStandardId,Integer changeNum,String changeType,String productStandardName,Integer productId,String productName){
         WarehouseLog warehouseLog=new WarehouseLog();
         warehouseLog.setUserId(userId);
         warehouseLog.setUserType(type.getValue());
         warehouseLog.setProductStandardId(productStandardId);
         warehouseLog.setChangeNum(changeNum);
         warehouseLog.setChangeType(changeType);
+        warehouseLog.setProductStandardName(productStandardName);
+        warehouseLog.setProductId(productId);
+        warehouseLog.setProductName(productName);
         warehouseLog.setCreateTime(new Date());
         return warehouseLog;
     }
 
 
     @Before(Tx.class)
-    public boolean delete(UserTypeConstant type,Integer userId,String changeType) {
+    public boolean delete(UserTypeConstant type,Integer userId,String changeType,String productStandardName,Integer productId,String productName) {
         super.delete();
-        return getWarehouseLog(type,userId,super.getId(),~super.getStock()+1,changeType).save();
+        return getWarehouseLog(type,userId,super.getId(),~super.getStock()+1,changeType,productStandardName,productId,productName).save();
     }
 
     @Before(Tx.class)
-    public boolean save(UserTypeConstant type,Integer userId,String changeType) {
+    public boolean save(UserTypeConstant type,Integer userId,String changeType,String productStandardName,Integer productId,String productName) {
         super.save();
-        return getWarehouseLog(type,userId,super.getId(),super.getStock(),changeType).save();
+        return getWarehouseLog(type,userId,super.getId(),super.getStock(),changeType,productStandardName,productId,productName).save();
     }
 
     @Before(Tx.class)
-    public boolean update(UserTypeConstant type,Integer userId,Integer afterNum,Integer beforeNum,String changeType) {
+    public boolean update(UserTypeConstant type,Integer userId,Integer afterNum,Integer beforeNum,String changeType,String productStandardName,Integer productId,String productName) {
         super.update();
-        return getWarehouseLog(type,userId,super.getId(),afterNum-beforeNum,changeType).save();
+        return getWarehouseLog(type,userId,super.getId(),afterNum-beforeNum,changeType,productStandardName,productId,productName).save();
     }
 
     // 修改完状态，刷新商品列表

@@ -5,6 +5,7 @@ import com.jfinal.kit.StrKit;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Page;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -122,5 +123,21 @@ public class PutWarehouseDetail extends BasePutWarehouseDetail<PutWarehouseDetai
 				"group by pwd.product_standard_id and pwd.put_id = ? " +
 				") temp";
 		return Db.queryInt(sql, putId);
+	}
+
+	/**
+	 * 根据规格编号和时间获取入库单价
+	 * @param psId
+	 * @param startTime
+	 * @param endTime
+	 * @return
+	 */
+	public BigDecimal getAveragePriceByPsIdAndTime(Integer psId, String startTime, String endTime) {
+		String sql = "SELECT pwd.put_average_price " +
+				"from b_put_warehouse_detail pwd " +
+				"WHERE 1=1 " +
+				"and pwd.product_standard_id = ? " +
+				"and pwd.create_time BETWEEN ? and ? ";
+		return Db.queryBigDecimal(sql, psId, startTime, endTime);
 	}
 }

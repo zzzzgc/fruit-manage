@@ -16,13 +16,13 @@ public class WarehouseService {
      * @param afterNum 修改后的库存
      * @return 返回0（成功获取到数据返回） 、 1（获取到null数据）、 -1（出异常了）
      */
-    public Integer update(Integer productStandardId,UserTypeConstant type,Integer userId,Integer afterNum,String changeType){
+    public Integer update(Integer productStandardId,UserTypeConstant type,Integer userId,Integer afterNum,String changeType,String productStandardName,Integer productId,String productName){
         try {
             // 根据商品规格编号获取规格信息
             ProductStandard productStandard = ProductStandard.dao.getProductStandardById(productStandardId);
             // 如果存在该商品则修改
             if(productStandard!=null){
-                productStandard.update(type,userId,afterNum,productStandard.getStock(),changeType);
+                productStandard.update(type,userId,afterNum,productStandard.getStock(),changeType,productStandardName,productId,productName);
                 return 0;
             }
             return 1;

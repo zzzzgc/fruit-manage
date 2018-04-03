@@ -6,6 +6,7 @@ import com.fruit.manage.util.excelRd.ExcelRdRow;
 import com.fruit.manage.util.excelRd.ExcelRdTypeEnum;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -59,8 +60,18 @@ public class ExcelRdTest {
 
 
 	public static void main(String[] args) throws IOException, ExcelRdException {
-		test01();
+		testBigDecimalDivide();
+//		test01();
 		//		excelRd();
+	}
+
+	public static void testBigDecimalDivide() {
+		BigDecimal num1 = new BigDecimal("1");
+		//坑点：Exception in thread "main" java.lang.ArithmeticException: Non-terminating decima    l expansion; no exact representable decimal result.
+//        System.out.println("坑点写法1："+num1.divide(new BigDecimal("3")));
+//        System.out.println("坑点写法2："+num1.divide(new BigDecimal("3")).setScale(2, BigDecimal.ROUND_DOWN));
+
+		System.out.println("正确写法："+num1.divide(new BigDecimal("3"), 2, BigDecimal.ROUND_HALF_DOWN));
 	}
 
 	public static void test01(){

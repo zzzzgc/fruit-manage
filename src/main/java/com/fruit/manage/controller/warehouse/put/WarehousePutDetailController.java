@@ -125,8 +125,11 @@ public class WarehousePutDetailController extends BaseController {
                     // 弃用
                     putAllTotalCost = putAllTotalCost.add(procurementTotalPrice.add(boothCost));
                     //入库单价 = （入库总价+摊位费）/ 入库数量
-                    BigDecimal averagePrice = (procurementTotalPrice.add(boothCost)).divide(putNum);
+                    BigDecimal averagePrice = (procurementTotalPrice.add(boothCost)).divide(putNum,2,BigDecimal.ROUND_HALF_DOWN);
 
+                    // 根据商品规格编号获取商品编号
+                    Integer productId = ProductStandard.dao.getProductIdByPSId((Integer) list.get(2));
+                    putWarehouseDetail.setProductId(productId);
                     //给入库详细信息赋值
                     putWarehouseDetail.setProductName(list.get(0) + "");
                     putWarehouseDetail.setProductStandardName(list.get(1) + "");
@@ -143,7 +146,7 @@ public class WarehousePutDetailController extends BaseController {
                     putWarehouseDetail.save();
 
                     // 根据商品规格编号修改商品规格的库存量
-                    updateProductStandardStore(putWarehouseDetail.getProductStandardId(),putWarehouseDetail.getPutNum());
+                    updateProductStandardStore(putWarehouseDetail.getProductStandardId(),putWarehouseDetail.getPutNum(),putWarehouseDetail.getProductStandardName(),putWarehouseDetail.getProductId(),putWarehouseDetail.getProductName());
 
 
                     PutWarehouse putWarehouse = PutWarehouse.dao.getPutWarehouseById(putId);
@@ -168,7 +171,7 @@ public class WarehousePutDetailController extends BaseController {
                     putWarehouseDetail.setPutNum(putNumUpdate.intValue());
                     putWarehouseDetail.setProcurementTotalPrice(procurementTotalPrice);
 
-                    putWarehouseDetail.setPutAveragePrice((procurementTotalPrice.add(boothCost)).divide(putNumUpdate));
+                    putWarehouseDetail.setPutAveragePrice((procurementTotalPrice.add(boothCost)).divide(putNumUpdate,2,BigDecimal.ROUND_HALF_DOWN));
                     putWarehouseDetail.setUpdateTime(new Date());
                     putWarehouseDetail.setProcurementId((Integer) list.get(8));
                     putWarehouseDetail.setProductWeight((Double) list.get(3));
@@ -176,7 +179,7 @@ public class WarehousePutDetailController extends BaseController {
                     putWarehouseDetail.update();
 
                     // 根据商品规格编号修改商品规格的库存量
-                    updateProductStandardStore(putWarehouseDetail.getProductStandardId(), differPutNum.intValue());
+                    updateProductStandardStore(putWarehouseDetail.getProductStandardId(), differPutNum.intValue(),putWarehouseDetail.getProductStandardName(),putWarehouseDetail.getProductId(),putWarehouseDetail.getProductName());
 
                     PutWarehouse putWarehouse = PutWarehouse.dao.getPutWarehouseById(putWarehouseDetail.getPutId());
                     putWarehouse.setPutNum(putWarehouse.getPutNum() - differPutNum);
@@ -221,7 +224,7 @@ public class WarehousePutDetailController extends BaseController {
             putWarehouseDetail2.setPutNum(putWarehouseDetail.getPutNum());
             putWarehouseDetail2.setProcurementTotalPrice(procurementTotalPrice);
 
-            putWarehouseDetail2.setPutAveragePrice((procurementTotalPrice.add(boothCost)).divide(putNumUpdate));
+            putWarehouseDetail2.setPutAveragePrice((procurementTotalPrice.add(boothCost)).divide(putNumUpdate,2,BigDecimal.ROUND_HALF_DOWN));
             putWarehouseDetail2.setUpdateTime(new Date());
             putWarehouseDetail2.setProcurementId(putWarehouseDetail.getProcurementId());
             putWarehouseDetail2.setProductWeight(putWarehouseDetail.getProductWeight());
@@ -232,9 +235,10 @@ public class WarehousePutDetailController extends BaseController {
             putWarehouseDetail2.update();
 
             // 根据商品规格编号修改商品规格的库存量
-            updateProductStandardStore(putWarehouseDetail2.getProductStandardId(), differPutNum.intValue());
+            updateProductStandardStore(putWarehouseDetail2.getProductStandardId(), differPutNum.intValue(),putWarehouseDetail2.getProductStandardName(),putWarehouseDetail2.getProductId(),putWarehouseDetail2.getProductName());
 
             PutWarehouse putWarehouse = PutWarehouse.dao.getPutWarehouseById(putWarehouseDetail.getPutId());
+            // TODO 减号（-）是否要改为（+）
             putWarehouse.setPutNum(putWarehouse.getPutNum() - differPutNum);
             putWarehouse.setUpdateTime(new Date());
             // 计算修改了之后总价的价格修改
@@ -245,6 +249,9 @@ public class WarehousePutDetailController extends BaseController {
             Date currentTime = new Date();
             // 执行添加操作
             Integer putNum = putWarehouseDetail.getPutNum();
+            // 根据商品规格编号获取商品编号
+            Integer productId = ProductStandard.dao.getProductIdByPSId(putWarehouseDetail.getProductStandardId());
+            putWarehouseDetail.setProductId(productId);
             BigDecimal procurementPrice = putWarehouseDetail.getProcurementPrice();
             BigDecimal procurementTotalPrice = procurementPrice.multiply(new BigDecimal(putNum));
             Product product=Product.dao.getById(putWarehouseDetail.getProductId());
@@ -255,12 +262,12 @@ public class WarehousePutDetailController extends BaseController {
             putWarehouseDetail.setProductName(product.getName());
             putWarehouseDetail.setProcurementTotalPrice(procurementTotalPrice);
             // 计算入库单价
-            putWarehouseDetail.setPutAveragePrice((procurementTotalPrice.add(putWarehouseDetail.getBoothCost())).divide(new BigDecimal(putNum)));
+            putWarehouseDetail.setPutAveragePrice((procurementTotalPrice.add(putWarehouseDetail.getBoothCost())).divide(new BigDecimal(putNum),2,BigDecimal.ROUND_HALF_DOWN));
             putWarehouseDetail.setCreateTime(new Date());
             putWarehouseDetail.save();
 
             // 根据商品规格编号修改商品规格的库存量
-            updateProductStandardStore(putWarehouseDetail.getProductStandardId(), putNum);
+            updateProductStandardStore(putWarehouseDetail.getProductStandardId(), putNum,putWarehouseDetail.getProductStandardName(),putWarehouseDetail.getProductId(),putWarehouseDetail.getProductName());
 
             PutWarehouse putWarehouse = PutWarehouse.dao.getPutWarehouseById(putWarehouseDetail.getPutId());
             putWarehouse.setPutTime(currentTime);
@@ -281,10 +288,10 @@ public class WarehousePutDetailController extends BaseController {
      * @param putNum
      * @return
      */
-    public boolean updateProductStandardStore(Integer psId,Integer putNum){
+    public boolean updateProductStandardStore(Integer psId,Integer putNum,String productStandardName,Integer productId,String productName){
         ProductStandard productStandard = ProductStandard.dao.getProductStandardById(psId);
         productStandard.setStock(productStandard.getStock() + putNum);
         Integer uid = getSessionAttr(Constant.SESSION_UID);
-        return productStandard.update(UserTypeConstant.A_USER,uid,productStandard.getStock()+putNum,productStandard.getStock(),"0");
+        return productStandard.update(UserTypeConstant.A_USER,uid,productStandard.getStock()+putNum,productStandard.getStock(),"0",productStandardName,productId,productName);
     }
 }
