@@ -73,4 +73,28 @@ public abstract class BaseWarehouseLog<M extends BaseWarehouseLog<M>> extends Mo
 		return get("create_time");
 	}
 
+	public void setProductId(java.lang.Integer productId) {
+		set("product_id", productId);
+	}
+
+	public java.lang.Integer getProductId() {
+		return getInt("product_id");
+	}
+
+	public void setProductName(java.lang.String productName) {
+		set("product_name", productName);
+	}
+
+	public java.lang.String getProductName() {
+		return getStr("product_name");
+	}
+
+	public void setProductStandardName(java.lang.String productStandardName) {
+		set("product_standard_name", productStandardName);
+	}
+
+	public java.lang.String getProductStandardName() {
+		return getStr("product_standard_name");
+	}
+
 }
