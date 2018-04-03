@@ -1,8 +1,10 @@
 package com.fruit.manage.controller.warehouse.inventory;
 
 import com.fruit.manage.base.BaseController;
+import com.fruit.manage.constant.UserTypeConstant;
 import com.fruit.manage.controller.common.CommonController;
 import com.fruit.manage.model.*;
+import com.fruit.manage.util.Constant;
 import com.fruit.manage.util.IdUtil;
 import com.fruit.manage.util.excel.ExcelRow;
 import com.fruit.manage.util.excelRd.ExcelRd;
@@ -78,6 +80,34 @@ public class CheckInventoryDetailController extends BaseController {
             } else if (count > 2) {
                 CheckInventoryDetail checkInventoryDetail =CheckInventoryDetail.dao.getCheckInventoryDetail((Integer)list.get(2),checkInventoryId,startTime,endTime);
                 if (checkInventoryDetail != null) {
+                    // 根据ID获取盘点单未被修改之前的盘点单详细数据
+                    CheckInventoryDetail checkInventoryDetail2 = CheckInventoryDetail.dao.getCheckInventoryDetailById(checkInventoryDetail.getId());
+                    // 修改之后的数量
+                    Integer inventoryNumUpdate=checkInventoryDetail.getInventoryNum();
+                    // 初始的库存数量
+                    Integer inventoryNumPrimeval =checkInventoryDetail2.getInventoryNum();
+                    Integer inventoryNumDiffer=inventoryNumUpdate-inventoryNumPrimeval;
+
+                    //被修改后的期末库存总额=未被修改期末库存总额 - (库存数量更改后的差值*库存单价)
+                    BigDecimal inventoryTotalPriceUpdate=checkInventoryDetail2.getInventoryTotalPrice().add((new BigDecimal(inventoryNumDiffer).multiply(checkInventoryDetail2.getInventoryPrice())));
+                    // 被修改后的库存总额差值
+                    BigDecimal inventoryTotalPriceDiffer = inventoryTotalPriceUpdate.subtract(checkInventoryDetail2.getInventoryTotalPrice());
+                    // 根据存库单价*库存数量=期末库存总额 ，库存数量减少，期末库存总额也随之减少，则单价不变，所以不需要修改
+                    checkInventoryDetail2.setInventoryTotalPrice(inventoryTotalPriceUpdate);
+                    checkInventoryDetail2.setInventoryNum(inventoryNumUpdate);
+                    checkInventoryDetail2.setUpdateTime(currentTime);
+                    checkInventoryDetail2.setInventoryRemark(checkInventoryDetail.getInventoryRemark());
+                    checkInventoryDetail2.setUserName(checkInventoryDetail.getUserName());
+                    checkInventoryDetail2.update();
+                    // 修改商品规格库存
+                    updateProductStandardStore(checkInventoryDetail2.getProductStandardId(),inventoryNumDiffer,checkInventoryDetail2.getProductStandardName(),checkInventoryDetail2.getProductId(),checkInventoryDetail2.getProductName());
+                    // 根据盘点编号获取盘点信息
+                    CheckInventory checkInventory = CheckInventory.dao.getCheckInventoryById(checkInventoryDetail.getCheckInventoryId());
+                    checkInventory.setUpdateTime(currentTime);
+                    // 修改盘点单的商品数量
+                    checkInventory.setProductCount(checkInventory.getProductCount()+inventoryNumDiffer);
+                    checkInventory.setProductTotalPrice((new BigDecimal(checkInventory.getProductTotalPrice()).add(inventoryTotalPriceDiffer)).doubleValue());
+                    checkInventory.update();
                 }else {
                     checkInventoryDetail=new CheckInventoryDetail();
                     checkInventoryDetail.setId(IdUtil.getCheckInventoryDetailId(currentTime,(Integer)list.get(2)));
@@ -130,7 +160,7 @@ public class CheckInventoryDetailController extends BaseController {
                     CheckInventory checkInventory = CheckInventory.dao.getCheckInventoryById(checkInventoryId);
                     checkInventory.setUpdateTime(currentTime);
                     checkInventory.setProductTotalPrice((new BigDecimal(checkInventory.getProductTotalPrice()).add(inventoryTotalPrice)).doubleValue());
-                    checkInventory.setProductCount(checkInventory.getProductCount()+(Integer) list.get(7));
+                    checkInventory.setProductCount(checkInventory.getProductCount()+productStandard.getStock());
                     checkInventory.setCheckInventoryTime(currentTime);
                     checkInventory.update();
                 }
@@ -193,7 +223,9 @@ public class CheckInventoryDetailController extends BaseController {
             Integer inventoryNumDiffer=inventoryNumUpdate-inventoryNumPrimeval;
 
             //被修改后的期末库存总额=未被修改期末库存总额 - (库存数量更改后的差值*库存单价)
-            BigDecimal inventoryTotalPriceUpdate=checkInventoryDetail2.getInventoryTotalPrice().subtract((new BigDecimal(inventoryNumDiffer).multiply(checkInventoryDetail2.getInventoryPrice())));
+            BigDecimal inventoryTotalPriceUpdate=checkInventoryDetail2.getInventoryTotalPrice().add((new BigDecimal(inventoryNumDiffer).multiply(checkInventoryDetail2.getInventoryPrice())));
+            // 被修改后的库存总额差值
+            BigDecimal inventoryTotalPriceDiffer = inventoryTotalPriceUpdate.subtract(checkInventoryDetail2.getInventoryTotalPrice());
             // 根据存库单价*库存数量=期末库存总额 ，库存数量减少，期末库存总额也随之减少，则单价不变，所以不需要修改
             checkInventoryDetail2.setInventoryTotalPrice(inventoryTotalPriceUpdate);
             checkInventoryDetail2.setInventoryNum(inventoryNumUpdate);
@@ -201,11 +233,28 @@ public class CheckInventoryDetailController extends BaseController {
             checkInventoryDetail2.setInventoryRemark(checkInventoryDetail.getInventoryRemark());
             checkInventoryDetail2.setUserName(checkInventoryDetail.getUserName());
             checkInventoryDetail2.update();
-
+            // 修改商品规格库存
+            updateProductStandardStore(checkInventoryDetail2.getProductStandardId(),inventoryNumDiffer,checkInventoryDetail2.getProductStandardName(),checkInventoryDetail2.getProductId(),checkInventoryDetail2.getProductName());
             // 根据盘点编号获取盘点信息
             CheckInventory checkInventory = CheckInventory.dao.getCheckInventoryById(checkInventoryDetail.getCheckInventoryId());
             checkInventory.setUpdateTime(currentTime);
-//            checkInventory.setProductCount();
+            // 修改盘点单的商品数量
+            checkInventory.setProductCount(checkInventory.getProductCount()+inventoryNumDiffer);
+            checkInventory.setProductTotalPrice((new BigDecimal(checkInventory.getProductTotalPrice()).add(inventoryTotalPriceDiffer)).doubleValue());
+            checkInventory.update();
         }
+    }
+
+    /**
+     * 根据商品规格编号（product_standard_id）修改商品规格的库存
+     * @param psId
+     * @param putNum
+     * @return
+     */
+    public boolean updateProductStandardStore(Integer psId,Integer putNum,String productStandardName,Integer productId,String productName){
+        ProductStandard productStandard = ProductStandard.dao.getProductStandardById(psId);
+        productStandard.setStock(productStandard.getStock() + putNum);
+        Integer uid = getSessionAttr(Constant.SESSION_UID);
+        return productStandard.update(UserTypeConstant.A_USER,uid,productStandard.getStock()+putNum,productStandard.getStock(),"0",productStandardName,productId,productName);
     }
 }
