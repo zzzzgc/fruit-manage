@@ -12,7 +12,10 @@ import com.jfinal.kit.JsonKit;
 public class ProductStandardController extends BaseController {
 	private static Logger log = Logger.getLogger(ProductController.class);
 
-	public void getData(Integer productId, String prop, String order) {
+	public void getData() {
+		String prop = getPara("prop");
+		Integer productId = getParaToInt("productId");
+		String order = getPara("order");
 		if(productId == null) {
 			renderJson(new ArrayList<>());
 			return;

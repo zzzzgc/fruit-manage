@@ -27,8 +27,9 @@ public class ProductController extends BaseController {
 	}
 
 	@RequiresPermissions("product:edit")
-	public void setStatus(int status) {
+	public void setStatus() {
 		Integer[] ids = getParaValuesToInt("ids");
+		Integer status = getParaToInt("status");
 
 		// TODO 获取当前登录用户
 		log.info("修改商品("+ StringUtils.join(ids, ",") +")状态为:" + status);
