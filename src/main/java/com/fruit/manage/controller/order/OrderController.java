@@ -520,4 +520,12 @@ public class OrderController extends BaseController {
         } catch (Exception e) {
         }
     }
+
+    /**
+     * 根据客户id获取客户的所有未支付的订单
+     */
+    public void getCustomerOrderInfo () {
+        Integer customerId = getParaToInt("customerId");
+        renderJson(Order.dao.getCustomerOrderInfo(customerId));
+    }
 }

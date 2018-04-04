@@ -78,7 +78,6 @@ public class WarehouseOutDetailContrller extends BaseController {
             // 添加(可能已存在该规格,直接覆盖[除旧迎新])
 
             OutWarehouseDetail outWarehouseDetail = owdMap.get(imporOwd.getProductStandardId());
-            Integer changeNum = imporOwd.getOutNum();
 
             if (outWarehouseDetail != null) {
                 // 存在相同规格的出库
