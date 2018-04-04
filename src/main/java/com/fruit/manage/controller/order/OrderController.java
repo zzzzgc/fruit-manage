@@ -422,28 +422,34 @@ public class OrderController extends BaseController {
         String orderId = getPara("orderId");
         Integer userId = getParaToInt("businessUserId");
         LogisticsInfo logisticsInfo = LogisticsInfo.dao.getLogisticeInfoByOrderID(orderId);
-        BigDecimal orderPayRealityNeedMoney = OrderDetail.dao.getOrderPayRealityNeedMoneyByOrderID(orderId);
-        if(logisticsInfo==null)
-            logisticsInfo=new LogisticsInfo();
-        if (logisticsInfo.getSendGoodsTotalCost() == null) {
-            logisticsInfo.setSendGoodsTotalCost(new BigDecimal(0));
+        if(logisticsInfo!=null){
+            BigDecimal orderPayRealityNeedMoney = OrderDetail.dao.getOrderPayRealityNeedMoneyByOrderID(orderId);
+            if(logisticsInfo==null)
+                logisticsInfo=new LogisticsInfo();
+            if (logisticsInfo.getSendGoodsTotalCost() == null) {
+                logisticsInfo.setSendGoodsTotalCost(new BigDecimal(0));
+            }
+            BigDecimal allTotalCost = orderPayRealityNeedMoney.add(logisticsInfo.getSendGoodsTotalCost());
+            // 根据用户编号获取商户商铺信息
+            BusinessInfo businessInfo = BusinessInfo.dao.getBusinessInfoByUId(userId);
+            // 根据用户编号获取获取的手机号码和用户名称f
+            BusinessUser businessUser = BusinessUser.dao.getBusinessUserByID(userId);
+            // 根据订单编号获取支付的订单记录的总金额
+            Double reallyPayMoney = PayOrderInfo.dao.getReallyPayMoney(orderId);
+            // 根据订单编号获取订单支付的记录
+            List<PayOrderInfo> payOrderInfos = PayOrderInfo.dao.getPayOrderInfoByOrderId(orderId);
+            List list = new ArrayList<>();
+            list.add(allTotalCost);
+            list.add(businessInfo);
+            list.add(businessUser);
+            list.add(reallyPayMoney);
+            list.add(payOrderInfos);
+            renderJson(list);
+        }else {
+            List<String> list = new ArrayList<>();
+            list.add("error");
+            renderJson(list);
         }
-        BigDecimal allTotalCost = orderPayRealityNeedMoney.add(logisticsInfo.getSendGoodsTotalCost());
-        // 根据用户编号获取商户商铺信息
-        BusinessInfo businessInfo = BusinessInfo.dao.getBusinessInfoByUId(userId);
-        // 根据用户编号获取获取的手机号码和用户名称f
-        BusinessUser businessUser = BusinessUser.dao.getBusinessUserByID(userId);
-        // 根据订单编号获取支付的订单记录的总金额
-        Double reallyPayMoney = PayOrderInfo.dao.getReallyPayMoney(orderId);
-        // 根据订单编号获取订单支付的记录
-        List<PayOrderInfo> payOrderInfos = PayOrderInfo.dao.getPayOrderInfoByOrderId(orderId);
-        List list = new ArrayList<>();
-        list.add(allTotalCost);
-        list.add(businessInfo);
-        list.add(businessUser);
-        list.add(reallyPayMoney);
-        list.add(payOrderInfos);
-        renderJson(list);
     }
 
     /**
@@ -469,6 +475,37 @@ public class OrderController extends BaseController {
             renderNull();
         } catch (Exception e) {
             renderErrorText("确认支付失败!");
+        }
+    }
+
+    /**
+     * 重写并
+     * 通过订单ID修改订单状态
+     */
+    public void updatePayStatusByOrderId(){
+        try {
+            String orderId = getPara("orderId");
+            LogisticsInfo logisticsInfo = LogisticsInfo.dao.getLogisticeInfoByOrderID(orderId);
+            BigDecimal payRealityNeedMoney = OrderDetail.dao.getOrderPayRealityNeedMoneyByOrderID(orderId);
+            if(logisticsInfo==null)
+                logisticsInfo=new LogisticsInfo();
+            if (logisticsInfo.getSendGoodsTotalCost() == null) {
+                logisticsInfo.setSendGoodsTotalCost(new BigDecimal(0));
+            }
+            BigDecimal allTotalCost = payRealityNeedMoney.add(logisticsInfo.getSendGoodsTotalCost());
+            // 根据订单编号获取支付的订单记录的总金额
+            Double reallyPayMoney = PayOrderInfo.dao.getReallyPayMoney(orderId);
+            if (allTotalCost.doubleValue() == reallyPayMoney) {
+                //根据订单编号修改订单状态
+                Order.dao.updateOrderPayStatus(5,allTotalCost, orderId);
+                //如果是送达并确认付款，那就修改订单状态为已完成订单
+                Order.dao.updateOrderStatus(orderId);
+                renderNull();
+            }else {
+                renderErrorText("支付事变!");
+            }
+        } catch (Exception e) {
+            renderErrorText("支付失败!");
         }
     }
 

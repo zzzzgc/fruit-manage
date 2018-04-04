@@ -111,7 +111,7 @@ public class BusinessUser extends BaseBusinessUser<BusinessUser> {
      * @return
      */
     public BusinessUser getBusinessUserByID(Integer businessUserId){
-        String sql="select bu.id,bu.name,bu.phone from b_business_user bu  where bu.id = ?";
+        String sql="select bu.id,bu.name,bu.phone,bu.a_user_sales_id from b_business_user bu  where bu.id = ?";
         return findFirst(sql,businessUserId);
     }
 }

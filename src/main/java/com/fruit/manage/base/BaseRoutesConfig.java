@@ -4,6 +4,7 @@ import com.fruit.manage.controller.BannerController;
 import com.fruit.manage.controller.common.CommonController;
 import com.fruit.manage.controller.IndexController;
 import com.fruit.manage.controller.common.ExcelController;
+import com.fruit.manage.controller.order.PayOrderController;
 import com.fruit.manage.controller.procurement.PlanController;
 import com.fruit.manage.controller.ProductController;
 import com.fruit.manage.controller.ProductMarketController;
@@ -59,6 +60,7 @@ public class BaseRoutesConfig extends Routes {
 		add("/manage/warehouse/out/detail",WarehouseOutDetailContrller.class);
 		add("/manage/warehouse/inventory", CheckInventoryController.class);
 		add("/manage/warehouse/inventory/detail", CheckInventoryDetailController.class);
+		add("/manage/payOrder", PayOrderController.class);
 	}
 
 }
