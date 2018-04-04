@@ -12,7 +12,8 @@ import com.jfinal.kit.JsonKit;
 public class ProductMarketController extends BaseController {
 	private static Logger log = Logger.getLogger(ProductMarketController.class);
 
-	public void info(Integer productId) {
+	public void info() {
+		Integer productId = getParaToInt("productId");
 		if(productId == null) {
 			renderErrorText("商品ID不能为null");
 			return;
