@@ -420,6 +420,7 @@ public class OrderController extends BaseController {
      */
     public void getLogisticsCost() {
         String orderId = getPara("orderId");
+        Integer userId = getParaToInt("businessUserId");
         LogisticsInfo logisticsInfo = LogisticsInfo.dao.getLogisticeInfoByOrderID(orderId);
         BigDecimal orderPayRealityNeedMoney = OrderDetail.dao.getOrderPayRealityNeedMoneyByOrderID(orderId);
         if(logisticsInfo==null)
@@ -428,8 +429,20 @@ public class OrderController extends BaseController {
             logisticsInfo.setSendGoodsTotalCost(new BigDecimal(0));
         }
         BigDecimal allTotalCost = orderPayRealityNeedMoney.add(logisticsInfo.getSendGoodsTotalCost());
+        // 根据用户编号获取商户商铺信息
+        BusinessInfo businessInfo = BusinessInfo.dao.getBusinessInfoByUId(userId);
+        // 根据用户编号获取获取的手机号码和用户名称f
+        BusinessUser businessUser = BusinessUser.dao.getBusinessUserByID(userId);
+        // 根据订单编号获取支付的订单记录的总金额
+        Double reallyPayMoney = PayOrderInfo.dao.getReallyPayMoney(orderId);
+        // 根据订单编号获取订单支付的记录
+        List<PayOrderInfo> payOrderInfos = PayOrderInfo.dao.getPayOrderInfoByOrderId(orderId);
         List list = new ArrayList<>();
         list.add(allTotalCost);
+        list.add(businessInfo);
+        list.add(businessUser);
+        list.add(reallyPayMoney);
+        list.add(payOrderInfos);
         renderJson(list);
     }
 

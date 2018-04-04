@@ -86,4 +86,14 @@ public class BusinessInfo extends BaseBusinessInfo<BusinessInfo> {
                 "\twhere bi.id = ? ";
 	    return findFirst(sql,businessInfoID);
     }
+
+    /**
+     * 根据用户编号获取商会信息
+     * @param userId
+     * @return
+     */
+    public BusinessInfo getBusinessInfoByUId(Integer userId) {
+        String sql = "SELECT * from b_business_info where u_id = ?";
+        return findFirst(sql, userId);
+    }
 }

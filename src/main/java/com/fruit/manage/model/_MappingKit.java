@@ -41,6 +41,7 @@ public class _MappingKit {
 		arp.addMapping("b_order_log", "id", OrderLog.class);
 		arp.addMapping("b_out_warehouse", "id", OutWarehouse.class);
 		arp.addMapping("b_out_warehouse_detail", "id", OutWarehouseDetail.class);
+		arp.addMapping("b_pay_order_info", "id", PayOrderInfo.class);
 		arp.addMapping("b_procurement_plan", "id", ProcurementPlan.class);
 		arp.addMapping("b_procurement_plan_detail", "id", ProcurementPlanDetail.class);
 		arp.addMapping("b_procurement_quota", "id", ProcurementQuota.class);
