@@ -34,8 +34,10 @@ public class JFConfig extends JFinalConfig {
         me.setDevMode(PropKit.getBoolean("devMode", false));
         //没有身份认证
         me.setErrorView(401, "/login");
-        me.setBaseUploadPath(PropKit.get("file.baseUploadPath"));
-        me.setBaseDownloadPath(PropKit.get("file.baseDownloadPath"));
+        // 上传下载路径使用默认值  upload/file
+//        me.setBaseUploadPath(PropKit.get("file.baseUploadPath"));
+//        me.setBaseDownloadPath(PropKit.get("file.baseDownloadPath"));
+
 //		me.setFreeMarkerTemplateUpdateDelay(0);
         //没有权限
 //		me.setErrorView(403, "/login");

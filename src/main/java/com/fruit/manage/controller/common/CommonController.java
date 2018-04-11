@@ -23,7 +23,7 @@ public class CommonController extends BaseController {
      * 文件上传的路径,可以根据这个路径和文件名获取文件
      * 不明白为什么设置的上传下载地址必须加上file
      */
-    public static final String FILE_PATH = PathKit.getWebRootPath() + File.separator + PropKit.get("file.baseUploadPath") + File.separator + "file";
+    public static final String FILE_PATH = PathKit.getWebRootPath() + File.separator + PropKit.get("file.baseUploadPath");
 
     /**
      * 上传文件公共方法
