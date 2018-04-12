@@ -73,60 +73,61 @@ public class ProcurementPlan extends BaseProcurementPlan<ProcurementPlan> {
     public List<ProcurementPlan> getExportDataByPPlanID(String[] createTime) {
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT " +
-                  "p.`name` AS productName, " +
-                  "pq.procurement_id, " +
-                  "pq.procurement_name, " +
-                  "ps.`name` AS productStandardName, " +
-                  "ps.id AS productStandardID, " +
-                  "ps.fruit_weight AS fruitWeight, " +
-                  "ps.sell_price AS sellPrice, " +
-                  "( " +
-                    "SELECT " +
-                      "sum(od2.num) " +
-                    "FROM " +
-                      "b_order_detail od2, " +
-                      "b_order o " +
-                    "WHERE " +
-                      "od2.order_id = o.order_id " +
-                    "AND od2.product_standard_id = ol.product_standard_id " +
-                    "GROUP BY " +
-                      "od2.product_standard_id " +
-                  ") AS purchaseNum, " +
-                  "ps.stock AS inventoryNum, " +
-                  "(SELECT 0) AS procurementNum, " +
-                  "(select 0) as procurementPrice, " +
-                  "(select '') as procurementRemark, " +
-                  "p.id as productId, " +
-                  "( " +
-                    "SELECT " +
-                      "SUM(ol2.change_num) " +
-                    "from " +
-                      "b_order_log ol2 " +
-                    "where " +
-                      "ol2.product_standard_id = ol.product_standard_id " +
-                  ") as productStandardNum, " +
-                  "(SELECT 0) as procurementNeedPrice, " +
-                  "(select 0) as procurementTotalPrice, " +
-                  "(select '') as orderRemark " +
+                "p.`name` AS productName, " +
+                "pq.procurement_id, " +
+                "pq.procurement_name, " +
+                "ps.`name` AS productStandardName, " +
+                "ps.id AS productStandardID, " +
+                "ps.fruit_weight AS fruitWeight, " +
+                "ps.sell_price AS sellPrice, " +
+                "( " +
+                "SELECT " +
+                "sum(od2.num) " +
+                "FROM " +
+                "b_order_detail od2, " +
+                "b_order o " +
+                "WHERE " +
+                "od2.order_id = o.order_id " +
+                "AND od2.product_standard_id = ol.product_standard_id " +
+                "GROUP BY " +
+                "od2.product_standard_id " +
+                ") AS purchaseNum, " +
+                "ps.stock AS inventoryNum, " +
+                "(SELECT 0) AS procurementNum, " +
+                "(select 0) as procurementPrice, " +
+                "(select '') as procurementRemark, " +
+                "p.id as productId, " +
+                "( " +
+                "SELECT " +
+                "SUM(ol2.change_num) " +
                 "from " +
-                  "b_order_log ol, " +
-                  "b_product p, " +
-                  "b_product_standard ps, " +
-                  "b_procurement_quota pq " +
+                "b_order_log ol2 " +
                 "where " +
-                  "1 = 1 " +
+                "ol2.product_standard_id = ol.product_standard_id " +
+                ") as productStandardNum, " +
+                "(SELECT 0) as procurementNeedPrice, " +
+                "(select 0) as procurementTotalPrice, " +
+                "(select '') as orderRemark " +
+                "from " +
+                "b_order_log ol, " +
+                "b_product p, " +
+                "b_product_standard ps, " +
+                "b_procurement_quota pq " +
+                "where " +
+                "1 = 1 " +
                 "and pq.product_standard_id = ol.product_standard_id " +
                 "and ol.product_id = p.id " +
                 "and ol.product_standard_id = ps.id " +
+                "and ol.is_statistical = 0 "+
                 "and ol.create_time BETWEEN ? " +
                 "and ? " +
                 "GROUP BY " +
-                  "ol.product_standard_id " +
+                "ol.product_standard_id " +
                 "HAVING " +
-                  "purchaseNum > 0 " +
+                "purchaseNum > 0 " +
                 "order by " +
-                  "purchaseNum desc, " +
-                  "ps.sell_price desc");
+                "purchaseNum desc, " +
+                "ps.sell_price desc");
 //		sql.append("select p.`name` as productName, ");
 //		sql.append("pq.procurement_id, ");
 //		sql.append("pq.procurement_name, ");
@@ -180,6 +181,7 @@ public class ProcurementPlan extends BaseProcurementPlan<ProcurementPlan> {
         sql.append("(count(DISTINCT ol.order_id)) as order_total ");
         sql.append("from b_order_log ol ");
         sql.append("where 1=1 ");
+        sql.append("and ol.is_statistical = 0 ");
         if (org.apache.commons.lang3.ArrayUtils.isNotEmpty(createTime) && createTime.length == 2) {
             sql.append("and ol.create_time BETWEEN ? and ? ");
             params.add(createTime[0]);
@@ -192,5 +194,15 @@ public class ProcurementPlan extends BaseProcurementPlan<ProcurementPlan> {
         String sql = "select pp.id,pp.procurement_id,pp.product_standard_num,pp.num,pp.wait_statistics_order_total,pp.order_total,pp.create_time " +
                 " from b_procurement_plan pp where 1=1 and pp.create_time = ? ";
         return findFirst(sql, createTime);
+    }
+
+    /**
+     * 根据采购计划编号获取采购计划信息
+     * @param pPId 采购计划编号
+     * @return 采购计划信息
+     */
+    public ProcurementPlan getPPlanById(String pPId) {
+        String sql = "SELECT * from b_procurement_plan where id = ? ";
+        return findFirst(sql, pPId);
     }
 }

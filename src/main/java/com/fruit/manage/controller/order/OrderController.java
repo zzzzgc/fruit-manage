@@ -27,6 +27,10 @@ import java.util.*;
 public class OrderController extends BaseController {
 
     private Logger log = Logger.getLogger(getClass());
+    /**
+     * 删除订单序列自增
+     */
+    public static int delOrderCount = 0;
 
     public void test() {
         System.out.println(new Date());
@@ -130,7 +134,7 @@ public class OrderController extends BaseController {
             order.setOrderStatus(OrderStatusCode.DELETED.getStatus());
             order.delete();
             List<OrderDetail> orderDetails = OrderDetail.dao.getOrderDetails(orderId);
-            orderId = "x" + order.getOrderId();
+            orderId = delOrderCount++ +"-" + order.getOrderId();
             order.setOrderId(orderId);
             order.save();
             for (OrderDetail orderDetail : orderDetails) {

@@ -329,7 +329,7 @@ public class PlanDetailController extends BaseController{
                 List<Object> row = next.getRow();
                 count ++;
                 if(count ==1){
-                    String createTimeStr= ((String)row.get(0)).split(" ")[0].substring(5);
+                    String createTimeStr= ((String)row.get(0)).split(" ")[1];
                     createTimes[0] = DateAndStringFormat.getNextDay(createTimeStr,"-1")+" 12:00:00";
                     createTimes[1] = createTimeStr+" 11:59:59";
                     // 根据时间获取所有的采购计划

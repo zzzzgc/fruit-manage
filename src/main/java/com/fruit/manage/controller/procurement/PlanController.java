@@ -10,8 +10,10 @@ import com.fruit.manage.util.DateAndStringFormat;
 import com.fruit.manage.util.ExcelCommon;
 import com.fruit.manage.util.IdUtil;
 import com.fruit.manage.util.excel.ExcelException;
+import com.jfinal.aop.Before;
 import com.jfinal.ext.kit.DateKit;
 import com.jfinal.plugin.activerecord.Page;
+import com.jfinal.plugin.activerecord.tx.Tx;
 import org.apache.log4j.Logger;
 
 import java.io.*;
@@ -49,9 +51,21 @@ public class PlanController extends BaseController {
     /**
      * 删除采购计划
      */
+    @Before(Tx.class)
     public void delPPlan() {
-        int pPlanId = getParaToInt("pPlanId");
-        renderResult(ProcurementPlan.dao.deleteById(pPlanId));
+        String pPlanId = getPara("pPlanId");
+        ProcurementPlan procurementPlan = ProcurementPlan.dao.getPPlanById(pPlanId);
+        if (procurementPlan != null && procurementPlan.getCreateTime() != null) {
+            String createTimeStr= DateAndStringFormat.getStringDateShort(procurementPlan.getCreateTime());
+            String[] createTimes = new String[2];
+            createTimes[0] = DateAndStringFormat.getNextDay(createTimeStr,"-1")+" 12:00:00";
+            createTimes[1] = createTimeStr+" 11:59:59";
+            // 根据采购生成时间删除采购计划详细
+            ProcurementPlanDetail.dao.delAllPPlanDetailByTime(createTimes);
+            renderResult(ProcurementPlan.dao.deleteById(pPlanId));
+        }else {
+            renderErrorText("删除失败！");
+        }
     }
 
     /**
@@ -117,10 +131,10 @@ public class PlanController extends BaseController {
         ProcurementPlan procurementPlan = ProcurementPlan.dao.getPPlan(create_time);
         ProcurementPlan procurementPlan2 = ProcurementPlan.dao.getPPlanCreateTime(createTimeStr);
         if (procurementPlan != null && procurementPlan2 != null) {
-            procurementPlan2.setNum(procurementPlan.getNum());
+            procurementPlan2.setNum(procurementPlan.getNum() == null ? 0 : procurementPlan.getNum());
             procurementPlan2.setOrderTotal(procurementPlan.getOrderTotal());
             procurementPlan2.setProductStandardNum(procurementPlan.getProductStandardNum());
-            procurementPlan2.setWaitStatisticsOrderTotal(procurementPlan.getWaitStatisticsOrderTotal());
+            procurementPlan2.setWaitStatisticsOrderTotal(procurementPlan.getWaitStatisticsOrderTotal()==null ? 0 : procurementPlan.getWaitStatisticsOrderTotal());
             procurementPlan2.setProcurementId(getSessionAttr(Constant.SESSION_UID));
             procurementPlan2.update();
         }
