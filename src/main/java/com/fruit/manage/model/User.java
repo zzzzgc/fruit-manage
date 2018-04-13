@@ -104,7 +104,7 @@ public class User extends BaseUser<User> {
 	 */
 	public List<User> getAllUserByRoleKey(){
 		String sql="SELECT u.id,u.`name`,u.nick_name,u.phone from a_user_role ur,a_user u,a_role r " +
-					" where ur.user_id=u.id and ur.role_id=r.id and role_key='salesAdmin'";
+					" where ur.user_id=u.id and ur.role_id=r.id and role_key='sales'";
 		return find(sql);
 	}
 
