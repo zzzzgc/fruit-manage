@@ -37,6 +37,8 @@ public class CustomerController extends BaseController{
             businessUser.setAUserSalesId(saleUserId);
             businessUser.setUpdateTime(new Date());
             businessUser.setCreateTime(new Date());
+            // 法人姓名既是用户名
+            businessUser.setName(businessAuth.getLegalPersonName());
             // 判断是添加还是修改
             if(businessInfo.getId()!=null && businessInfo.getId()>0){
                 businessAuth.setUpdateTime(new Date());
