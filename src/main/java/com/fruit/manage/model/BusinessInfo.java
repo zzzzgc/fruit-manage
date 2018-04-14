@@ -81,7 +81,7 @@ public class BusinessInfo extends BaseBusinessInfo<BusinessInfo> {
      * @return
      */
     public BusinessInfo getBusinessInfoByID(Integer businessInfoID){
-	    String sql="select bi.id,bi.phone,CONCAT(bi.address_province,bi.address_city,bi.address_shop) as detailAddress,bi.shipments_type\n" +
+	    String sql="select bi.id,bi.phone,CONCAT(bi.address_province,bi.address_city,bi.address_shop) as detailAddress,bi.shipments_type,bi.u_id " +
                 "\tfrom b_business_info bi\n" +
                 "\twhere bi.id = ? ";
 	    return findFirst(sql,businessInfoID);
