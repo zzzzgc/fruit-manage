@@ -117,7 +117,7 @@ public class User extends BaseUser<User> {
 		StringBuilder sql=new StringBuilder();
 		sql.append("SELECT u.id ");
 		sql.append("from a_user_role ur,a_user u,a_role r ");
-		sql.append("where ur.user_id=u.id and ur.role_id=r.id and role_key='salesAdmin' ");
+		sql.append("where ur.user_id=u.id and ur.role_id=r.id and role_key='sales' ");
 		sql.append("and u.id = ( ");
 		sql.append("select bu.a_user_sales_id from b_business_user bu,b_business_info bi where bu.id=bi.u_id and bi.id=?)");
 		return dao.findFirst(sql.toString(),businessInfoID);
