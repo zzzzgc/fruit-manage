@@ -4,6 +4,7 @@ import com.jfinal.ext2.kit.DateTimeKit;
 
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Random;
@@ -51,7 +52,13 @@ public class IdUtil {
      * @return 订单周期订单号
      */
     public static String getOrderId (Date date,Integer business_user_id) {
-        return DateTimeKit.formatDateToStyle("yyMMdd", date) + "-" + business_user_id;
+        Calendar calendar=Calendar.getInstance();
+        calendar.setTime(date);
+        if (calendar.get(Calendar.HOUR_OF_DAY)>=12) {
+            // 超過11:59:59算明天的訂單
+            calendar.add(Calendar.DAY_OF_MONTH, 1);
+        }
+        return DateTimeKit.formatDateToStyle("yyyyMMdd", calendar.getTime()) + "-" + business_user_id;
     }
 
     /**

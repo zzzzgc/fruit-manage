@@ -1,7 +1,7 @@
 package com.fruit.manage.util;
 
 public class Constant {
-	public static final String SESSION_UID = "uid";//登录用户的user_id，这个值是通过登录接口设置的
+	public static final String SESSION_UID = "a_user_id";//登录用户的user_id，这个值是通过登录接口设置的
 	public static final String MANAGE_SESSION_UID = "manage_uid";// 管理员登录session ID
 	public static final String MANAGE_SESSION_TICKET = "ticket";// 管理员登录session ID
 	public static final String MANAGE_SESSION_USER_NAME = "manage_user_name";// 管理员登录session ID
