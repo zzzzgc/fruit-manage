@@ -16,6 +16,7 @@ import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import org.apache.log4j.Logger;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
+import sun.rmi.runtime.Log;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -399,38 +400,45 @@ public class OrderController extends BaseController {
     /**
      * 保存配送信息
      */
+    @Before(Tx.class)
     public void saveLogisticInfo() {
-        LogisticsInfo logisticsInfo = getModel(LogisticsInfo.class, "", true);
-        Integer businessUserID = getParaToInt("business_user_id");
-        Integer businessInfoID = getParaToInt("business_info_id");
-        String orderId = getPara("order_id");
-        BusinessInfo businessInfo = BusinessInfo.dao.getBusinessInfoByID(businessInfoID);
-        BusinessUser businessUser = BusinessUser.dao.getBusinessUserByID(businessUserID);
-        if (logisticsInfo != null) {
-            // TODO 需要改为通过order-id获取logisticsInfo进行修改
-            logisticsInfo.setBuyAddress(businessInfo.get("detailAddress"));
-            logisticsInfo.setBuyPhone(businessInfo.getPhone());
-            logisticsInfo.setBuyUserName(businessUser.getName());
-            logisticsInfo.setCreateTime(new Date());
-            logisticsInfo.setDeliveryType(businessInfo.getShipmentsType());
-            logisticsInfo.setOrderId(orderId);
-            logisticsInfo.setUId(businessUserID);
-            logisticsInfo.setSendGoodsTime(new Date());
-            //发货总费用(send_goods_total_cost)：打包费用（package_cost）+三路车费用（tricycle_cost）+发货和装车费用（freight_cost）+ 中转费用和短途费用（transshipment_cost）
-            BigDecimal packageCost = logisticsInfo.getPackageCost() == null ? new BigDecimal(0) : logisticsInfo.getPackageCost();
-            BigDecimal tricycleCost = logisticsInfo.getTricycleCost() == null ? new BigDecimal(0) : logisticsInfo.getTricycleCost();
-            BigDecimal freightCost = logisticsInfo.getFreightCost() == null ? new BigDecimal(0) : logisticsInfo.getFreightCost();
-            BigDecimal transshipmnetCost = logisticsInfo.getTransshipmentCost() == null ? new BigDecimal(0) : logisticsInfo.getTransshipmentCost();
-            // 计算发货总费用
-            BigDecimal sendGoodsTotalCost = packageCost.add(tricycleCost).add(freightCost).add(transshipmnetCost);
-            // 设置发货总费用
-            logisticsInfo.setSendGoodsTotalCost(sendGoodsTotalCost);
-            logisticsInfo.setUpdateTime(new Date());
-            logisticsInfo.setCreateTime(new Date());
-            logisticsInfo.save();
-        }
+        try {
+            LogisticsInfo logisticsInfo = getModel(LogisticsInfo.class, "", true);
+            Integer businessUserID = getParaToInt("business_user_id");
+            Integer businessInfoID = getParaToInt("business_info_id");
+            String orderId = getPara("order_id");
+            BusinessInfo businessInfo = BusinessInfo.dao.getBusinessInfoByID(businessInfoID);
+            BusinessUser businessUser = BusinessUser.dao.getBusinessUserByID(businessUserID);
+            LogisticsInfo logisticsInfoUpdate = LogisticsInfo.dao.getLogisticsDetailInfoByOrderID(orderId);
+            if (logisticsInfo != null && logisticsInfoUpdate!=null) {
 
-        renderJson(new ArrayList<>().add(0));
+                //发货总费用(send_goods_total_cost)：打包费用（package_cost）+三路车费用（tricycle_cost）+发货和装车费用（freight_cost）+ 中转费用和短途费用（transshipment_cost）
+                BigDecimal packageCost = logisticsInfo.getPackageCost() == null ? new BigDecimal(0) : logisticsInfo.getPackageCost();
+                BigDecimal tricycleCost = logisticsInfo.getTricycleCost() == null ? new BigDecimal(0) : logisticsInfo.getTricycleCost();
+                BigDecimal freightCost = logisticsInfo.getFreightCost() == null ? new BigDecimal(0) : logisticsInfo.getFreightCost();
+                BigDecimal transshipmnetCost = logisticsInfo.getTransshipmentCost() == null ? new BigDecimal(0) : logisticsInfo.getTransshipmentCost();
+                // 计算发货总费用
+                BigDecimal sendGoodsTotalCost = packageCost.add(tricycleCost).add(freightCost).add(transshipmnetCost);
+                // 设置发货总费用
+                logisticsInfoUpdate.setSendGoodsTotalCost(sendGoodsTotalCost);
+                logisticsInfoUpdate.setPackageCost(packageCost);
+                logisticsInfoUpdate.setTricycleCost(tricycleCost);
+                logisticsInfoUpdate.setFreightCost(freightCost);
+                logisticsInfoUpdate.setTransshipmentCost(transshipmnetCost);
+                logisticsInfoUpdate.setPackageNum(logisticsInfo.getPackageNum());
+                // 获取并设置实际发货总数量
+                logisticsInfoUpdate.setRealitySendNum(LogisticsInfo.dao.getActualSendGoodsNum(orderId));
+                logisticsInfoUpdate.setDeliveryInfo(logisticsInfo.getDeliveryInfo());
+                logisticsInfoUpdate.setLicensePlateNumber(logisticsInfo.getLicensePlateNumber());
+                logisticsInfoUpdate.setSendGoodsTime(new Date());
+
+                logisticsInfoUpdate.setUpdateTime(new Date());
+                logisticsInfoUpdate.update();
+            }
+            renderNull();
+        } catch (Exception e) {
+            renderErrorText("发货失败!");
+        }
     }
 
     /**

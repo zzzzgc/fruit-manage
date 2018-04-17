@@ -24,7 +24,7 @@ public class LogisticsInfo extends BaseLogisticsInfo<LogisticsInfo> {
 	}
 
 	/**
-	 * 根据订单编号获取物流信息表
+	 * 根据订单编号获取物流信息表的ID、发送总价、订单号
 	 * @param orderId
 	 * @return
 	 */
@@ -32,5 +32,25 @@ public class LogisticsInfo extends BaseLogisticsInfo<LogisticsInfo> {
 		String sql = "select li.id,li.send_goods_total_cost,li.order_id from b_logistics_info li " +
 				"where li.order_id=?";
 		return findFirst(sql,orderId);
+	}
+
+	/**
+	 * 根据订单编号获取物流信息表的所有字段的信息
+	 * @param orderId 订单编号
+	 * @return 返回物流表的所有信息
+	 */
+	public LogisticsInfo getLogisticsDetailInfoByOrderID(String orderId) {
+		String sql = "SELECT * from b_logistics_info where order_id = ? ";
+		return findFirst(sql, orderId);
+	}
+
+	/**
+	 * 根据订单号获取实际发货数量
+	 * @param orderId
+	 * @return
+	 */
+	public Integer getActualSendGoodsNum(String orderId) {
+		String sql = "SELECT sum(actual_send_goods_num) as actual_send_goods_num from b_order_detail where order_id = ? ";
+		return Db.queryInt(sql, orderId);
 	}
 }
