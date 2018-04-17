@@ -5,6 +5,7 @@ import com.fruit.manage.controller.common.CommonController;
 import com.fruit.manage.model.*;
 import com.fruit.manage.util.Constant;
 import com.fruit.manage.util.DateAndStringFormat;
+import com.fruit.manage.util.IdUtil;
 import com.fruit.manage.util.excelRd.ExcelRd;
 import com.fruit.manage.util.excelRd.ExcelRdException;
 import com.fruit.manage.util.excelRd.ExcelRdRow;
@@ -83,7 +84,6 @@ public class PlanDetailController extends BaseController{
         List<ProcurementPlan> planList = ProcurementPlan.dao.getExportDataByPPlanID(createTimes);
         // 先执行删除操作
 //        ProcurementPlanDetail.dao.delPPlanDetail(createTimes);
-        List<String> list = new ArrayList<>();
         try {
             for (ProcurementPlan procurementPlan : planList) {
                 ProcurementPlanDetail procurementPlanDetail2=ProcurementPlanDetail.dao.getPPlanDetailByPSID(procurementPlan.get("productStandardID"),createTimes,null);
@@ -115,11 +115,19 @@ public class PlanDetailController extends BaseController{
             }
             // 订单日志修改为1（被统计过）
             ProcurementPlan.dao.updateOrderLog(createTimes);
-            list.add("0");
+            // 修改采购计划的数据
+            ProcurementPlan procurementPlan= ProcurementPlan.dao.getPPlan(createTimes);
+            ProcurementPlan procurementPlan2 = ProcurementPlan.dao.getPPlanCreateTime(DateAndStringFormat.getStringDateShort(createTime));
+            procurementPlan2.setNum(procurementPlan.getNum());
+            procurementPlan2.setOrderTotal(procurementPlan.getOrderTotal());
+            procurementPlan2.setProductStandardNum(procurementPlan.getProductStandardNum());
+            procurementPlan2.setWaitStatisticsOrderTotal(0);
+            procurementPlan2.setProcurementId(getSessionAttr(Constant.SESSION_UID));
+            procurementPlan2.update();
+            renderNull();
         }catch (Exception e){
-            list.add("1");
+            renderErrorText("更新失败!");
         }
-        renderJson(list);
     }
 
     /**

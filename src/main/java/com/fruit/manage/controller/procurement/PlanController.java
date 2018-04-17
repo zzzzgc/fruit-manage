@@ -126,7 +126,9 @@ public class PlanController extends BaseController {
      * 更新采购计划
      */
     public void updatePPlan() {
-        Date createTime = getParaToDate("createTime");
+
+        try {
+            Date createTime = getParaToDate("createTime");
         String createTimeStr = DateAndStringFormat.getStringDateShort(createTime);
         String[] create_time = new String[2];
         create_time[0] = DateAndStringFormat.getNextDay(createTimeStr, "-1") + " 12:00:00";
@@ -142,8 +144,11 @@ public class PlanController extends BaseController {
             procurementPlan2.update();
         }
         // 订单日志修改为1（被统计过）
-        ProcurementPlan.dao.updateOrderLog(create_time);
-        renderJson(new ArrayList<>().add(0));
+        // ProcurementPlan.dao.updateOrderLog(create_time);
+        renderNull();
+        } catch (Exception e) {
+            renderErrorText("更新采购计划失败！");
+        }
     }
 
     /**
