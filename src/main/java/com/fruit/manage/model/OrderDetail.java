@@ -30,6 +30,7 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
      * @return
      */
     public List<OrderDetail> getOtherOrderDetail(String orderid) {
+        // 实发数量默认等于应发数量,再由用户修改
         String sql = "SELECT\n" +
                 "\to.product_name,\n" +
                 "\to.id,\n" +
@@ -41,22 +42,18 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
                 " b_o.pay_reality_need_money," +
                 " ps.stock, " +
                 " o.product_standard_id, "+
-                "\to.actual_send_goods_num,\n" +
-
+                "\to.num AS actual_send_goods_num,\n" +
                 "\tp.brand,\n" +
                 "\tps.gross_weight\n" +
                 "FROM\n" +
                 "\tb_order_detail AS o\n" +
-
                 "INNER JOIN b_order AS b_o ON o.order_id= b_o.order_id\n" +
-
                 "INNER JOIN b_product AS p ON o.product_id = p.id\n" +
                 "INNER JOIN b_product_standard AS ps ON o.product_standard_id = ps.id\n" +
                 "WHERE\n" +
                 "\to.order_id = ?  ";
         return dao.find(sql, orderid);
     }
-
 
     /**
      * 根据订单编号获取订单详情单个表操作
