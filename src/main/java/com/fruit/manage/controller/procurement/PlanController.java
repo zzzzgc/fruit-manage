@@ -2,6 +2,7 @@ package com.fruit.manage.controller.procurement;
 
 import com.fruit.manage.base.BaseController;
 import com.fruit.manage.controller.common.CommonController;
+import com.fruit.manage.model.OrderLog;
 import com.fruit.manage.model.ProcurementPlan;
 import com.fruit.manage.model.ProcurementPlanDetail;
 import com.fruit.manage.model.User;
@@ -62,6 +63,8 @@ public class PlanController extends BaseController {
             createTimes[1] = createTimeStr+" 11:59:59";
             // 根据采购生成时间删除采购计划详细
             ProcurementPlanDetail.dao.delAllPPlanDetailByTime(createTimes);
+            // 根据采购生成时间修改订单日志统计状态为未统计（0）
+            OrderLog.dao.updateOrderLog(createTimes);
             renderResult(ProcurementPlan.dao.deleteById(pPlanId));
         }else {
             renderErrorText("删除失败！");
