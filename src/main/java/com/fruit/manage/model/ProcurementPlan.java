@@ -118,7 +118,8 @@ public class ProcurementPlan extends BaseProcurementPlan<ProcurementPlan> {
                 "and pq.product_standard_id = ol.product_standard_id " +
                 "and ol.product_id = p.id " +
                 "and ol.product_standard_id = ps.id " +
-                "and ol.is_statistical = 0 " +
+                // 订单采购订单导出计划
+//                "and ol.is_statistical = 0 " +
                 "and ol.create_time BETWEEN ? " +
                 "and ? " +
                 "GROUP BY " +

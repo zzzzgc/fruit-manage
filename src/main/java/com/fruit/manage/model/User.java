@@ -149,4 +149,14 @@ public class User extends BaseUser<User> {
 		String sql="select u.id,u.`name` from a_user u";
 		return find(sql);
 	}
+
+	/**
+	 * 根据用户姓名获取用户编号
+	 * @param name
+	 * @return
+	 */
+	public Integer getUserIdByName(String name) {
+		String sql = "SELECT id from a_user where `name` = ? ";
+		return Db.queryInt(sql, name);
+	}
 }
