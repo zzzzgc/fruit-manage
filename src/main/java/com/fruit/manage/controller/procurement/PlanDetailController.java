@@ -5,6 +5,7 @@ import com.fruit.manage.controller.common.CommonController;
 import com.fruit.manage.model.*;
 import com.fruit.manage.util.Constant;
 import com.fruit.manage.util.DateAndStringFormat;
+import com.fruit.manage.util.IdUtil;
 import com.fruit.manage.util.excelRd.ExcelRd;
 import com.fruit.manage.util.excelRd.ExcelRdException;
 import com.fruit.manage.util.excelRd.ExcelRdRow;
@@ -83,7 +84,6 @@ public class PlanDetailController extends BaseController{
         List<ProcurementPlan> planList = ProcurementPlan.dao.getExportDataByPPlanID(createTimes);
         // 先执行删除操作
 //        ProcurementPlanDetail.dao.delPPlanDetail(createTimes);
-        List<String> list = new ArrayList<>();
         try {
             for (ProcurementPlan procurementPlan : planList) {
                 ProcurementPlanDetail procurementPlanDetail2=ProcurementPlanDetail.dao.getPPlanDetailByPSID(procurementPlan.get("productStandardID"),createTimes,null);
@@ -115,11 +115,19 @@ public class PlanDetailController extends BaseController{
             }
             // 订单日志修改为1（被统计过）
             ProcurementPlan.dao.updateOrderLog(createTimes);
-            list.add("0");
+            // 修改采购计划的数据
+            ProcurementPlan procurementPlan= ProcurementPlan.dao.getPPlan(createTimes);
+            ProcurementPlan procurementPlan2 = ProcurementPlan.dao.getPPlanCreateTime(DateAndStringFormat.getStringDateShort(createTime));
+            procurementPlan2.setNum(procurementPlan.getNum());
+            procurementPlan2.setOrderTotal(procurementPlan.getOrderTotal());
+            procurementPlan2.setProductStandardNum(procurementPlan.getProductStandardNum());
+            procurementPlan2.setWaitStatisticsOrderTotal(0);
+            procurementPlan2.setProcurementId(getSessionAttr(Constant.SESSION_UID));
+            procurementPlan2.update();
+            renderNull();
         }catch (Exception e){
-            list.add("1");
+            renderErrorText("更新失败!");
         }
-        renderJson(list);
     }
 
     /**
@@ -288,13 +296,17 @@ public class PlanDetailController extends BaseController{
         ExcelRd excelRd = new ExcelRd(filePath);
         excelRd.setStartRow(1);
         excelRd.setStartCol(0);
+        //0-商品名，1-规格名，2-规格编码，3-重量(斤)，4-报价，5-下单量，6-库存量，7-采购量，8-采购单价，9-下单备注
         ExcelRdTypeEnum[] types = {
-                ExcelRdTypeEnum.INTEGER,
                 ExcelRdTypeEnum.STRING,
                 ExcelRdTypeEnum.STRING,
                 ExcelRdTypeEnum.INTEGER,
                 ExcelRdTypeEnum.DOUBLE,
+                ExcelRdTypeEnum.DOUBLE,
                 ExcelRdTypeEnum.INTEGER,
+                ExcelRdTypeEnum.INTEGER,
+                ExcelRdTypeEnum.INTEGER,
+                ExcelRdTypeEnum.DOUBLE,
                 ExcelRdTypeEnum.STRING
         };
         // 指定每列的类型
@@ -392,6 +404,99 @@ public class PlanDetailController extends BaseController{
             renderJson(new ArrayList<>().add(0));
         }catch (Exception e){
             renderJson(new ArrayList<>().add(1));
+        }
+    }
+
+    @Before(Tx.class)
+    public void uploaderExcelThree(){
+        try{
+
+            String fileName=getPara("fileName");
+            String filePath = CommonController.FILE_PATH + File.separator + fileName;
+            Iterator<ExcelRdRow> iterator = PlanDetailController.readExcel(filePath).iterator();
+            Integer count=0;
+            Map<String,ProcurementPlanDetail> mapKeyOne =new HashMap<>();
+            Map<String,ProcurementPlanDetail> mapKeyTwo =new HashMap<>();
+            String [] createTimes =new String[2];
+            Integer procurementId = 0;
+            // 循环Excel行
+            while (iterator.hasNext()) {
+                ExcelRdRow next = iterator.next();
+                List<Object> row = next.getRow();
+                count ++;
+                if(count ==1){
+                    System.out.println("");
+                    procurementId = User.dao.getUserIdByName(((String)row.get(3)).split(":")[1]);
+                    String createTimeStr = getPara("createTimeStr").split(" ")[0];
+                    System.out.println("createTimeStr :"+createTimeStr);
+                    createTimes[0] = DateAndStringFormat.getNextDay(createTimeStr,"-1")+" 12:00:00";
+                    createTimes[1] = createTimeStr+" 11:59:59";
+                    // 根据时间获取所有的采购计划
+                    List<ProcurementPlanDetail> procurementPlanDetailList= ProcurementPlanDetail.dao.getAllPPlanDetail(createTimes);
+                    if(procurementPlanDetailList!=null && procurementPlanDetailList.size()>0) {
+                        //循环所有的采购计划数据到Map临时数据
+                        for (ProcurementPlanDetail pPlanDetail : procurementPlanDetailList) {
+                            // key为productStandardId,value为ProcurementPlanDetail
+                            mapKeyOne.put(pPlanDetail.getProductStandardId()+"",pPlanDetail);
+                            // key为productStandardId+"-"+procurementId,value为ProcurementPlanDetail
+                            mapKeyTwo.put(pPlanDetail.getProductStandardId() + "-"+pPlanDetail.getProcurementId(),pPlanDetail);
+                        }
+                    }
+                }
+                if(count>2){
+                    //0-商品名，1-规格名，2-规格编码，3-重量(斤)，4-报价，5-下单量，6-库存量，7-采购量，8-采购单价，9-下单备注
+                    //0-规格编码，1-商品名，2-规格名，3-采购数量，4-采购单价，5-采购人，6-采购备注
+                    String productName = row.get(0) + "";
+                    String productStandardName = row.get(1) + "";
+                    Integer productStandardId = Integer.parseInt(row.get(2)+"");
+                    Integer procurementNum = (Integer) row.get(7);
+                    BigDecimal procurementNeedPrice = new BigDecimal((Double) row.get(8));
+                    String procurementRemark = row.get(9) + "";
+                    if(count==3){
+                        // 根据时间删除所有的采购计划
+                        ProcurementPlanDetail.dao.delAllPPlanDetailByTime(createTimes);
+                    }
+                    ProcurementPlanDetail pPDtailTwo = mapKeyTwo.get(productStandardId + "-" + procurementId);
+                    if(pPDtailTwo!=null){
+                        pPDtailTwo.setId(null);
+                        pPDtailTwo.setProductStandardId(productStandardId);
+                        pPDtailTwo.setProductName(productName);
+                        //执行入库操作
+                        // putInStore((Integer)row.get(0),(Integer)row.get(3));
+                        pPDtailTwo.setProductStandardName(productStandardName);
+                        pPDtailTwo.setProcurementNum(procurementNum);
+                        pPDtailTwo.setProcurementNeedPrice(procurementNeedPrice);
+                        pPDtailTwo.setProcurementId(procurementId);
+                        pPDtailTwo.setProcurementRemark(procurementRemark);
+                        BigDecimal pNum =new BigDecimal(procurementNum);
+                        pPDtailTwo.setProcurementTotalPrice(procurementNeedPrice.multiply(pNum));
+                        pPDtailTwo.setUpdateTime(new Date());
+                        pPDtailTwo.save();
+                    }else {
+                        ProcurementPlanDetail pPDtailOne = mapKeyOne.get(productStandardId+"");
+                        if(pPDtailOne!=null){
+                            pPDtailOne.setId(null);
+                            pPDtailOne.setProductStandardId(productStandardId);
+                            //执行入库操作
+//                            putInStore((Integer)row.get(0),(Integer)row.get(3));
+                            pPDtailOne.setProductName(productName);
+                            pPDtailOne.setProductStandardName(productStandardName);
+                            pPDtailOne.setProcurementNum(procurementNum);
+                            pPDtailOne.setProcurementNeedPrice(procurementNeedPrice);
+                            pPDtailOne.setProcurementId(procurementId);
+                            pPDtailOne.setProcurementRemark(procurementRemark);
+                            BigDecimal pNum =new BigDecimal(procurementNum);
+                            pPDtailOne.setProcurementTotalPrice(procurementNeedPrice.multiply(pNum));
+                            pPDtailOne.setUpdateTime(new Date());
+                            pPDtailOne.save();
+                        }
+                    }
+                }
+            }
+
+           renderNull();
+        }catch (Exception e){
+            renderErrorText("导入失败!");
         }
     }
 

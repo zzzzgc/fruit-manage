@@ -119,7 +119,8 @@ public class ProcurementPlan extends BaseProcurementPlan<ProcurementPlan> {
                 "and pq.product_standard_id = ol.product_standard_id " +
                 "and ol.product_id = p.id " +
                 "and ol.product_standard_id = ps.id " +
-                "and ol.is_statistical = 0 " +
+                // 订单采购订单导出计划
+//                "and ol.is_statistical = 0 " +
                 "and ol.create_time BETWEEN ? " +
                 "and ? " +
                 "GROUP BY " +
@@ -182,7 +183,7 @@ public class ProcurementPlan extends BaseProcurementPlan<ProcurementPlan> {
         sql.append("(count(DISTINCT ol.order_id)) as order_total ");
         sql.append("from b_order_log ol ");
         sql.append("where 1=1 ");
-        sql.append("and ol.is_statistical = 0 ");
+        // sql.append("and ol.is_statistical = 0 ");
         if (org.apache.commons.lang3.ArrayUtils.isNotEmpty(createTime) && createTime.length == 2) {
             sql.append("and ol.create_time BETWEEN ? and ? ");
             params.add(createTime[0]);
