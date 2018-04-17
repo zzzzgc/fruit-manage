@@ -213,9 +213,9 @@ public class ExcelController extends BaseController {
                     "INNER JOIN b_business_user AS bu ON o.u_id = bu.id " +
                     "INNER JOIN b_business_info AS info ON bu.id = info.u_id " +
                     "INNER JOIN a_user AS au ON bu.a_user_sales_id = au.id " +
-                    "INNER JOIN b_logistics_info AS linfo ON linfo.order_id = o.order_id " +
+                    "LEFT JOIN b_logistics_info AS linfo ON linfo.order_id = o.order_id " +
                     "WHERE " +
-                    "o.order_status in (15,20,25,30) " +
+                    "o.order_status in (5) " +
                     "AND o.create_time BETWEEN ? " +
                     "AND ? ";
             List<Order> orders = Order.dao.find(sql, startDateStr, endDateStr);
@@ -377,7 +377,7 @@ public class ExcelController extends BaseController {
                     c2.setCellValue(orderDetail.get("product_standard_name").toString());
                     c3.setCellValue(orderDetail.get("weight_price").toString());
                     c4.setCellValue(orderDetail.get("num").toString());
-                    c5.setCellValue(orderDetail.get("actual_send_goods_num").toString());
+                    c5.setCellValue(0);
                     c6.setCellValue(orderDetail.get("buy_remark") != null ? orderDetail.get("buy_remark").toString() : null);
                     c3.setCellType(CellType.NUMERIC);
                     c4.setCellType(CellType.NUMERIC);

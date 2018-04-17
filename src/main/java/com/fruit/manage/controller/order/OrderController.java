@@ -134,7 +134,7 @@ public class OrderController extends BaseController {
             order.setOrderStatus(OrderStatusCode.DELETED.getStatus());
             order.delete();
             List<OrderDetail> orderDetails = OrderDetail.dao.getOrderDetails(orderId);
-            orderId = delOrderCount++ +"-" + order.getOrderId();
+            orderId = delOrderCount++ + "-" + order.getOrderId();
             order.setOrderId(orderId);
             order.save();
             for (OrderDetail orderDetail : orderDetails) {
@@ -191,7 +191,7 @@ public class OrderController extends BaseController {
         Integer business_user_id = getParaToInt("business_user_id");
         List<OrderDetail> orderDetails = JSON.parseArray(products, OrderDetail.class);
         BigDecimal payNeedMoney = new BigDecimal(0);
-        BigDecimal payRealityNeedMoney =new BigDecimal(0);
+        BigDecimal payRealityNeedMoney = new BigDecimal(0);
         Date now = new Date();
 
         if (order.getOrderId() != null) {
@@ -201,9 +201,9 @@ public class OrderController extends BaseController {
                 Integer num = orderDetail.getNum();
                 BigDecimal sellPrice = orderDetail.getSellPrice();
                 BigDecimal totalPay = sellPrice.multiply(new BigDecimal(num));
-                Integer actualSendGoodsNum=orderDetail.getActualSendGoodsNum();
+                Integer actualSendGoodsNum = orderDetail.getActualSendGoodsNum();
                 // 有实际发货的数量,在配货的时候减库存
-                if(actualSendGoodsNum != null && actualSendGoodsNum!=0){
+                if (actualSendGoodsNum != null && actualSendGoodsNum != 0) {
                     /*//根据商品规格编号获取商品规格信息
                     ProductStandard productStandard=ProductStandard.dao.findById(orderDetail.getProductStandardId());
                     //判断仓库数量是否小于实发数数量
@@ -215,7 +215,7 @@ public class OrderController extends BaseController {
                         throw new RuntimeException("");
                     }*/
                     // 实际需要支付金额 = （所有子订单=销售价*实际发货数量）
-                    payRealityNeedMoney=payRealityNeedMoney.add(sellPrice.multiply(new BigDecimal(actualSendGoodsNum)));
+                    payRealityNeedMoney = payRealityNeedMoney.add(sellPrice.multiply(new BigDecimal(actualSendGoodsNum)));
                 }
                 orderDetail.setTotalPay(totalPay);
                 payNeedMoney = payNeedMoney.add(totalPay);
@@ -263,6 +263,18 @@ public class OrderController extends BaseController {
                 order.setUpdateTime(now);
                 order.setCreateTime(now);
                 order.save();
+
+                BusinessInfo info = BusinessInfo.dao.getBusinessInfoByUId(business_user_id);
+                LogisticsInfo logisticsInfo = new LogisticsInfo();
+                logisticsInfo.setUId(uid);
+                logisticsInfo.setOrderId(orderId);
+                logisticsInfo.setBuyAddress(info.getAddressProvince()+info.getAddressCity()+info.getAddressDetail());
+                logisticsInfo.setBuyPhone(info.getPhone());
+                logisticsInfo.setBuyUserName(info.getBusinessName());
+                logisticsInfo.setDeliveryType(info.getShipmentsType());
+                logisticsInfo.setUpdateTime(new Date());
+                logisticsInfo.setCreateTime(new Date());
+                logisticsInfo.save();
             } else {
                 // 如果有相同订单周期的订单,就叠加商品.这次添加视为补充商品.因为想修改商品应该去编辑才对,而不是添加.
                 // 具有完整字段的对象,用于作为更新模板和核对是否叠加
@@ -395,6 +407,7 @@ public class OrderController extends BaseController {
         BusinessInfo businessInfo = BusinessInfo.dao.getBusinessInfoByID(businessInfoID);
         BusinessUser businessUser = BusinessUser.dao.getBusinessUserByID(businessUserID);
         if (logisticsInfo != null) {
+            // TODO 需要改为通过order-id获取logisticsInfo进行修改
             logisticsInfo.setBuyAddress(businessInfo.get("detailAddress"));
             logisticsInfo.setBuyPhone(businessInfo.getPhone());
             logisticsInfo.setBuyUserName(businessUser.getName());
@@ -402,17 +415,18 @@ public class OrderController extends BaseController {
             logisticsInfo.setDeliveryType(businessInfo.getShipmentsType());
             logisticsInfo.setOrderId(orderId);
             logisticsInfo.setUId(businessUserID);
-            logisticsInfo.setUpdateTime(new Date());
             logisticsInfo.setSendGoodsTime(new Date());
             //发货总费用(send_goods_total_cost)：打包费用（package_cost）+三路车费用（tricycle_cost）+发货和装车费用（freight_cost）+ 中转费用和短途费用（transshipment_cost）
-            BigDecimal packageCost=logisticsInfo.getPackageCost()==null?new BigDecimal(0):logisticsInfo.getPackageCost();
-            BigDecimal tricycleCost=logisticsInfo.getTricycleCost()==null?new BigDecimal(0):logisticsInfo.getTricycleCost();
-            BigDecimal freightCost=logisticsInfo.getFreightCost()==null?new BigDecimal(0):logisticsInfo.getFreightCost();
-            BigDecimal transshipmnetCost=logisticsInfo.getTransshipmentCost()==null?new BigDecimal(0):logisticsInfo.getTransshipmentCost();
+            BigDecimal packageCost = logisticsInfo.getPackageCost() == null ? new BigDecimal(0) : logisticsInfo.getPackageCost();
+            BigDecimal tricycleCost = logisticsInfo.getTricycleCost() == null ? new BigDecimal(0) : logisticsInfo.getTricycleCost();
+            BigDecimal freightCost = logisticsInfo.getFreightCost() == null ? new BigDecimal(0) : logisticsInfo.getFreightCost();
+            BigDecimal transshipmnetCost = logisticsInfo.getTransshipmentCost() == null ? new BigDecimal(0) : logisticsInfo.getTransshipmentCost();
             // 计算发货总费用
-            BigDecimal sendGoodsTotalCost=packageCost.add(tricycleCost).add(freightCost).add(transshipmnetCost);
+            BigDecimal sendGoodsTotalCost = packageCost.add(tricycleCost).add(freightCost).add(transshipmnetCost);
             // 设置发货总费用
             logisticsInfo.setSendGoodsTotalCost(sendGoodsTotalCost);
+            logisticsInfo.setUpdateTime(new Date());
+            logisticsInfo.setCreateTime(new Date());
             logisticsInfo.save();
         }
 
@@ -426,10 +440,10 @@ public class OrderController extends BaseController {
         String orderId = getPara("orderId");
         Integer userId = getParaToInt("businessUserId");
         LogisticsInfo logisticsInfo = LogisticsInfo.dao.getLogisticeInfoByOrderID(orderId);
-        if(logisticsInfo!=null){
+        if (logisticsInfo != null) {
             BigDecimal orderPayRealityNeedMoney = OrderDetail.dao.getOrderPayRealityNeedMoneyByOrderID(orderId);
-            if(logisticsInfo==null)
-                logisticsInfo=new LogisticsInfo();
+            if (logisticsInfo == null)
+                logisticsInfo = new LogisticsInfo();
             if (logisticsInfo.getSendGoodsTotalCost() == null) {
                 logisticsInfo.setSendGoodsTotalCost(new BigDecimal(0));
             }
@@ -449,7 +463,7 @@ public class OrderController extends BaseController {
             list.add(reallyPayMoney);
             list.add(payOrderInfos);
             renderJson(list);
-        }else {
+        } else {
             List<String> list = new ArrayList<>();
             list.add("error");
             renderJson(list);
@@ -466,14 +480,14 @@ public class OrderController extends BaseController {
             LogisticsInfo logisticsInfo = LogisticsInfo.dao.getLogisticeInfoByOrderID(orderId);
 //            BigDecimal orderTotalPay = OrderDetail.dao.getOrderTotalCost(orderId);
             BigDecimal payRealityNeedMoney = OrderDetail.dao.getOrderPayRealityNeedMoneyByOrderID(orderId);
-            if(logisticsInfo==null)
-                logisticsInfo=new LogisticsInfo();
+            if (logisticsInfo == null)
+                logisticsInfo = new LogisticsInfo();
             if (logisticsInfo.getSendGoodsTotalCost() == null) {
                 logisticsInfo.setSendGoodsTotalCost(new BigDecimal(0));
             }
             BigDecimal allTotalCost = payRealityNeedMoney.add(logisticsInfo.getSendGoodsTotalCost());
             //根据订单编号修改订单状态
-            Order.dao.updateOrderPayStatus(5,allTotalCost, orderId);
+            Order.dao.updateOrderPayStatus(5, allTotalCost, orderId);
             //如果是送达并确认付款，那就修改订单状态为已完成订单
             Order.dao.updateOrderStatus(orderId);
             renderNull();
@@ -486,13 +500,13 @@ public class OrderController extends BaseController {
      * 重写并
      * 通过订单ID修改订单状态
      */
-    public void updatePayStatusByOrderId(){
+    public void updatePayStatusByOrderId() {
         try {
             String orderId = getPara("orderId");
             LogisticsInfo logisticsInfo = LogisticsInfo.dao.getLogisticeInfoByOrderID(orderId);
             BigDecimal payRealityNeedMoney = OrderDetail.dao.getOrderPayRealityNeedMoneyByOrderID(orderId);
-            if(logisticsInfo==null)
-                logisticsInfo=new LogisticsInfo();
+            if (logisticsInfo == null)
+                logisticsInfo = new LogisticsInfo();
             if (logisticsInfo.getSendGoodsTotalCost() == null) {
                 logisticsInfo.setSendGoodsTotalCost(new BigDecimal(0));
             }
@@ -501,11 +515,11 @@ public class OrderController extends BaseController {
             Double reallyPayMoney = PayOrderInfo.dao.getReallyPayMoney(orderId);
             if (allTotalCost.doubleValue() == reallyPayMoney) {
                 //根据订单编号修改订单状态
-                Order.dao.updateOrderPayStatus(5,allTotalCost, orderId);
+                Order.dao.updateOrderPayStatus(5, allTotalCost, orderId);
                 //如果是送达并确认付款，那就修改订单状态为已完成订单
                 Order.dao.updateOrderStatus(orderId);
                 renderNull();
-            }else {
+            } else {
                 renderErrorText("支付事变!");
             }
         } catch (Exception e) {
@@ -516,8 +530,8 @@ public class OrderController extends BaseController {
     /**
      * 根据订单编号删除物流信息
      */
-    public void delLogisticsInfo(){
-        String orderId=getPara("orderID");
+    public void delLogisticsInfo() {
+        String orderId = getPara("orderID");
         try {
             LogisticsInfo.dao.delLogisticsInfoByOrderID(orderId);
             renderNull();
@@ -528,7 +542,7 @@ public class OrderController extends BaseController {
     /**
      * 根据客户id获取客户的所有未支付的订单
      */
-    public void getCustomerOrderInfo () {
+    public void getCustomerOrderInfo() {
         Integer customerId = getParaToInt("customerId");
         renderJson(Order.dao.getCustomerOrderInfo(customerId));
     }

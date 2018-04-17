@@ -4,7 +4,6 @@ import com.fruit.manage.model.base.BaseProcurementPlan;
 import com.jfinal.kit.StrKit;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Page;
-import com.sun.tools.javac.util.ArrayUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +43,9 @@ public class ProcurementPlan extends BaseProcurementPlan<ProcurementPlan> {
         return paginate(pageNum, pageSize, selectStr, sql.toString(), params.toArray());
     }
 
-    // 获取未统计的商品总数
+    /**
+     * 获取未统计的商品总数
+     */
     public ProcurementPlan getWaitStatisticsOrderTotal(String[] createTimes, String createTime) {
         StringBuilder sql = new StringBuilder();
         sql.append("select count(DISTINCT ol.order_id) AS wait_statistics_order_total, ");
@@ -198,6 +199,7 @@ public class ProcurementPlan extends BaseProcurementPlan<ProcurementPlan> {
 
     /**
      * 根据采购计划编号获取采购计划信息
+     *
      * @param pPId 采购计划编号
      * @return 采购计划信息
      */
