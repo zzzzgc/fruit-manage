@@ -18,7 +18,6 @@ public class CustomerController extends BaseController {
 
     @Before(Tx.class)
     public void save() {
-        try {
             BusinessAuth businessAuth = getModel(BusinessAuth.class, "", true);
             BusinessInfo businessInfo = getModel(BusinessInfo.class, "", true);
             Integer businessAuthExtID = getParaToInt("businessAuthExtID");
@@ -67,9 +66,6 @@ public class CustomerController extends BaseController {
             }
             BusinessUser.dao.updateBusinessUserSaleIDByUid(1, saleUserId);
             renderNull();
-        } catch (Exception e) {
-            renderErrorText("请检查是否填写正确!");
-        }
     }
 
     /**
