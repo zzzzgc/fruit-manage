@@ -449,8 +449,8 @@ public class PlanDetailController extends BaseController{
                     String productName = row.get(0) + "";
                     String productStandardName = row.get(1) + "";
                     Integer productStandardId = Integer.parseInt(row.get(2)+"");
-                    Integer procurementNum = (Integer) row.get(7);
-                    BigDecimal procurementNeedPrice = new BigDecimal((Double) row.get(8));
+                    Integer procurementNum = Integer.parseInt(row.get(7)+"");
+                    BigDecimal procurementNeedPrice = new BigDecimal(Double.parseDouble(row.get(8)+""));
                     String procurementRemark = row.get(9) + "";
                     if(count==3){
                         // 根据时间删除所有的采购计划
@@ -497,6 +497,7 @@ public class PlanDetailController extends BaseController{
            renderNull();
         }catch (Exception e){
             renderErrorText("导入失败!");
+            e.printStackTrace();
         }
     }
 

@@ -33,6 +33,14 @@ public abstract class BasePayOrderInfo<M extends BasePayOrderInfo<M>> extends Mo
 		return get("pay_of_time");
 	}
 
+	public void setPayReallyTotalMoney(java.lang.Double payReallyTotalMoney) {
+		set("pay_really_total_money", payReallyTotalMoney);
+	}
+
+	public java.lang.Double getPayReallyTotalMoney() {
+		return getDouble("pay_really_total_money");
+	}
+
 	public void setPayTheMoney(java.lang.Double payTheMoney) {
 		set("pay_the_money", payTheMoney);
 	}

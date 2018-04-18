@@ -222,9 +222,9 @@ public class WarehouseOutContrller extends BaseController {
                     Row row = sheet.getRow(j);
 
                     // 一共有7列
-                    Integer productStandardId = Integer.valueOf(row.getCell(2).getStringCellValue());
-                    BigDecimal productWeight = new BigDecimal(row.getCell(3).getStringCellValue());
-                    Integer outNum = Integer.valueOf(row.getCell(5).getStringCellValue());
+                    Integer productStandardId = (int)row.getCell(2).getNumericCellValue();
+                    BigDecimal productWeight = new BigDecimal(row.getCell(3).getNumericCellValue());
+                    Integer outNum = (int)row.getCell(5).getNumericCellValue();
                     String outRemark = row.getCell(6).getStringCellValue();
 
 

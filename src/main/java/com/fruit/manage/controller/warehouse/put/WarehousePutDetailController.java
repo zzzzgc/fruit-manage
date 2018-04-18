@@ -112,34 +112,34 @@ public class WarehousePutDetailController extends BaseController {
                 endTime = createTimeStr+" 23:59:59";
             }
             if (count > 2) {
-                PutWarehouseDetail putWarehouseDetail = PutWarehouseDetail.dao.getPutDetailByPSIDAndProcurementId((Integer) (list.get(2)), (Integer) (list.get(8)),startTime,endTime,putId);
+                PutWarehouseDetail putWarehouseDetail = PutWarehouseDetail.dao.getPutDetailByPSIDAndProcurementId(Integer.parseInt ((list.get(2))+""), Integer.parseInt ((list.get(8))+""),startTime,endTime,putId);
                 if (putWarehouseDetail == null) {
                     putWarehouseDetail=new PutWarehouseDetail();
                     // 计算总价和入库单价
                     BigDecimal procurementPrice = new BigDecimal(list.get(4) + "");
-                    BigDecimal putNum = new BigDecimal((Integer) list.get(7));
+                    BigDecimal putNum = new BigDecimal(Integer.parseInt(list.get(7)+""));
                     BigDecimal procurementTotalPrice = procurementPrice.multiply(putNum);
                     BigDecimal boothCost = new BigDecimal(list.get(6) + "");
                     putAllCount = putAllCount.add(putNum);
-                    putAllTypeCount.put((Integer) list.get(2), "countNeed");
+                    putAllTypeCount.put(Integer.parseInt(list.get(2)+""), "countNeed");
                     // 弃用
                     putAllTotalCost = putAllTotalCost.add(procurementTotalPrice.add(boothCost));
                     //入库单价 = （入库总价+摊位费）/ 入库数量
                     BigDecimal averagePrice = (procurementTotalPrice.add(boothCost)).divide(putNum,2,BigDecimal.ROUND_HALF_DOWN);
 
                     // 根据商品规格编号获取商品编号
-                    Integer productId = ProductStandard.dao.getProductIdByPSId((Integer) list.get(2));
+                    Integer productId = ProductStandard.dao.getProductIdByPSId(Integer.parseInt(list.get(2)+""));
                     putWarehouseDetail.setProductId(productId);
                     //给入库详细信息赋值
                     putWarehouseDetail.setProductName(list.get(0) + "");
                     putWarehouseDetail.setProductStandardName(list.get(1) + "");
-                    putWarehouseDetail.setProductStandardId((Integer) list.get(2));
-                    putWarehouseDetail.setProductWeight((Double) list.get(3));
+                    putWarehouseDetail.setProductStandardId(Integer.parseInt(list.get(2)+""));
+                    putWarehouseDetail.setProductWeight(Double.parseDouble(list.get(3)+""));
                     putWarehouseDetail.setProcurementPrice(procurementPrice);
                     putWarehouseDetail.setProcurementTotalPrice(procurementTotalPrice);
                     putWarehouseDetail.setBoothCost(boothCost);
-                    putWarehouseDetail.setPutNum((Integer) list.get(7));
-                    putWarehouseDetail.setProcurementId((Integer) list.get(8));
+                    putWarehouseDetail.setPutNum(Integer.parseInt(list.get(7)+""));
+                    putWarehouseDetail.setProcurementId(Integer.parseInt(list.get(8)+""));
                     putWarehouseDetail.setPutAveragePrice(averagePrice);
                     putWarehouseDetail.setPutId(putId);
                     putWarehouseDetail.setCreateTime(currentTime);
@@ -159,7 +159,7 @@ public class WarehousePutDetailController extends BaseController {
                 }else {
                     // 执行修改操作
                     BigDecimal boothCost = new BigDecimal(list.get(6)+"");
-                    BigDecimal putNumUpdate = new BigDecimal((Integer)list.get(7));
+                    BigDecimal putNumUpdate = new BigDecimal(Integer.parseInt(list.get(7)+""));
                     BigDecimal procurementTotalPrice = putNumUpdate.multiply(putWarehouseDetail.getProcurementPrice());
                     // PutNum相差的值
                     Integer differPutNum = putWarehouseDetail.getPutNum() - putNumUpdate.intValue();
@@ -173,8 +173,8 @@ public class WarehousePutDetailController extends BaseController {
 
                     putWarehouseDetail.setPutAveragePrice((procurementTotalPrice.add(boothCost)).divide(putNumUpdate,2,BigDecimal.ROUND_HALF_DOWN));
                     putWarehouseDetail.setUpdateTime(new Date());
-                    putWarehouseDetail.setProcurementId((Integer) list.get(8));
-                    putWarehouseDetail.setProductWeight((Double) list.get(3));
+                    putWarehouseDetail.setProcurementId(Integer.parseInt(list.get(8)+""));
+                    putWarehouseDetail.setProductWeight(Double.parseDouble(list.get(3)+""));
                     putWarehouseDetail.setBoothCost(boothCost);
                     putWarehouseDetail.update();
 
