@@ -107,8 +107,8 @@ public class PutWarehouseDetail extends BasePutWarehouseDetail<PutWarehouseDetai
 		sql.append("pwd.put_remark,pwd.create_time,pwd.update_time,pwd.put_id ");
 		sql.append("from b_put_warehouse_detail pwd  ");
 		sql.append("where pwd.product_standard_id= ? and pwd.procurement_id = ?  and pwd.put_id = ? ");
-		sql.append("and pwd.create_time BETWEEN ? and ? ");
-		return findFirst(sql.toString(), psId, procurementId,putId,startTime,endTime);
+		// sql.append("and pwd.create_time BETWEEN ? and ? ");
+		return findFirst(sql.toString(), psId, procurementId,putId);
 	}
 
 	/**
