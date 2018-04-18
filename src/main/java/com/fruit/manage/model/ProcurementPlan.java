@@ -115,7 +115,7 @@ public class ProcurementPlan extends BaseProcurementPlan<ProcurementPlan> {
                 "AND pq.product_standard_id = ol.product_standard_id\n" +
                 "AND ol.product_id = p.id\n" +
                 "AND ol.product_standard_id = ps.id\n" +
-                "AND ol.is_statistical = 0\n" +
+                "AND ol.create_time BETWEEN ? AND ?\n" +
                 "GROUP BY\n" +
                 "\tol.product_standard_id\n" +
                 "HAVING\n" +
