@@ -40,16 +40,4 @@ public class QuotaContrller extends BaseController {
         Page<ProcurementQuota> pageData = ProcurementQuota.dao.getData(pageNum, pageSize, orderBy, isASC, quota, orderTime);
         renderJson(pageData);
     }
-
-    /**
-     * 导出所有的商品规格信息表
-     */
-    public void getProductStandardLibrary() {
-        System.out.println("进来了");
-        // xls表头顺序：商品名，规格名，规格编码，采购姓名，采购人id
-//        getRequest().getSession().getServletContext().getRealPath("static/excel");
-//        File file = new File("C:" + File.separator + "Users" + File.separator + "Administrator" + File.separator + "Desktop" + File.separator + "项目");
-        File file = new File("项目.png");
-        renderFile("test.txt","aaa.png");
-    }
 }

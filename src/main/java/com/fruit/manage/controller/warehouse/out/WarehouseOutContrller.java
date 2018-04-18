@@ -204,11 +204,11 @@ public class WarehouseOutContrller extends BaseController {
 
                 // 获取用户名
                 String userName = sheet.getRow(1).getCell(0).getStringCellValue();
-                userName = userName.substring(userName.indexOf(":") + 1);
+                userName = userName.substring(userName.indexOf(":") + 1).trim();
 
                 // 订单号
                 String orderId = sheet.getRow(5).getCell(0).getStringCellValue();
-                orderId = orderId.substring(orderId.indexOf(":") + 1);
+                orderId = orderId.substring(orderId.indexOf(":") + 1).trim();
 
                 // 获取所有订单详细
                 List<OrderDetail> orderDetails = OrderDetail.dao.getOrderDetails(orderId);
@@ -273,6 +273,7 @@ public class WarehouseOutContrller extends BaseController {
                         productTotalNum += outNum - outWarehouseDetail.getOutNum();
                         outWarehouseDetail.setOutNum(outNum);
                         outWarehouseDetail.setProductWeight(productWeight);
+                        outWarehouseDetail.update();
                         allTotalPrice = allTotalPrice.add(totalPrice.subtract(outWarehouseDetail.getOutTotalPrice()));
                         if (outNum == 0) {
                             --productStandardTotalNum;

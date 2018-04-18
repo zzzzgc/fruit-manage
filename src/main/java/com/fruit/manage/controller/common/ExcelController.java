@@ -23,8 +23,10 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -132,25 +134,51 @@ public class ExcelController extends BaseController {
                     ExcelRdTypeEnum.INTEGER
             });
 
+            // 所有的商品库信息
             List<ProductStandard> productStandardList = ProductStandard.dao.getProductStandardAllInfo();
+
+            List<ProcurementQuota> ProcurementQuotas = ProcurementQuota.dao.getProcurementQuotaAllInfo();
+            Map<Object, ProcurementQuota> productStandardId = ProcurementQuotas.stream().collect(Collectors.toMap(quota -> quota.get("product_standard_id"), Function.identity()));
+
+            List<User> users = User.dao.getAllUser();
+            Map<Integer, User> userMap = users.stream().collect(Collectors.toMap(User::getId, Function.identity()));
 
             for (Object[] excelRow : excelData) {
                 for (ProductStandard productStandard : productStandardList) {
                     if (productStandard.get("product_standard_id") != null && productStandard.get("product_standard_id").equals(excelRow[3])) {
-                        if (StringUtils.isNotBlank((String) excelRow[4]) && excelRow[5] != null) {
-                            ProcurementQuota procurementQuota = new ProcurementQuota();
-                            procurementQuota.setProductId(productStandard.get("product_id"));
-                            procurementQuota.setProductName(productStandard.get("product_name"));
-                            procurementQuota.setProductStandardName(productStandard.get("product_standard_name"));
-                            procurementQuota.setProductStandardId(productStandard.get("product_standard_id"));
-                            procurementQuota.setProcurementName((String) excelRow[4]);
-                            procurementQuota.setProcurementId((Integer) excelRow[5]);
-                            procurementQuota.setCreateTime(new Date());
-                            procurementQuota.setCreateUserId(uid);
-                            procurementQuota.setCreateUserName(name);
-                            procurementQuota.save();
+                        Integer procurementId = (Integer) excelRow[5];
+                        User user = userMap.get(procurementId);
+                        String procurementName = user.getName();
+
+                        ProcurementQuota quota = productStandardId.get(productStandard.get("product_standard_id"));
+                        if (quota ==null) {
+                            if (StringUtils.isNotBlank(procurementName) && procurementId != null) {
+                                ProcurementQuota procurementQuota = new ProcurementQuota();
+                                procurementQuota.setProductId(productStandard.get("product_id"));
+                                procurementQuota.setProductName(productStandard.get("product_name"));
+                                procurementQuota.setProductStandardName(productStandard.get("product_standard_name"));
+                                procurementQuota.setProductStandardId(productStandard.get("product_standard_id"));
+                                procurementQuota.setProcurementName(procurementName);
+                                procurementQuota.setProcurementId(procurementId);
+                                procurementQuota.setCreateUserId(uid);
+                                procurementQuota.setCreateUserName(name);
+                                procurementQuota.setUpdateTime(new Date());
+                                procurementQuota.setCreateTime(new Date());
+                                procurementQuota.save();
+                            }
+                            break;
+                        }else {
+                            quota.setProductId(productStandard.get("product_id"));
+                            quota.setProductName(productStandard.get("product_name"));
+                            quota.setProductStandardName(productStandard.get("product_standard_name"));
+                            quota.setProductStandardId(productStandard.get("product_standard_id"));
+                            quota.setProcurementName(procurementName);
+                            quota.setProcurementId(procurementId);
+                            quota.setCreateUserId(uid);
+                            quota.setCreateUserName(name);
+                            quota.setUpdateTime(new Date());
+                            quota.update();
                         }
-                        break;
                     }
                 }
 
@@ -315,11 +343,19 @@ public class ExcelController extends BaseController {
                 c9.setCellStyle(styleText);
                 c9.setCellValue("配货点：广州江南市场");
 
+                // 6 line
+                row = sheet.createRow(rowCount++);
+                row.setHeightInPoints(textHeight);
+                _mergedRegionNowRow(sheet, row, 1, 3);
+                c3 = row.createCell(0);
+                c3.setCellStyle(styleText);
+                c3.setCellValue("订单号: " + orderId);
 
                 XSSFCell c1;
                 XSSFCell c2;
                 XSSFCell c4;
                 XSSFCell c5;
+                XSSFCell c7;
 
                 // data
                 row = sheet.createRow(rowCount++);
@@ -330,23 +366,27 @@ public class ExcelController extends BaseController {
                 c4 = row.createCell(3);
                 c5 = row.createCell(4);
                 c6 = row.createCell(5);
+                c7 = row.createCell(6);
                 c1.setCellStyle(styleTable);
                 c2.setCellStyle(styleTable);
                 c3.setCellStyle(styleTable);
                 c4.setCellStyle(styleTable);
                 c5.setCellStyle(styleTable);
                 c6.setCellStyle(styleTable);
+                c7.setCellStyle(styleTable);
 
                 c1.setCellValue("商品名称");
                 c2.setCellValue("规格名称");
-                c3.setCellValue("重量（斤）");
-                c4.setCellValue("下单数量");
-                c5.setCellValue("实发数量");
-                c6.setCellValue("商品备注");
+                c3.setCellValue("规格编号");
+                c4.setCellValue("重量（斤）");
+                c5.setCellValue("下单数量");
+                c6.setCellValue("实发数量");
+                c7.setCellValue("商品备注");
 
                 sql = "SELECT " +
                         "od.product_name, " +
                         "od.product_standard_name, " +
+                        "od.product_standard_id, " +
                         "ps.weight_price, " +
                         "od.num, " +
                         "od.actual_send_goods_num, " +
@@ -366,22 +406,28 @@ public class ExcelController extends BaseController {
                     c4 = row.createCell(3);
                     c5 = row.createCell(4);
                     c6 = row.createCell(5);
+                    c7 = row.createCell(6);
                     c1.setCellStyle(styleTable);
                     c2.setCellStyle(styleTable);
                     c3.setCellStyle(styleTable);
                     c4.setCellStyle(styleTable);
                     c5.setCellStyle(styleTable);
                     c6.setCellStyle(styleTable);
+                    c7.setCellStyle(styleTable);
 
-                    c1.setCellValue(orderDetail.get("product_name").toString());
-                    c2.setCellValue(orderDetail.get("product_standard_name").toString());
-                    c3.setCellValue(orderDetail.get("weight_price").toString());
-                    c4.setCellValue(orderDetail.get("num").toString());
-                    c5.setCellValue(0);
-                    c6.setCellValue(orderDetail.get("buy_remark") != null ? orderDetail.get("buy_remark").toString() : null);
                     c3.setCellType(CellType.NUMERIC);
                     c4.setCellType(CellType.NUMERIC);
                     c5.setCellType(CellType.NUMERIC);
+                    c6.setCellType(CellType.NUMERIC);
+
+                    c1.setCellValue(orderDetail.get("product_name").toString());
+                    c2.setCellValue(orderDetail.get("product_standard_name").toString());
+                    c3.setCellValue((Integer) orderDetail.get("product_standard_id"));
+                    c4.setCellValue(((BigDecimal) orderDetail.get("weight_price")).doubleValue());
+                    c5.setCellValue((Integer) orderDetail.get("num"));
+                    c6.setCellValue(0);
+                    c7.setCellValue(orderDetail.get("buy_remark") != null ? orderDetail.get("buy_remark").toString() : null);
+
                 }
                 // 添加三行空行
 //            sheet.createRow(rowCount++).setRowStyle(styleTable);

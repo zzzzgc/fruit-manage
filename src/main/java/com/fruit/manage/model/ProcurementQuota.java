@@ -84,4 +84,12 @@ public class ProcurementQuota extends BaseProcurementQuota<ProcurementQuota> {
         System.out.println(params);
         return paginate(pageNum,pageSize,select,fromAndWhere.toString(),params.toArray());
     }
+
+    /**
+     * 获取所有商品库信息
+     * @return
+     */
+    public List<ProcurementQuota> getProcurementQuotaAllInfo() {
+        return dao.find("SELECT * FROM  b_procurement_quota");
+    }
 }
