@@ -86,7 +86,7 @@ public class WarehousePutController extends BaseController {
         if(detailList!=null && detailList.size()>0){
             List<String[]> lists = new ArrayList<>();
             for (int i = 0; i < detailList.size(); i++) {
-                String[] strs = new String[detailList.size()];
+                String[] strs = new String[9];
                 strs[0] = detailList.get(i).getProductName();
                 strs[1] = detailList.get(i).getProductStandardName();
                 strs[2] = detailList.get(i).getProductStandardId()+"";
