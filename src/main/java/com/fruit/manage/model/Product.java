@@ -144,4 +144,12 @@ public class Product extends BaseProduct<Product> {
 				"and ps.id= ? ";
 		return  findFirst(sql,productName,productStandardID);
 	}
+
+	/**
+	 * 增加该商品的购买量
+	 * @return
+	 */
+	public boolean increaseSellNum(Integer productId) {
+		return Db.update("UPDATE b_product SET total_sell_num = total_sell_num + 1,week_sell_num = week_sell_num  + 1 WHERE id = ? ",productId) == 1;
+	}
 }

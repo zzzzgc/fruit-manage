@@ -134,6 +134,7 @@ public class OrderController extends BaseController {
             // 删除 TODO 叠加删除的订单
             order.setOrderStatus(OrderStatusCode.DELETED.getStatus());
             order.delete();
+            LogisticsInfo.dao.delLogisticsInfoByOrderID(orderId);
             List<OrderDetail> orderDetails = OrderDetail.dao.getOrderDetails(orderId);
             orderId = delOrderCount++ + "-" + order.getOrderId();
             order.setOrderId(orderId);
@@ -228,6 +229,7 @@ public class OrderController extends BaseController {
                     orderDetail.setCreateTime(now);
                     orderDetail.setUpdateTime(now);
                     orderDetail.save(UserTypeConstant.A_USER, uid);
+                    Product.dao.increaseSellNum(orderDetail.getProductId());
                 }
             }
             order.setPayNeedMoney(payNeedMoney);
@@ -249,7 +251,6 @@ public class OrderController extends BaseController {
                     BigDecimal sellPrice = orderDetail.getSellPrice();
                     BigDecimal totalPay = sellPrice.multiply(new BigDecimal(num));
                     payNeedMoney = payNeedMoney.add(totalPay);
-
                     orderDetail.setTotalPay(totalPay);
                     orderDetail.setCreateTime(now);
                     orderDetail.setUId(business_user_id);
