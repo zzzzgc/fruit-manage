@@ -156,7 +156,7 @@ public class User extends BaseUser<User> {
 	 * @return
 	 */
 	public Integer getUserIdByName(String name) {
-		String sql = "SELECT id from a_user where `name` = ? ";
-		return Db.queryInt(sql, name);
+		String sql = "SELECT id from a_user where `nick_name` like ? ";
+		return Db.queryInt(sql, "%"+name+"%");
 	}
 }

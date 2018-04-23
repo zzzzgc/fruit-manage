@@ -152,127 +152,127 @@ public class PlanController extends BaseController {
         }
     }
 
-    /**
-     * 根据采购计划ID导出采购计划单
-     */
-    public void exportPPlan() {
-        Integer uid = getSessionAttr(Constant.SESSION_UID);
-        // 获取当前操作用户
-        User user = User.dao.findById(uid);
-
-        Date createTime = getParaToDate("createTime");
-        String createTimeStr = DateAndStringFormat.getStringDateShort(createTime);
-        String[] createTimes = new String[2];
-        createTimes[0] = DateAndStringFormat.getNextDay(createTimeStr, "-1") + " 12:00:00";
-        createTimes[1] = createTimeStr + " 11:59:59";
-        // 获取要导出数据
-        List<ProcurementPlan> planList = ProcurementPlan.dao.getExportDataByPPlanID(createTimes);
-
-        // 行头
-        String[] header = {"商品名", "规格名", "规格编码", "重量(斤)", "报价", "下单量", "库存量", "采购量", "采购单价", "下单备注"};
-        // 先执行删除操作
-        ProcurementPlanDetail.dao.delPPlanDetail(createTimes);
-
-        // excel表格信息
-        HashMap<Integer, Map<String, Object>> excelInfoList = new HashMap<>(5);
-
-
-//        List<String[]> listData = new ArrayList<String[]>();
-        String zipFileName = createTimeStr+"订单周期的采购计划表.zip";
-        String zipFolder = CommonController.FILE_PATH + File.separator + zipFileName;
-        File zipFolderFile = new File(zipFolder);
-        if (zipFolderFile.exists()) {
-            zipFolderFile.mkdirs();
-        }
-        if (planList.size() <1) {
-            renderErrorText("一条订单都没有");
-            return;
-        }
-        for (ProcurementPlan procurementPlan : planList) {
-            // 根据采购人分别保存信息,用来区分不同的采购采购的东西
-            Map<String, Object> excelInfo = excelInfoList.get(procurementPlan.get("procurement_id"));
-            List<Object[]> listData = null;
-            if (excelInfo == null) {
-                excelInfo = new HashMap<>(20);
-                excelInfoList.put(procurementPlan.get("procurement_id"),excelInfo);
-                excelInfo.put("path", zipFolder);
-                excelInfo.put("fileName", "file_" + UUID.randomUUID().toString().replaceAll("-", "") + ".xlsx");
-                excelInfo.put("title", "采购计划表");
-                excelInfo.put("createBy", procurementPlan.get("procurement_name"));
-                excelInfo.put("header", header);
-                excelInfo.put("listData", new ArrayList<Object[]>());
-                listData = (List<Object[]>) excelInfo.get("listData");
-            } else {
-                listData = (List<Object[]>) excelInfo.get("listData");
-            }
-            Object[] str = new Object[header.length];
-            Integer productId = procurementPlan.get("productId");
-            // 商品名
-            str[0] = procurementPlan.get("productName");
-            // 规格名
-            str[1] = procurementPlan.get("productStandardName");
-            // 规格编号
-            str[2] = procurementPlan.get("productStandardID");
-            // 水果重量
-            str[3] = procurementPlan.get("fruitWeight");
-            // 报价
-            str[4] = procurementPlan.get("sellPrice");
-            str[5] = procurementPlan.get("purchaseNum");
-            str[6] = procurementPlan.get("inventoryNum");
-            str[7] = procurementPlan.get("procurementNum");
-            str[8] = procurementPlan.get("procurementPrice");
-            // TODO 需要改成订单备注
-            str[9] = procurementPlan.get("procurementRemark");
-            listData.add(str);
-            ProcurementPlanDetail procurementPlanDetail = new ProcurementPlanDetail();
-            procurementPlanDetail.setProductId(productId);
-            procurementPlanDetail.setProductStandardId(procurementPlan.get("productStandardID"));
-            procurementPlanDetail.setProcurementId(uid);
-            procurementPlanDetail.setProductName(procurementPlan.get("productName"));
-            procurementPlanDetail.setProductStandardName(procurementPlan.get("productStandardName"));
-            procurementPlanDetail.setSellPrice(procurementPlan.get("sellPrice"));
-            procurementPlanDetail.setInventoryNum(Integer.parseInt(procurementPlan.get("inventoryNum") + ""));
-            procurementPlanDetail.setProcurementNum(Integer.parseInt(procurementPlan.get("procurementNum") + ""));
-            procurementPlanDetail.setProductStandardNum(Integer.parseInt(procurementPlan.get("productStandardNum") + ""));
-            procurementPlanDetail.setProcurementNeedPrice(BigDecimal.valueOf(procurementPlan.get("procurementNeedPrice")));
-            procurementPlanDetail.setProcurementTotalPrice(BigDecimal.valueOf(procurementPlan.get("procurementTotalPrice")));
-            procurementPlanDetail.setOrderRemark(procurementPlan.get("orderRemark"));
-            procurementPlanDetail.setProcurementRemark(procurementPlan.get("procurementRemark"));
-            procurementPlanDetail.setCreateTime(createTime);
-            procurementPlanDetail.setUpdateTime(new Date());
-            procurementPlanDetail.save();
-        }
-
-        //保存路径
-//        String savePath = getRequest().getSession().getServletContext().getRealPath("static/excel");
-//        System.out.println("\n" + savePath);
-//        String fpath = getSession().getServletContext().getRealPath("static/excel");
-//        String fileName = "file_" + UUID.randomUUID().toString().replaceAll("-", "") + ".xlsx";
-//        System.out.println(fpath + "\n");
-//        Map map = new HashMap(12);
-//        map.put("path", savePath);
-//        map.put("fileName", fileName);
-//        map.put("title", "采购计划表");
-//        map.put("createBy", user.getName());
-//        map.put("header", header);
-//        map.put("listData", listData);
-        ArrayList<File> files = new ArrayList<>();
-        for (Integer integer : excelInfoList.keySet()) {
-            Map<String, Object> stringObjectMap = excelInfoList.get(integer);
-            String file = null;
-            try {
-                file = ExcelCommon.createExcelModul(stringObjectMap);
-            } catch (ExcelException e) {
-                renderErrorText(e.getMessage());
-            }
-            files.add(new File(file));
-        }
-        String zipName  = zipFileName + ".zip";
-        boolean b = fileToZip(zipFolder, CommonController.FILE_PATH, zipFileName);
-        HashMap<Object, Object> objectObjectHashMap = new HashMap<>(1);
-        objectObjectHashMap.put("zipName",zipName);
-        renderJson(objectObjectHashMap);
-    }
+//    /**
+//     * 根据采购计划ID导出采购计划单
+//     */
+//    public void exportPPlan() {
+//        Integer uid = getSessionAttr(Constant.SESSION_UID);
+//        // 获取当前操作用户
+//        User user = User.dao.findById(uid);
+//
+//        Date createTime = getParaToDate("createTime");
+//        String createTimeStr = DateAndStringFormat.getStringDateShort(createTime);
+//        String[] createTimes = new String[2];
+//        createTimes[0] = DateAndStringFormat.getNextDay(createTimeStr, "-1") + " 12:00:00";
+//        createTimes[1] = createTimeStr + " 11:59:59";
+//        // 获取要导出数据
+//        List<ProcurementPlan> planList = ProcurementPlan.dao.getExportDataByPPlanID(createTimes);
+//
+//        // 行头
+//        String[] header = {"商品名", "规格名", "规格编码", "重量(斤)", "报价", "下单量", "库存量", "采购量", "采购单价", "下单备注"};
+//        // 先执行删除操作
+//        ProcurementPlanDetail.dao.delPPlanDetail(createTimes);
+//
+//        // excel表格信息
+//        HashMap<Integer, Map<String, Object>> excelInfoList = new HashMap<>(5);
+//
+//
+////        List<String[]> listData = new ArrayList<String[]>();
+//        String zipFileName = createTimeStr+"订单周期的采购计划表.zip";
+//        String zipFolder = CommonController.FILE_PATH + File.separator + zipFileName;
+//        File zipFolderFile = new File(zipFolder);
+//        if (zipFolderFile.exists()) {
+//            zipFolderFile.mkdirs();
+//        }
+//        if (planList.size() <1) {
+//            renderErrorText("一条订单都没有");
+//            return;
+//        }
+//        for (ProcurementPlan procurementPlan : planList) {
+//            // 根据采购人分别保存信息,用来区分不同的采购采购的东西
+//            Map<String, Object> excelInfo = excelInfoList.get(procurementPlan.get("procurement_id"));
+//            List<Object[]> listData = null;
+//            if (excelInfo == null) {
+//                excelInfo = new HashMap<>(20);
+//                excelInfoList.put(procurementPlan.get("procurement_id"),excelInfo);
+//                excelInfo.put("path", zipFolder);
+//                excelInfo.put("fileName", "file_" + UUID.randomUUID().toString().replaceAll("-", "") + ".xlsx");
+//                excelInfo.put("title", "采购计划表");
+//                excelInfo.put("createBy", procurementPlan.get("procurement_name"));
+//                excelInfo.put("header", header);
+//                excelInfo.put("listData", new ArrayList<Object[]>());
+//                listData = (List<Object[]>) excelInfo.get("listData");
+//            } else {
+//                listData = (List<Object[]>) excelInfo.get("listData");
+//            }
+//            Object[] str = new Object[header.length];
+//            Integer productId = procurementPlan.get("productId");
+//            // 商品名
+//            str[0] = procurementPlan.get("productName");
+//            // 规格名
+//            str[1] = procurementPlan.get("productStandardName");
+//            // 规格编号
+//            str[2] = procurementPlan.get("productStandardID");
+//            // 水果重量
+//            str[3] = procurementPlan.get("fruitWeight");
+//            // 报价
+//            str[4] = procurementPlan.get("sellPrice");
+//            str[5] = procurementPlan.get("purchaseNum");
+//            str[6] = procurementPlan.get("inventoryNum");
+//            str[7] = procurementPlan.get("procurementNum");
+//            str[8] = procurementPlan.get("procurementPrice");
+//            // TODO 需要改成订单备注
+//            str[9] = procurementPlan.get("procurementRemark");
+//            listData.add(str);
+//            ProcurementPlanDetail procurementPlanDetail = new ProcurementPlanDetail();
+//            procurementPlanDetail.setProductId(productId);
+//            procurementPlanDetail.setProductStandardId(procurementPlan.get("productStandardID"));
+//            procurementPlanDetail.setProcurementId(uid);
+//            procurementPlanDetail.setProductName(procurementPlan.get("productName"));
+//            procurementPlanDetail.setProductStandardName(procurementPlan.get("productStandardName"));
+//            procurementPlanDetail.setSellPrice(procurementPlan.get("sellPrice"));
+//            procurementPlanDetail.setInventoryNum(Integer.parseInt(procurementPlan.get("inventoryNum") + ""));
+//            procurementPlanDetail.setProcurementNum(Integer.parseInt(procurementPlan.get("procurementNum") + ""));
+//            procurementPlanDetail.setProductStandardNum(Integer.parseInt(procurementPlan.get("productStandardNum") + ""));
+//            procurementPlanDetail.setProcurementNeedPrice(BigDecimal.valueOf(procurementPlan.get("procurementNeedPrice")));
+//            procurementPlanDetail.setProcurementTotalPrice(BigDecimal.valueOf(procurementPlan.get("procurementTotalPrice")));
+//            procurementPlanDetail.setOrderRemark(procurementPlan.get("orderRemark"));
+//            procurementPlanDetail.setProcurementRemark(procurementPlan.get("procurementRemark"));
+//            procurementPlanDetail.setCreateTime(createTime);
+//            procurementPlanDetail.setUpdateTime(new Date());
+//            procurementPlanDetail.save();
+//        }
+//
+//        //保存路径
+////        String savePath = getRequest().getSession().getServletContext().getRealPath("static/excel");
+////        System.out.println("\n" + savePath);
+////        String fpath = getSession().getServletContext().getRealPath("static/excel");
+////        String fileName = "file_" + UUID.randomUUID().toString().replaceAll("-", "") + ".xlsx";
+////        System.out.println(fpath + "\n");
+////        Map map = new HashMap(12);
+////        map.put("path", savePath);
+////        map.put("fileName", fileName);
+////        map.put("title", "采购计划表");
+////        map.put("createBy", user.getName());
+////        map.put("header", header);
+////        map.put("listData", listData);
+//        ArrayList<File> files = new ArrayList<>();
+//        for (Integer integer : excelInfoList.keySet()) {
+//            Map<String, Object> stringObjectMap = excelInfoList.get(integer);
+//            String file = null;
+//            try {
+//                file = ExcelCommon.createExcelModul(stringObjectMap);
+//            } catch (ExcelException e) {
+//                renderErrorText(e.getMessage());
+//            }
+//            files.add(new File(file));
+//        }
+//        String zipName  = zipFileName + ".zip";
+//        boolean b = fileToZip(zipFolder, CommonController.FILE_PATH, zipFileName);
+//        HashMap<Object, Object> objectObjectHashMap = new HashMap<>(1);
+//        objectObjectHashMap.put("zipName",zipName);
+//        renderJson(objectObjectHashMap);
+//    }
 
     /**
      * 将存放在sourceFilePath目录下的源文件，打包成fileName名称的zip文件，并存放到zipFilePath路径下
