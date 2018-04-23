@@ -130,6 +130,33 @@ public class ExcelCommon {
         return data;
     }
 
+    public static List<List<Object[]>> excelRdList(String pathFile,Integer startRowNum,Integer startColNum,ExcelRdTypeEnum [] typeEnums){
+        ExcelRd excelRd = new ExcelRd(pathFile);
+        excelRd.setStartRow(startRowNum);
+        excelRd.setStartCol(startColNum);
+        excelRd.setTypes(typeEnums);
+        List<List<Object[]>> listObjects = new ArrayList<>();
+        List<List<ExcelRdRow>> lists=null;
+        try {
+            lists=excelRd.analysisXlsxMultiTable();
+            for (int i = 0; i < lists.size(); i++) {
+                List<Object[]> objectArray = new ArrayList<>();
+                Iterator<ExcelRdRow> iterator = lists.get(i).iterator();
+                while (iterator.hasNext()) {
+                    ExcelRdRow excelRdRow =iterator.next();
+                    List<Object> objects = excelRdRow.getRow();
+                    objectArray.add(objects.toArray());
+                }
+                listObjects.add(objectArray);
+            }
+        } catch (ExcelRdException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return listObjects;
+    }
+
     public static void main(String[] args) {
         int rowCount = 0;
 

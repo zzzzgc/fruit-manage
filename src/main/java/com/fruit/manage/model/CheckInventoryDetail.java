@@ -107,9 +107,9 @@ public class CheckInventoryDetail extends BaseCheckInventoryDetail<CheckInventor
 				"WHERE " +
 				"1 = 1 " +
 				"AND cid.product_standard_id = ? " +
-				"AND cid.check_inventory_id = ? " +
-				"and cid.create_time BETWEEN ? and ?";
-		return findFirst(sql,psId,checkInventoryId,startTime,endTime);
+				"AND cid.check_inventory_id = ? ";// +
+				//"and cid.create_time BETWEEN ? and ?";
+		return findFirst(sql,psId,checkInventoryId);
 	}
 
 	/**

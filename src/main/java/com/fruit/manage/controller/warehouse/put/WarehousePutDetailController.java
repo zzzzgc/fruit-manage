@@ -88,11 +88,10 @@ public class WarehousePutDetailController extends BaseController {
      */
     @Before(Tx.class)
     public void exportInfo() {
+
         String fileName = getPara("fileName");
         Integer putId = getParaToInt("putId");
         String filePath = CommonController.FILE_PATH + File.separator + fileName;
-        Iterator<ExcelRdRow> iterator = WarehousePutDetailController.readExcel(filePath).iterator();
-        Integer count = 0;
         // 入库总数量
         BigDecimal putAllCount = new BigDecimal(0);
         // 入库类型总数量
@@ -102,95 +101,137 @@ public class WarehousePutDetailController extends BaseController {
         Date currentTime = new Date();
         String startTime = null;
         String endTime = null;
-        while (iterator.hasNext()) {
-            count++;
-            ExcelRdRow excelRdRow = iterator.next();
-            List<Object> list = excelRdRow.getRow();
-            if(count==1){
-                String createTimeStr= ((String)list.get(0)).split(" ")[0].substring(5);
-                startTime = createTimeStr+" 00:00:00";
-                endTime = createTimeStr+" 23:59:59";
-            }
-            if (count > 2) {
-                PutWarehouseDetail putWarehouseDetail = PutWarehouseDetail.dao.getPutDetailByPSIDAndProcurementId(Integer.parseInt ((list.get(2))+""), Integer.parseInt ((list.get(8))+""),startTime,endTime,putId);
-                if (putWarehouseDetail == null) {
-                    putWarehouseDetail=new PutWarehouseDetail();
-                    // 计算总价和入库单价
-                    BigDecimal procurementPrice = new BigDecimal(list.get(4) + "");
-                    BigDecimal putNum = new BigDecimal(Integer.parseInt(list.get(7)+""));
-                    BigDecimal procurementTotalPrice = procurementPrice.multiply(putNum);
-                    BigDecimal boothCost = new BigDecimal(list.get(6) + "");
-                    putAllCount = putAllCount.add(putNum);
-                    putAllTypeCount.put(Integer.parseInt(list.get(2)+""), "countNeed");
-                    // 弃用
-                    putAllTotalCost = putAllTotalCost.add(procurementTotalPrice.add(boothCost));
-                    //入库单价 = （入库总价+摊位费）/ 入库数量
-                    BigDecimal averagePrice = (procurementTotalPrice.add(boothCost)).divide(putNum,2,BigDecimal.ROUND_HALF_DOWN);
 
-                    // 根据商品规格编号获取商品编号
-                    Integer productId = ProductStandard.dao.getProductIdByPSId(Integer.parseInt(list.get(2)+""));
-                    putWarehouseDetail.setProductId(productId);
-                    //给入库详细信息赋值
-                    putWarehouseDetail.setProductName(list.get(0) + "");
-                    putWarehouseDetail.setProductStandardName(list.get(1) + "");
-                    putWarehouseDetail.setProductStandardId(Integer.parseInt(list.get(2)+""));
-                    putWarehouseDetail.setProductWeight(Double.parseDouble(list.get(3)+""));
-                    putWarehouseDetail.setProcurementPrice(procurementPrice);
-                    putWarehouseDetail.setProcurementTotalPrice(procurementTotalPrice);
-                    putWarehouseDetail.setBoothCost(boothCost);
-                    putWarehouseDetail.setPutNum(Integer.parseInt(list.get(7)+""));
-                    putWarehouseDetail.setProcurementId(Integer.parseInt(list.get(8)+""));
-                    putWarehouseDetail.setPutAveragePrice(averagePrice);
-                    putWarehouseDetail.setPutId(putId);
-                    putWarehouseDetail.setCreateTime(currentTime);
-                    putWarehouseDetail.save();
+//        Iterator<ExcelRdRow> iterator = WarehousePutDetailController.readExcel(filePath).iterator();
+        List<List<ExcelRdRow>> listExcelRdRows = readExcelMultiTable(filePath);
+        for (int i = 0; i < listExcelRdRows.size(); i++) {
+            Iterator<ExcelRdRow> iterator =listExcelRdRows.get (i).iterator();
+            Integer count = 0;
 
-                    // 根据商品规格编号修改商品规格的库存量
-                    updateProductStandardStore(putWarehouseDetail.getProductStandardId(),putWarehouseDetail.getPutNum(),putWarehouseDetail.getProductStandardName(),putWarehouseDetail.getProductId(),putWarehouseDetail.getProductName());
+            while (iterator.hasNext()) {
+                count++;
+                ExcelRdRow excelRdRow = iterator.next();
+                List<Object> list = excelRdRow.getRow();
+                if (count == 1 && i==0) {
+                    String createTimeStr = ((String) list.get(0)).split(" ")[0].substring(5);
+                    startTime = createTimeStr + " 00:00:00";
+                    endTime = createTimeStr + " 23:59:59";
+                }
+                if (count > 2) {
+                    PutWarehouseDetail putWarehouseDetail = PutWarehouseDetail.dao.getPutDetailByPSIDAndProcurementId(Integer.parseInt((list.get(2)) + ""), Integer.parseInt((list.get(8)) + ""), startTime, endTime, putId);
+                    if (putWarehouseDetail == null) {
+                        putWarehouseDetail = new PutWarehouseDetail();
+                        // 计算总价和入库单价
+                        BigDecimal procurementPrice = new BigDecimal(list.get(4) + "");
+                        BigDecimal putNum = new BigDecimal(Integer.parseInt(list.get(7) + ""));
+                        BigDecimal procurementTotalPrice = procurementPrice.multiply(putNum);
+                        BigDecimal boothCost = new BigDecimal(list.get(6) + "");
+                        putAllCount = putAllCount.add(putNum);
+                        putAllTypeCount.put(Integer.parseInt(list.get(2) + ""), "countNeed");
+                        // 弃用
+                        putAllTotalCost = putAllTotalCost.add(procurementTotalPrice.add(boothCost));
+                        //入库单价 = （入库总价+摊位费）/ 入库数量
+                        BigDecimal averagePrice = (procurementTotalPrice.add(boothCost)).divide(putNum, 2, BigDecimal.ROUND_HALF_DOWN);
+
+                        // 根据商品规格编号获取商品编号
+                        Integer productId = ProductStandard.dao.getProductIdByPSId(Integer.parseInt(list.get(2) + ""));
+                        putWarehouseDetail.setProductId(productId);
+                        //给入库详细信息赋值
+                        putWarehouseDetail.setProductName(list.get(0) + "");
+                        putWarehouseDetail.setProductStandardName(list.get(1) + "");
+                        putWarehouseDetail.setProductStandardId(Integer.parseInt(list.get(2) + ""));
+                        putWarehouseDetail.setProductWeight(Double.parseDouble(list.get(3) + ""));
+                        putWarehouseDetail.setProcurementPrice(procurementPrice);
+                        putWarehouseDetail.setProcurementTotalPrice(procurementTotalPrice);
+                        putWarehouseDetail.setBoothCost(boothCost);
+                        putWarehouseDetail.setPutNum(Integer.parseInt(list.get(7) + ""));
+                        putWarehouseDetail.setProcurementId(Integer.parseInt(list.get(8) + ""));
+                        putWarehouseDetail.setPutAveragePrice(averagePrice);
+                        putWarehouseDetail.setPutId(putId);
+                        putWarehouseDetail.setCreateTime(currentTime);
+                        putWarehouseDetail.save();
+
+                        // 根据商品规格编号修改商品规格的库存量
+                        updateProductStandardStore(putWarehouseDetail.getProductStandardId(), putWarehouseDetail.getPutNum(), putWarehouseDetail.getProductStandardName(), putWarehouseDetail.getProductId(), putWarehouseDetail.getProductName());
 
 
-                    PutWarehouse putWarehouse = PutWarehouse.dao.getPutWarehouseById(putId);
-                    putWarehouse.setPutTime(currentTime);
-                    putWarehouse.setUpdateTime(currentTime);
-                    putWarehouse.setPutNum(putAllCount.intValue());
-                    putWarehouse.setPutTypeNum(putAllTypeCount.size());
-                    putWarehouse.setPutTotalPrice(putWarehouse.getPutTotalPrice().add(procurementTotalPrice).add(boothCost));
-                    putWarehouse.update();
-                }else {
-                    // 执行修改操作
-                    BigDecimal boothCost = new BigDecimal(list.get(6)+"");
-                    BigDecimal putNumUpdate = new BigDecimal(Integer.parseInt(list.get(7)+""));
-                    BigDecimal procurementTotalPrice = putNumUpdate.multiply(putWarehouseDetail.getProcurementPrice());
-                    // PutNum相差的值
-                    Integer differPutNum = putWarehouseDetail.getPutNum() - putNumUpdate.intValue();
-                    // 摊位分相差值
-                    BigDecimal differBoothCost = putWarehouseDetail.getBoothCost().subtract(boothCost);
-                    // 入库数量的相差值
-                    BigDecimal differPutTotalPrice = (putWarehouseDetail.getProcurementPrice().multiply(new BigDecimal(putWarehouseDetail.getPutNum()))).subtract(putWarehouseDetail.getProcurementPrice().multiply(putNumUpdate));
+                        PutWarehouse putWarehouse = PutWarehouse.dao.getPutWarehouseById(putId);
+                        putWarehouse.setPutTime(currentTime);
+                        putWarehouse.setUpdateTime(currentTime);
+                        putWarehouse.setPutNum(putAllCount.intValue());
+                        putWarehouse.setPutTypeNum(putAllTypeCount.size());
+                        putWarehouse.setPutTotalPrice(putWarehouse.getPutTotalPrice().add(procurementTotalPrice).add(boothCost));
+                        putWarehouse.update();
+                    } else {
+                        // 执行修改操作
+                        BigDecimal boothCost = new BigDecimal(list.get(6) + "");
+                        BigDecimal putNumUpdate = new BigDecimal(Integer.parseInt(list.get(7) + ""));
+                        BigDecimal procurementTotalPrice = putNumUpdate.multiply(putWarehouseDetail.getProcurementPrice());
+                        // PutNum相差的值
+                        Integer differPutNum = putWarehouseDetail.getPutNum() - putNumUpdate.intValue();
+                        // 摊位分相差值
+                        BigDecimal differBoothCost = putWarehouseDetail.getBoothCost().subtract(boothCost);
+                        // 入库数量的相差值
+                        BigDecimal differPutTotalPrice = (putWarehouseDetail.getProcurementPrice().multiply(new BigDecimal(putWarehouseDetail.getPutNum()))).subtract(putWarehouseDetail.getProcurementPrice().multiply(putNumUpdate));
 
-                    putWarehouseDetail.setPutNum(putNumUpdate.intValue());
-                    putWarehouseDetail.setProcurementTotalPrice(procurementTotalPrice);
+                        putWarehouseDetail.setPutNum(putNumUpdate.intValue());
+                        putWarehouseDetail.setProcurementTotalPrice(procurementTotalPrice);
 
-                    putWarehouseDetail.setPutAveragePrice((procurementTotalPrice.add(boothCost)).divide(putNumUpdate,2,BigDecimal.ROUND_HALF_DOWN));
-                    putWarehouseDetail.setUpdateTime(new Date());
-                    putWarehouseDetail.setProcurementId(Integer.parseInt(list.get(8)+""));
-                    putWarehouseDetail.setProductWeight(Double.parseDouble(list.get(3)+""));
-                    putWarehouseDetail.setBoothCost(boothCost);
-                    putWarehouseDetail.update();
+                        putWarehouseDetail.setPutAveragePrice((procurementTotalPrice.add(boothCost)).divide(putNumUpdate, 2, BigDecimal.ROUND_HALF_DOWN));
+                        putWarehouseDetail.setUpdateTime(new Date());
+                        putWarehouseDetail.setProcurementId(Integer.parseInt(list.get(8) + ""));
+                        putWarehouseDetail.setProductWeight(Double.parseDouble(list.get(3) + ""));
+                        putWarehouseDetail.setBoothCost(boothCost);
+                        putWarehouseDetail.update();
 
-                    // 根据商品规格编号修改商品规格的库存量
-                    updateProductStandardStore(putWarehouseDetail.getProductStandardId(), differPutNum.intValue(),putWarehouseDetail.getProductStandardName(),putWarehouseDetail.getProductId(),putWarehouseDetail.getProductName());
+                        // 根据商品规格编号修改商品规格的库存量
+                        updateProductStandardStore(putWarehouseDetail.getProductStandardId(), differPutNum.intValue(), putWarehouseDetail.getProductStandardName(), putWarehouseDetail.getProductId(), putWarehouseDetail.getProductName());
 
-                    PutWarehouse putWarehouse = PutWarehouse.dao.getPutWarehouseById(putWarehouseDetail.getPutId());
-                    putWarehouse.setPutNum(putWarehouse.getPutNum() - differPutNum);
-                    putWarehouse.setUpdateTime(new Date());
-                    // 计算修改了之后总价的价格修改
-                    putWarehouse.setPutTotalPrice((putWarehouse.getPutTotalPrice().subtract(differBoothCost)).subtract(differPutTotalPrice));
-                    putWarehouse.update();
+                        PutWarehouse putWarehouse = PutWarehouse.dao.getPutWarehouseById(putWarehouseDetail.getPutId());
+                        putWarehouse.setPutNum(putWarehouse.getPutNum() - differPutNum);
+                        putWarehouse.setUpdateTime(new Date());
+                        // 计算修改了之后总价的价格修改
+                        putWarehouse.setPutTotalPrice((putWarehouse.getPutTotalPrice().subtract(differBoothCost)).subtract(differPutTotalPrice));
+                        putWarehouse.update();
+                    }
                 }
             }
+
         }
         renderNull();
+    }
+
+    /**
+     * 读取Excel多表
+     *
+     * @param filePath
+     * @return
+     */
+    public List<List<ExcelRdRow>> readExcelMultiTable(String filePath) {
+        ExcelRdTypeEnum[] types = {
+                ExcelRdTypeEnum.STRING,
+                ExcelRdTypeEnum.STRING,
+                ExcelRdTypeEnum.INTEGER,
+                ExcelRdTypeEnum.DOUBLE,
+                ExcelRdTypeEnum.DOUBLE,
+                ExcelRdTypeEnum.DOUBLE,
+                ExcelRdTypeEnum.DOUBLE,
+                ExcelRdTypeEnum.INTEGER,
+                ExcelRdTypeEnum.INTEGER
+        };
+        ExcelRd excelRd = new ExcelRd(filePath);
+        excelRd.setStartRow(1);
+        excelRd.setStartCol(0);
+        excelRd.setTypes(types);
+        List<List<ExcelRdRow>> lists = null;
+        try {
+            lists = excelRd.analysisXlsxMultiTable();
+        } catch (ExcelRdException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return lists;
     }
 
     /**
