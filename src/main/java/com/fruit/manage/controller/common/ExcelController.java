@@ -282,7 +282,7 @@ public class ExcelController extends BaseController {
                 int textHeight = 20;
 
                 // 表样式
-                XSSFCellStyle styleTable = ExcelStyle.getStyleTableByOne(wb, 3);
+                XSSFCellStyle styleTable = ExcelStyle.getStyleTableByTwo(wb, 3);
                 int tableHeight = 30;
 
                 // 规范: 设置为1-3合并 ?-6合并 ?-9合并的单元格名称.
@@ -1163,6 +1163,13 @@ public class ExcelController extends BaseController {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * 导入商品图片
+     */
+    public void importProductImg () {
+
     }
 
 

@@ -117,6 +117,7 @@ public class PlanController extends BaseController {
             }
         } else {
             // 此段日期无人下单
+            // TODO 没有订单就不给添加,用户会显示添加失败,会以为系统bug...这里需要优化.给他生成一个没有采购计划详细的采购计划即可
             list.add(2);
         }
         renderJson(list);

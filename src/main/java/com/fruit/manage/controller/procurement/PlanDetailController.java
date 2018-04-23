@@ -93,7 +93,7 @@ public class PlanDetailController extends BaseController{
                    ProcurementPlanDetail procurementPlanDetail =new ProcurementPlanDetail();
                     procurementPlanDetail.setProductId(productId);
                     procurementPlanDetail.setProductStandardId(procurementPlan.get("productStandardID"));
-                    procurementPlanDetail.setProcurementId(uid);
+                    procurementPlanDetail.setProcurementId(procurementPlan.get("procurement_id"));
                     procurementPlanDetail.setProductName( procurementPlan.get("productName"));
                     procurementPlanDetail.setProductStandardName(procurementPlan.get("productStandardName"));
                     procurementPlanDetail.setSellPrice(procurementPlan.get("sellPrice"));
