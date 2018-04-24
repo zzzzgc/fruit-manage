@@ -117,7 +117,9 @@ public class WarehousePutDetailController extends BaseController {
                     startTime = createTimeStr + " 00:00:00";
                     endTime = createTimeStr + " 23:59:59";
                 }
+
                 if (count > 2) {
+                    String procurementName = User.dao.getNickNameById(Integer.parseInt(list.get(8)+""));
                     PutWarehouseDetail putWarehouseDetail = PutWarehouseDetail.dao.getPutDetailByPSIDAndProcurementId(Integer.parseInt((list.get(2)) + ""), Integer.parseInt((list.get(8)) + ""), startTime, endTime, putId);
                     if (putWarehouseDetail == null) {
                         putWarehouseDetail = new PutWarehouseDetail();
@@ -149,6 +151,7 @@ public class WarehousePutDetailController extends BaseController {
                         putWarehouseDetail.setPutAveragePrice(averagePrice);
                         putWarehouseDetail.setPutId(putId);
                         putWarehouseDetail.setCreateTime(currentTime);
+                        putWarehouseDetail.setProcurementName(procurementName);
                         putWarehouseDetail.save();
 
                         // 根据商品规格编号修改商品规格的库存量
@@ -182,6 +185,7 @@ public class WarehousePutDetailController extends BaseController {
                         putWarehouseDetail.setProcurementId(Integer.parseInt(list.get(8) + ""));
                         putWarehouseDetail.setProductWeight(Double.parseDouble(list.get(3) + ""));
                         putWarehouseDetail.setBoothCost(boothCost);
+                        putWarehouseDetail.setProcurementName(procurementName);
                         putWarehouseDetail.update();
 
                         // 根据商品规格编号修改商品规格的库存量

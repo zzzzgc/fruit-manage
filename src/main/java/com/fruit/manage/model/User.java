@@ -159,4 +159,14 @@ public class User extends BaseUser<User> {
 		String sql = "SELECT id from a_user where `nick_name` like ? ";
 		return Db.queryInt(sql, "%"+name+"%");
 	}
+
+	/**
+	 * 根据用户工号获取用户昵称
+	 * @param id
+	 * @return
+	 */
+	public String getNickNameById(Integer id) {
+		String sql = "SELECT nick_name from a_user where id = ? ";
+		return Db.queryStr(sql, id);
+	}
 }
