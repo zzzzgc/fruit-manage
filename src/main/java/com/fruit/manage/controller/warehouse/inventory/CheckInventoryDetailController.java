@@ -69,6 +69,7 @@ public class CheckInventoryDetailController extends BaseController {
         Date currentTime = new Date();
         String startTime = null;
         String endTime = null;
+        String nullInfo="";
         while (iterable.hasNext()) {
             count++;
             ExcelRdRow excelRdRow =iterable.next();
@@ -78,7 +79,7 @@ public class CheckInventoryDetailController extends BaseController {
                 startTime = creatTimeStr + " 00:00:00";
                 endTime = creatTimeStr + " 23:59:59";
             } else if (count > 2) {
-                CheckInventoryDetail checkInventoryDetail =CheckInventoryDetail.dao.getCheckInventoryDetail((Integer)list.get(2),checkInventoryId,startTime,endTime);
+                CheckInventoryDetail checkInventoryDetail =CheckInventoryDetail.dao.getCheckInventoryDetail(Integer.parseInt(list.get(2)+""),checkInventoryId,startTime,endTime);
                 if (checkInventoryDetail != null) {
                     // 根据ID获取盘点单未被修改之前的盘点单详细数据
                     CheckInventoryDetail checkInventoryDetail2 = CheckInventoryDetail.dao.getCheckInventoryDetailById(checkInventoryDetail.getId());
@@ -110,19 +111,19 @@ public class CheckInventoryDetailController extends BaseController {
                     checkInventory.update();
                 }else {
                     checkInventoryDetail=new CheckInventoryDetail();
-                    checkInventoryDetail.setId(IdUtil.getCheckInventoryDetailId(currentTime,(Integer)list.get(2)));
+                    checkInventoryDetail.setId(IdUtil.getCheckInventoryDetailId(currentTime,Integer.parseInt(list.get(2)+"")));
                     checkInventoryDetail.setCheckInventoryId(checkInventoryId);
                     // 根据商品规格编号获取商品编号
-                    Integer productId =ProductStandard.dao.getProductIdByPSId((Integer)list.get(2));
-                    ProductStandard productStandard = ProductStandard.dao.getProductStandardById((Integer) list.get(2));
+                    Integer productId =ProductStandard.dao.getProductIdByPSId(Integer.parseInt(list.get(2)+""));
+                    ProductStandard productStandard = ProductStandard.dao.getProductStandardById(Integer.parseInt(list.get(2)+""));
                     checkInventoryDetail.setProductId(productId);
-                    checkInventoryDetail.setProductName((String) list.get(0));
-                    checkInventoryDetail.setProductStandardName((String) list.get(1));
-                    checkInventoryDetail.setProductStandardId((Integer) list.get(2));
-                    checkInventoryDetail.setProductWeight((Double) list.get(3));
+                    checkInventoryDetail.setProductName(list.get(0)+"");
+                    checkInventoryDetail.setProductStandardName(list.get(1)+"");
+                    checkInventoryDetail.setProductStandardId(Integer.parseInt(list.get(2)+""));
+                    checkInventoryDetail.setProductWeight(Double.parseDouble(list.get(3)+""));
 
                     //获取前一天的
-                    CheckInventoryDetail checkInventoryDetail2=CheckInventoryDetail.dao.getCheckInventoryDetail((Integer)list.get(2),startTime,endTime);
+                    CheckInventoryDetail checkInventoryDetail2=CheckInventoryDetail.dao.getCheckInventoryDetail(Integer.parseInt(list.get(2)+""),startTime,endTime);
                     if (checkInventoryDetail2 == null) {
                         checkInventoryDetail2=new CheckInventoryDetail();
                         checkInventoryDetail2.setInventoryPrice(new BigDecimal(0));
@@ -139,9 +140,13 @@ public class CheckInventoryDetailController extends BaseController {
                         outPutNum = 0;
                     }
                     // 获取入库单价
-                    BigDecimal average = PutWarehouseDetail.dao.getAveragePriceByPsIdAndTime((Integer) list.get(2), startTime, endTime);
+                    BigDecimal average = PutWarehouseDetail.dao.getAveragePriceByPsIdAndTime(Integer.parseInt(list.get(2)+""), startTime, endTime);
                     if (average == null) {
                         average = new BigDecimal(0);
+                    }
+                    if (productStandard.getStock() == null || productStandard.getStock() == 0) {
+                        nullInfo+="商品规格编号"+productStandard.getId()+"为空,";
+                        continue;
                     }
                      // 库存单价=【期初库存总额+期中入库单价*(期中入库数量-期中出库数量)】/期末库存数量
                     BigDecimal inventoryAveragePrice=(checkInventoryDetail2.getInventoryTotalPrice().add(average.multiply(new BigDecimal(putInNum).subtract(new BigDecimal(outPutNum))))).divide(new BigDecimal(productStandard.getStock()),2,BigDecimal.ROUND_HALF_DOWN);
@@ -149,10 +154,10 @@ public class CheckInventoryDetailController extends BaseController {
                     BigDecimal inventoryTotalPrice = checkInventoryDetail2.getInventoryTotalPrice().add(average.multiply(new BigDecimal(putInNum).subtract(new BigDecimal(outPutNum))));
                     checkInventoryDetail.setInventoryPrice(inventoryAveragePrice);
                     checkInventoryDetail.setInventoryTotalPrice(inventoryTotalPrice);
-                    checkInventoryDetail.setUserName((String) list.get(6));
+                    checkInventoryDetail.setUserName(list.get(6)+"");
                     checkInventoryDetail.setInventoryNum(productStandard.getStock());
-                    checkInventoryDetail.setCheckInventoryNum((Integer) list.get(7));
-                    checkInventoryDetail.setInventoryRemark((String)list.get(8));
+                    checkInventoryDetail.setCheckInventoryNum(Integer.parseInt(list.get(7)+""));
+                    checkInventoryDetail.setInventoryRemark(list.get(8)+"");
                     checkInventoryDetail.setCreateTime(currentTime);
                     checkInventoryDetail.save();
 
@@ -165,6 +170,9 @@ public class CheckInventoryDetailController extends BaseController {
                     checkInventory.update();
                 }
             }
+        }
+        if (nullInfo != "") {
+            renderErrorText(nullInfo);
         }
         renderNull();
     }
