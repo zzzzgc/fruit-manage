@@ -954,7 +954,7 @@ public class ExcelController extends BaseController {
                     @Override
                     public boolean run() throws SQLException {
                         //是否开启
-                        Integer status = (int)(Double.parseDouble(row[16] + ""));
+                        Integer status = (int) (Double.parseDouble(row[16] + ""));
                         // 逻辑(换算和整合)
                         if (status == 0) {
                             return false;
@@ -993,7 +993,7 @@ public class ExcelController extends BaseController {
                         String measure_unit = (String) row[15];
 
                         //保鲜时间 -------------
-                        String fresh_expire_time = row[17]+"";
+                        String fresh_expire_time = row[17] + "";
                         //图片 img
                         String img = "http://www.atool.org/placeholder.png?size=300x150&bg=868686&fg=fff";
                         //store_way -------------
@@ -1008,7 +1008,6 @@ public class ExcelController extends BaseController {
 //                        String update_time = (String) row[23];
 
 
-
                         // 添加
                         try {
                             Integer productId = productInfos.get(productName);
@@ -1021,9 +1020,9 @@ public class ExcelController extends BaseController {
                                     product.setProvince(province);
                                 }
                                 product.setSort(10L);
-                                measure_unit = StringUtils.isNotBlank(measure_unit)?measure_unit: "件";
+                                measure_unit = StringUtils.isNotBlank(measure_unit) ? measure_unit : "件";
                                 product.setMeasureUnit(measure_unit);
-                                brand = (StringUtils.isNoneBlank(brand)) ? brand: "暂无";
+                                brand = (StringUtils.isNoneBlank(brand)) ? brand : "暂无";
                                 product.setBrand(brand);
                                 product.setStatus(status);
                                 product.setImg(img);
@@ -1034,7 +1033,7 @@ public class ExcelController extends BaseController {
                                 product.setStoreWay(storeWay);
                                 product.setCreateTime(new Date());
                                 product.setUpdateTime(new Date());
-                                Product.dao.save(product, new String[]{img}, new String[]{fruit_type}, new Integer[]{28},new Integer[]{1,2,3,4,5});
+                                Product.dao.save(product, new String[]{img}, new String[]{fruit_type}, new Integer[]{28}, new Integer[]{1, 2, 3, 4, 5});
 
                                 productId = product.getId();
                                 productInfos.put(productName, productId);
@@ -1042,7 +1041,7 @@ public class ExcelController extends BaseController {
 
 //                            System.out.print("这是第"+totalCount+"条数据");
                             for (Object o : row) {
-                                System.out.print(o+"  ");
+                                System.out.print(o + "  ");
                             }
                             System.out.println();
 
@@ -1158,7 +1157,7 @@ public class ExcelController extends BaseController {
 
 
             }
-            System.out.println("总数据源"+totalCount+",一共添加了"+totalCount+"条数据");
+            System.out.println("总数据源" + totalCount + ",一共添加了" + totalCount + "条数据");
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -1168,8 +1167,37 @@ public class ExcelController extends BaseController {
     /**
      * 导入商品图片
      */
-    public void importProductImg () {
-
+    public void importProductImg() {
+        File imgFolders = new File("C:\\Users\\Administrator\\Desktop\\图片库");
+        File[] Folders = imgFolders.listFiles();
+        for (File folder : Folders) {
+            String folderName = folder.getName();
+            List<Product> products = Product.dao.find("SELECT * FROM b_product ");
+            Map<String, Product> productMap = products.stream().collect(Collectors.toMap(Product::getName, Function.identity()));
+            Product product = productMap.get(folderName);
+            if (product !=null){
+                File[] files = folder.listFiles();
+                ArrayList<String> imgUrls = new ArrayList<>();
+                int imgCount = 0;
+                for (File file : files) {
+                    if (file.getName().contains("jpg")||file.getName().contains("png")){
+                        String imgUrl = "http://192.168.3.123:8080/upload/file/" + folderName + "/" + file.getName();
+                        System.out.println(imgUrl);
+                        imgUrls.add(imgUrl);
+                        imgCount++;
+                    }
+                }
+                product.setImg("http://192.168.3.123:8080/upload/file/" + folderName + "/01.jpg");
+                product.update();
+                String[] imgs = imgUrls.toArray(new String[imgCount]);
+                boolean b = ProductImg.dao.saveProductImg(true, product.getId(), 1, imgs);
+                if (!b) {
+                    System.out.println("存在导入失败的图片");
+                }
+            }else {
+                System.out.println("不存在改这个商品" + folderName);
+            }
+        }
     }
 
 
