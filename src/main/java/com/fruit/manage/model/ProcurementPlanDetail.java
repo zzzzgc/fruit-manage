@@ -32,7 +32,7 @@ public class ProcurementPlanDetail extends BaseProcurementPlanDetail<Procurement
 				"ppd.product_name,ppd.product_standard_name,ppd.sell_price,ppd.inventory_num, " +
 				"(select ps.stock from b_product_standard ps where ps.id=ppd.product_standard_id) as stock, "+
 				"ppd.procurement_num,ppd.product_standard_num,ppd.procurement_need_price, " +
-				"ppd.procurement_total_price,ppd.order_remark,ppd.procurement_remark,ppd.create_time,ppd.update_time,u.`name` as userName ";
+				"ppd.procurement_total_price,ppd.order_remark,ppd.procurement_remark,ppd.create_time,ppd.update_time,u.`nick_name` as userName ";
 		StringBuilder sql=new StringBuilder();
 		sql.append(" from b_procurement_plan_detail ppd, a_user u ");
 		sql.append("where 1=1 and  ppd.procurement_id=u.id  and ppd.create_time BETWEEN ? and ? ");
