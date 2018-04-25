@@ -119,8 +119,13 @@ public class WarehousePutDetailController extends BaseController {
                 }
 
                 if (count > 2) {
-                    String procurementName = User.dao.getNickNameById(Integer.parseInt(list.get(8)+""));
-                    PutWarehouseDetail putWarehouseDetail = PutWarehouseDetail.dao.getPutDetailByPSIDAndProcurementId(Integer.parseInt((list.get(2)) + ""), Integer.parseInt((list.get(8)) + ""), startTime, endTime, putId);
+                    // ccz 2018-04-25 startTime endTime 暂时无用
+//                    String procurementName = User.dao.getNickNameById(Integer.parseInt(list.get(8)+""));
+                    String procurementName = list.get(8) + "";
+                    Integer procurementId = User.dao.getUserIdByName(list.get(8)+"");
+//                    PutWarehouseDetail putWarehouseDetail = PutWarehouseDetail.dao.getPutDetailByPSIDAndProcurementId(Integer.parseInt((list.get(2)) + ""), Integer.parseInt((list.get(8)) + ""), startTime, endTime, putId);
+                    PutWarehouseDetail putWarehouseDetail = PutWarehouseDetail.dao.getPutDetailByPSIDAndProcurementId(Integer.parseInt((list.get(2)) + ""), procurementId, startTime, endTime, putId);
+
                     if (putWarehouseDetail == null) {
                         putWarehouseDetail = new PutWarehouseDetail();
                         // 计算总价和入库单价
@@ -147,7 +152,7 @@ public class WarehousePutDetailController extends BaseController {
                         putWarehouseDetail.setProcurementTotalPrice(procurementTotalPrice);
                         putWarehouseDetail.setBoothCost(boothCost);
                         putWarehouseDetail.setPutNum(Integer.parseInt(list.get(7) + ""));
-                        putWarehouseDetail.setProcurementId(Integer.parseInt(list.get(8) + ""));
+                        putWarehouseDetail.setProcurementId(procurementId);
                         putWarehouseDetail.setPutAveragePrice(averagePrice);
                         putWarehouseDetail.setPutId(putId);
                         putWarehouseDetail.setCreateTime(currentTime);
@@ -182,7 +187,7 @@ public class WarehousePutDetailController extends BaseController {
 
                         putWarehouseDetail.setPutAveragePrice((procurementTotalPrice.add(boothCost)).divide(putNumUpdate, 2, BigDecimal.ROUND_HALF_DOWN));
                         putWarehouseDetail.setUpdateTime(new Date());
-                        putWarehouseDetail.setProcurementId(Integer.parseInt(list.get(8) + ""));
+                        putWarehouseDetail.setProcurementId(procurementId);
                         putWarehouseDetail.setProductWeight(Double.parseDouble(list.get(3) + ""));
                         putWarehouseDetail.setBoothCost(boothCost);
                         putWarehouseDetail.setProcurementName(procurementName);
