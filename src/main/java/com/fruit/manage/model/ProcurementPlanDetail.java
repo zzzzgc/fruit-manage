@@ -71,12 +71,12 @@ public class ProcurementPlanDetail extends BaseProcurementPlanDetail<Procurement
 		}
 		orderBy = StrKit.isBlank(orderBy) ? "ppd.create_time" : orderBy;
 		sql.append("order by " + orderBy + " " + (isASC ? "" : "desc "));
-		logger.info("--------------采购导出数据 START--------------");
-		logger.info(selectStr+"\n"+sql.toString());
-		logger.info("pageNum:" + pageNum);
-		logger.info("pageSize:" + pageSize);
-		logger.info("params:" + params.toArray());
-		logger.info("--------------采购导出数据 END--------------");
+		System.out.println(("--------------采购导出数据 START--------------"));
+		System.out.println(selectStr+"\n"+sql.toString());
+		System.out.println("pageNum:" + pageNum);
+		System.out.println("pageSize:" + pageSize);
+		System.out.println("params:" + params.toArray());
+		System.out.println("--------------采购导出数据 END--------------");
 		return paginate(pageNum,pageSize,selectStr,sql.toString(),params.toArray());
 	}
 
