@@ -3,6 +3,7 @@ package com.fruit.manage.model;
 import com.fruit.manage.model.base.BaseProcurementPlanDetail;
 import com.jfinal.core.paragetter.IntegerGetter;
 import com.jfinal.kit.StrKit;
+import com.jfinal.log.Logger;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Page;
 
@@ -16,6 +17,7 @@ import java.util.Map;
 @SuppressWarnings("serial")
 public class ProcurementPlanDetail extends BaseProcurementPlanDetail<ProcurementPlanDetail> {
 	public static final ProcurementPlanDetail dao = new ProcurementPlanDetail().dao();
+	private static Logger logger = Logger.getLogger(ProcurementPlanDetail.class);
 
 	/**
 	 * 获取所有的采购计划数据
@@ -69,6 +71,12 @@ public class ProcurementPlanDetail extends BaseProcurementPlanDetail<Procurement
 		}
 		orderBy = StrKit.isBlank(orderBy) ? "ppd.create_time" : orderBy;
 		sql.append("order by " + orderBy + " " + (isASC ? "" : "desc "));
+		logger.info("--------------采购导出数据 START--------------");
+		logger.info(selectStr+"\n"+sql.toString());
+		logger.info("pageNum:" + pageNum);
+		logger.info("pageSize:" + pageSize);
+		logger.info("params:" + params.toArray());
+		logger.info("--------------采购导出数据 END--------------");
 		return paginate(pageNum,pageSize,selectStr,sql.toString(),params.toArray());
 	}
 
