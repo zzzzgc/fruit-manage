@@ -158,6 +158,10 @@ public class ProcurementPlan extends BaseProcurementPlan<ProcurementPlan> {
         List<String> list = new ArrayList<>();
         list.add(createTime[0]);
         list.add(createTime[1]);
+        System.out.println("-------------导出要采购的计划 START------------------");
+        System.out.println(sql.toString());
+        System.out.println("params:" + list.toString());
+        System.out.println("-------------导出要采购的计划 END--------------------");
         return find(sql.toString(), list.toArray());
     }
 
