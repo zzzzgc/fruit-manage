@@ -3,7 +3,8 @@ package com.fruit.manage.base;
 import com.fruit.manage.util.DataResult;
 import com.jfinal.core.Controller;
 
-public abstract class BaseController extends Controller{
+public abstract class
+BaseController extends Controller{
 
 	public void index() {
 		render("/index.html");
