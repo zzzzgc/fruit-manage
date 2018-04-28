@@ -11,6 +11,7 @@ import com.fruit.manage.util.excelRd.ExcelRdException;
 import com.fruit.manage.util.excelRd.ExcelRdTypeEnum;
 import com.jfinal.aop.Before;
 import com.jfinal.ext2.kit.DateTimeKit;
+import com.jfinal.ext2.kit.RandomKit;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.IAtom;
 import com.jfinal.plugin.activerecord.tx.Tx;
@@ -904,8 +905,13 @@ public class ExcelController extends BaseController {
 //        Db.tx(new IAtom() {
 //            @Override
 //            public boolean run() throws SQLException {
+
+        String fileName = getPara("fileName");
+        String fileUrl = CommonController.FILE_PATH + File.separator + fileName;
+        File file = new File(fileUrl);
+        ArrayList<String> errorRow = new ArrayList<>();
         try {
-            List<Object[]> excel = ExcelCommon.excelRd(new File("C:\\Users\\Administrator\\Desktop\\行情报价.xlsx"), 5, 1, new ExcelRdTypeEnum[]{
+            List<Object[]> excel = ExcelCommon.excelRd(file, 5, 1, new ExcelRdTypeEnum[]{
                     ExcelRdTypeEnum.STRING,
                     ExcelRdTypeEnum.STRING,
                     ExcelRdTypeEnum.STRING,
@@ -942,7 +948,6 @@ public class ExcelController extends BaseController {
             Map<String, ProductStandard> productStandardByNameANDPIdMap = productStandardAllInfo.stream().collect(Collectors.toMap(ps -> ps.getProductId() + "-" + ps.getName(), Function.identity()));
             Map<String, Type> typeByNameMap = types.stream().collect(Collectors.toMap(Type::getName, Function.identity()));
 
-            ArrayList<String> errorRow = new ArrayList<>();
 
             for (Object[] row : excel) {
                 Arrays.stream(row).forEach(System.out::print);
@@ -954,149 +959,108 @@ public class ExcelController extends BaseController {
                 Integer productStandardId = 0;
 
                 if (StringUtils.isNotBlank(productIdInfo)) {
+                    // 不为空
                     String[] idInfo = productIdInfo.split("-");
-                    productId = Integer.parseInt(idInfo[0]);
-                    productStandardId = Integer.parseInt(idInfo[1]);
+                    if (idInfo.length == 2) {
+                        productId = Integer.parseInt(idInfo[0]);
+                        productStandardId = Integer.parseInt(idInfo[1]);
+                    }
                 }
 
                 String typeName = (String) row[1];
+                if (!StringUtils.isNotBlank(typeName)) {
+                    // 首个内容为空,String的concat会报nullPointer异常
+                    String errorRowStr = Arrays.stream(row).map(obj -> {
+                        if (obj!=null) {
+                            return obj.toString();
+                        }
+                        return null;
+                    }).reduce("", (acc, str) -> acc += str);
+                    errorRow.add("商品分类为空:  " + errorRowStr);
+                    continue;
+                }
+                typeName = typeName.trim();
+
                 String productName = (String) row[2];
+                if (!StringUtils.isNotBlank(productName)) {
+                    String errorRowStr = Arrays.stream(row).map(obj -> {
+                        if (obj!=null) {
+                            return obj.toString();
+                        }
+                        return null;
+                    }).reduce("", (acc, str) -> acc += str);
+                    errorRow.add("商品名为空:  " + errorRowStr);
+                    continue;
+                }
+                productName = productName.trim();
+
                 String productStandardName = (String) row[3];
-                if (!StringUtils.isNotBlank(productName) || !StringUtils.isNotBlank(productStandardName)) {
+                if (!StringUtils.isNotBlank(productStandardName)) {
+                    productStandardName = "箱";
+                }
+                productStandardName = productStandardName.trim();
+
+                if (productName.contains("  ")) {
+                    String errorRowStr = Arrays.stream(row).map(obj -> {
+                        if (obj!=null) {
+                            return obj.toString();
+                        }
+                        return null;
+                    }).reduce("", (acc, str) -> acc += str);
+                    errorRow.add("跳过多空行的内容:" + errorRowStr);
                     continue;
                 }
                 String subhead = row[4] != null ? row[4] + "" : "";
                 String procurementName = (String) row[5];
-                BigDecimal sellPrice = BigDecimal.valueOf(Double.parseDouble(StringUtils.isNoneBlank((row[8] + "")) ? (row[8] + "") : "0"));
-                BigDecimal theirPrice = BigDecimal.valueOf(Double.parseDouble(StringUtils.isNoneBlank((row[9] + "")) ? (row[9] + "") : "0"));
-                String fruit_des = (String) row[11];
+                if (row[7] == null) {
+                    errorRow.add("商品报价数据为空:" + productName);
+                    continue;
+                }
+
+//                if (row[8] == null) {
+//                    errorRow.add("数据为空theirPrice的productName:" + productName);
+//                    continue;
+//                }
+                BigDecimal sellPrice = BigDecimal.valueOf(Double.parseDouble(StringUtils.isNoneBlank((row[7] + "")) ? (row[7] + "") : "0"));
+                BigDecimal theirPrice = BigDecimal.valueOf(Double.parseDouble(StringUtils.isNoneBlank((row[8] + "")) ? (row[8] + "") : "0"));
+                String fruit_des = (String) row[10];
 
                 Type type = typeByNameMap.get(typeName);
                 if (type == null) {
-                    type = _saveProductType(typeGroup, typeName);
+                    type = _saveProductType(Integer.parseInt(typeGroup.getId() + ""), typeName);
                     typeByNameMap.put(type.getName(), type);
+                } else {
+                    type.setGroupId(Integer.parseInt(typeGroup.getId() + ""));
+                    type.setStatus(1);
+                    type.update();
                 }
-                type.setGroupId(Integer.parseInt(typeGroup.getId() + ""));
-                type.setStatus(1);
-                type.update();
 
-//                if (productId != 0 && productStandardId != 0) {
-//
-//                    Product product = productByIdMap.get(productId);
-//                    if (product == null) {
-//                        System.out.println("商品不存在productId:"+productId);
-//                        Arrays.stream(row).forEach(System.out::print);
-//                        System.out.println();
-//                        continue;
-//                    }
-//                    ProductStandard productStandard = productStandardByIdMap.get(productStandardId);
-//                    if (productStandard == null) {
-//                        System.out.println("规格不存在productStandardIp:"+productStandardId);
-//                        Arrays.stream(row).forEach(System.out::print);
-//                        System.out.println();
-//                        continue;
-//                    }
-//                    product.setStatus(1);
-//                    product.setUpdateTime(new Date());
-//                    product.update();
-//
-//                    productStandard.setSubTitle(subhead);
-//                    productStandard.setSellPrice(sellPrice);
-//                    productStandard.setProductId(productId);
-//                    productStandard.setCostPrice(theirPrice);
-//                    productStandard.setName(productStandardName);
-//                    productStandard.setUpdateTime(new Date());
-//                    productStandard.update();
-//                } else {
-//
-//                    // 去重
-//                    Product product = productByIdMap.get(productId);
-//                    if (product == null) {
-//                        product = _saveProduct(1, productName, fruit_des, "", "", "中国", "广东省", "", "件", "", new Integer[]{Integer.parseInt(type.getId() + "")});
-//                        productByIdMap.put(product.getId(),product);
-//                    }else {
-//                        product.setStatus(1);
-//                        product.setUpdateTime(new Date());
-//                        product.update();
-//                    }
-//                    productId = product.getId();
-//
-//                    ProductStandard productStandard = productStandardByIdMap.get(productStandardId);
-//                    if (productStandard == null) {
-//                        productStandard = _saveProductStandard(1, productStandardName, sellPrice.doubleValue(), theirPrice.doubleValue(), productId);
-//                        productStandardByIdMap.put(productStandard.getId(),productStandard);
-//                    } else {
-//                        productStandard.setSubTitle(subhead);
-//                        productStandard.setProductId(productId);
-//                        productStandard.setSellPrice(sellPrice);
-//                        productStandard.setProductId(productId);
-//                        productStandard.setCostPrice(theirPrice);
-//                        productStandard.setName(productStandardName);
-//                        productStandard.setUpdateTime(new Date());
-//                        productStandard.update();
-//                    }
-//                    productStandardId = productStandard.getId();
-//                }
 
                 if (productId != 0 && productStandardId != 0) {
-//                    Product product = productByNameMap.get(productName);
-//                    if (product == null) {
-//                        product = _saveProduct(1, productName, fruit_des, "", "", "中国", "广东省", "", "件", "", new Integer[]{Integer.parseInt(type.getId() + "")});
-//                        // 添加到缓存
-//                        productByNameMap.put(product.getName(), product);
-//                    }
-//                    productId = product.getId();
-//
-////                    ProductStandard productStandard = productStandardByNameANDPIdMap.get(productId + "-" + productStandardId);
-//                    ProductStandard productStandard = productStandardByIdMap.get(productStandardId);
-//                    if (productStandard == null) {
-//                        System.out.println("productStandardIp不存在:"+productStandardId);
-//                        continue;
-//                    }
-//
-//                    productStandard.setSubTitle(subhead);
-//                    productStandard.setSellPrice(sellPrice);
-//                    productStandard.setProductId(productId);
-//                    productStandard.setCostPrice(theirPrice);
-//                    productStandard.setName(productStandardName);
-//                    productStandard.setUpdateTime(new Date());
-//                    productStandard.update();
-//
-//                    productStandardId = productStandard.getId();
 
                     Product product = productByIdMap.get(productId);
                     if (product == null) {
-//                        System.out.println("商品不存在productId:"+productId);
-//                        errorRow.add("商品不存在productId:"+productId+",row:"+row);
-//                        Arrays.stream(row).forEach(System.out::print);
-//                        System.out.println();
-//                        continue;
                         product = _saveProduct(1, productId, productName, fruit_des, "", "", "中国", "广东省", "", "件", "", new Integer[]{Integer.parseInt(type.getId() + "")});
                         // 添加到缓存
                         productByNameMap.put(product.getName(), product);
                         productByIdMap.put(product.getId(), product);
                     } else {
+                        product.setFruitDes(fruit_des);
                         product.setStatus(1);
                         product.setUpdateTime(new Date());
                         product.update();
                     }
+
+
                     ProductStandard productStandard = productStandardByIdMap.get(productStandardId);
                     if (productStandard == null) {
-//                        System.out.println("规格不存在productStandardIp:"+productStandardId);
-//                        errorRow.add("商品不存在productStandardId:"+productStandardId+",row:"+row);
-//                        Arrays.stream(row).forEach(System.out::print);
-//                        System.out.println();
-//                        continue;
-                        productStandard = _saveProductStandard(1, productStandardId, productStandardName, sellPrice.doubleValue(), theirPrice.doubleValue(), productId);
+                        productStandard = _saveProductStandard(1, productStandardId, productStandardName, sellPrice.doubleValue(), theirPrice.doubleValue(), productId, subhead);
                         // 添加到缓存
                         productStandardByNameANDPIdMap.put(productStandard.getProductId() + "-" + productStandard.getName(), productStandard);
                         productStandardByIdMap.put(productStandard.getId(), productStandard);
-
-                        //追加副标题 TODO
-                        productStandard.setSubTitle(subhead);
-                        productStandard.update();
                     } else {
                         productStandard.setSubTitle(subhead);
+                        productStandard.setStatus(1);
                         productStandard.setSellPrice(sellPrice);
                         productStandard.setProductId(productId);
                         productStandard.setCostPrice(theirPrice);
@@ -1104,20 +1068,6 @@ public class ExcelController extends BaseController {
                         productStandard.setUpdateTime(new Date());
                         productStandard.update();
                     }
-
-
-//                    product.setStatus(1);
-//                    product.setUpdateTime(new Date());
-//                    product.update();
-//
-//                    productStandard.setSubTitle(subhead);
-//                    productStandard.setSellPrice(sellPrice);
-//                    productStandard.setProductId(productId);
-//                    productStandard.setCostPrice(theirPrice);
-//                    productStandard.setName(productStandardName);
-//                    productStandard.setUpdateTime(new Date());
-//                    productStandard.update();
-
                 } else {
                     // 根据name
 
@@ -1130,6 +1080,7 @@ public class ExcelController extends BaseController {
                         productByNameMap.put(product.getName(), product);
                     } else {
                         product.setStatus(1);
+                        product.setFruitDes(fruit_des);
                         product.setUpdateTime(new Date());
                         product.update();
                     }
@@ -1139,7 +1090,7 @@ public class ExcelController extends BaseController {
                     // 确保productStandard 和 productStandardId
                     ProductStandard productStandard = productStandardByNameANDPIdMap.get(productId + "-" + productStandardName);
                     if (productStandard == null) {
-                        productStandard = _saveProductStandard(1, null, productStandardName, sellPrice.doubleValue(), theirPrice.doubleValue(), productId);
+                        productStandard = _saveProductStandard(1, null, productStandardName, sellPrice.doubleValue(), theirPrice.doubleValue(), productId, subhead);
                         // 添加到缓存
                         productStandardByNameANDPIdMap.put(productStandard.getProductId() + "-" + productStandard.getName(), productStandard);
                         productStandardByIdMap.put(productStandard.getId(), productStandard);
@@ -1149,6 +1100,7 @@ public class ExcelController extends BaseController {
                         productStandard.update();
                     } else {
                         productStandard.setSubTitle(subhead);
+                        productStandard.setStatus(1);
                         productStandard.setSellPrice(sellPrice);
                         productStandard.setProductId(productId);
                         productStandard.setCostPrice(theirPrice);
@@ -1169,21 +1121,28 @@ public class ExcelController extends BaseController {
                 _saveProcurementQuota(productId, productName, productStandardName, productStandardId, procurementName);
             }
 
+            System.out.println();
             for (String error : errorRow) {
-                System.out.println();
                 System.out.println(error);
             }
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            file.delete();
         }
 
+        if (errorRow.size() > 0) {
+            renderJson(errorRow);
+        } else {
+            renderNull();
+        }
     }
 
 
-    private Type _saveProductType(TypeGroup typeGroup, String typeName) {
+    private Type _saveProductType(Integer typeGroupId, String typeName) {
         Type type;
         type = new Type();
-        type.setGroupId(Integer.parseInt(typeGroup.getId() + ""));
+        type.setGroupId(typeGroupId);
         type.setName(typeName);
         type.setStatus(1);
         type.setUpdateTime(new Date());
@@ -1327,7 +1286,7 @@ public class ExcelController extends BaseController {
                             System.out.println();
 
 
-                            ProductStandard productStandard = _saveProductStandard(status, null, productStandardName, sellPrice, theirPrice, productId);
+                            ProductStandard productStandard = _saveProductStandard(status, null, productStandardName, sellPrice, theirPrice, productId, fruit_des);
 
 
                             ProcurementQuota procurementQuota = _saveProcurementQuota(productId, productName, productStandardName, productStandard.getId(), procurementName);
@@ -1368,17 +1327,17 @@ public class ExcelController extends BaseController {
         product.setBrand(brand);
         product.setStatus(status);
         product.setFruitType(fruit_type);
+        product.setWeekSellNum(RandomKit.random(10, 30));
         product.setTotalSellNum(0);
-        product.setWeekSellNum(0);
         product.setFruitDes(fruit_des);
         product.setStoreWay(storeWay);
         product.setCreateTime(new Date());
         product.setUpdateTime(new Date());
-        Product.dao.save(product, new String[]{img}, new String[]{fruit_type}, types, new Integer[]{1, 2, 3, 4, 5});
+        Product.dao.save(product, new String[]{img}, new String[]{fruit_type}, types, new Integer[]{0});
         return product;
     }
 
-    private ProductStandard _saveProductStandard(Integer status, Integer productStandardId, String productStandardName, Double sellPrice, Double theirPrice, Integer productId) {
+    private ProductStandard _saveProductStandard(Integer status, Integer productStandardId, String productStandardName, Double sellPrice, Double theirPrice, Integer productId, String subTitle) {
         /**
          * id
          * product_id
@@ -1423,6 +1382,7 @@ public class ExcelController extends BaseController {
         productStandard.setCartonWeight(0d);
         productStandard.setFruitWeight(0d);
         productStandard.setGrossWeight(0d);
+        productStandard.setSubTitle(subTitle);
         productStandard.setPurchaseQuantityMin(1);
         productStandard.setPurchaseQuantityMax(999);
         productStandard.setSortPurchase(50);
@@ -1509,7 +1469,7 @@ public class ExcelController extends BaseController {
      * 导入商品图片
      */
     public void importProductImg() {
-        File imgFolders = new File("C:\\Users\\Administrator\\Desktop\\图片库");
+        File imgFolders = new File("C:\\Users\\Administrator\\Desktop\\商城图片库");
         File[] Folders = imgFolders.listFiles();
         ArrayList<String> notImgProductList = new ArrayList<>();
         List<Product> products = Product.dao.find("SELECT * FROM b_product ");
@@ -1517,9 +1477,8 @@ public class ExcelController extends BaseController {
         for (File folder : Folders) {
             String folderName = folder.getName();
             Product product = productMap.get(folderName);
-            productMap.remove(folderName);
-
             if (product != null) {
+                productMap.remove(folderName);
                 File[] files = folder.listFiles();
                 ArrayList<String> imgUrls = new ArrayList<>();
                 int imgCount = 0;
@@ -1556,6 +1515,5 @@ public class ExcelController extends BaseController {
                 }
         );
     }
-
 
 }
