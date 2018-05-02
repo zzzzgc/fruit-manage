@@ -65,6 +65,19 @@ public class CheckInventoryController extends BaseController {
     }
 
     /**
+     * 获取盘点人姓名
+     */
+    public void getInventory() {
+        Integer uid = getSessionAttr(Constant.SESSION_UID);
+        User user = User.dao.getUserById(uid);
+        List<String> list = new ArrayList<>();
+        if (user != null) {
+            list.add(user.getNickName());
+        }
+        renderJson(list);
+    }
+
+    /**
      * 导出盘点单（Excel）
      */
     public void exportCheckInventory(){
