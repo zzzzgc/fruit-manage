@@ -948,7 +948,6 @@ public class ExcelController extends BaseController {
             Map<String, ProductStandard> productStandardByNameANDPIdMap = productStandardAllInfo.stream().collect(Collectors.toMap(ps -> ps.getProductId() + "-" + ps.getName(), Function.identity()));
             Map<String, Type> typeByNameMap = types.stream().collect(Collectors.toMap(Type::getName, Function.identity()));
 
-
             for (Object[] row : excel) {
                 Arrays.stream(row).forEach(System.out::print);
                 System.out.println();
