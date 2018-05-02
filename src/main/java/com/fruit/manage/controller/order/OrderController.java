@@ -334,25 +334,25 @@ public class OrderController extends BaseController {
         Integer uid = getSessionAttr(Constant.SESSION_UID);
         // 销售只能获取自己的客户,其他人能获取全部,但是其他人除了超级管理员都不能调用这个方法,因为权限控制.
         // name必须为value ,是获取该值的关键(前端)
-        String sql = "SELECT\n" +
-                "\tbu.`name`,\n" +
-                "\tbu.id,\n" +
-                "\tbu.phone,\n" +
-                "\tbu.nick_name,\n" +
-                "\tbu.a_user_sales_id\n" +
-                "FROM\n" +
-                "\ta_user AS au\n" +
-                "INNER JOIN a_user_role ON a_user_role.user_id = au.id\n" +
-                "INNER JOIN a_role AS r ON a_user_role.role_id = r.id\n" +
-                "INNER JOIN b_business_user AS bu ON au.id = bu.a_user_sales_id ";
+        String sql = "SELECT " +
+                  "bu.`name`, " +
+                  "bu.id, " +
+                  "bu.phone, " +
+                  "bu.nick_name, " +
+                  "bu.a_user_sales_id, " +
+                  "binfo.business_name " +
+                "FROM " +
+                  "a_user AS au " +
+                "INNER JOIN a_user_role ON a_user_role.user_id = au.id " +
+                "INNER JOIN a_role AS r ON a_user_role.role_id = r.id " +
+                "INNER JOIN b_business_user AS bu ON au.id = bu.a_user_sales_id " +
+                "INNER JOIN b_business_info AS binfo ON binfo.u_id = bu.id ";
         if (!User.dao.isSales(uid)) {
             renderJson(BusinessUser.dao.find(sql));
             return;
         }
         // 销售只能获取自己的客户
-        renderJson(BusinessUser.dao.find(sql + "WHERE\n" +
-                "\tr.role_key = 'salesAdmin'\n" +
-                "AND bu.a_user_sales_id = ?", uid));
+        renderJson(BusinessUser.dao.find(sql + "WHERE r.role_key = 'salesAdmin' AND bu.a_user_sales_id = ?", uid));
     }
 
     /**

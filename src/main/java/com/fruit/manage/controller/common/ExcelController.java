@@ -310,8 +310,8 @@ public class ExcelController extends BaseController {
                 c3.setCellStyle(styleText);
                 c6.setCellStyle(styleText);
                 c9.setCellStyle(styleText);
-                c3.setCellValue("商家名称:" + businessUserName);
-                c6.setCellValue("联系人:" + buyUserName);
+                c3.setCellValue("商家名称:" + buyUserName);
+                c6.setCellValue("联系人:" + businessUserName);
                 c9.setCellValue("送货电话:" + buyPhone);
 
                 // 3 line
@@ -948,7 +948,6 @@ public class ExcelController extends BaseController {
             Map<String, ProductStandard> productStandardByNameANDPIdMap = productStandardAllInfo.stream().collect(Collectors.toMap(ps -> ps.getProductId() + "-" + ps.getName(), Function.identity()));
             Map<String, Type> typeByNameMap = types.stream().collect(Collectors.toMap(Type::getName, Function.identity()));
 
-
             for (Object[] row : excel) {
                 Arrays.stream(row).forEach(System.out::print);
                 System.out.println();
@@ -1021,6 +1020,7 @@ public class ExcelController extends BaseController {
 //                    errorRow.add("数据为空theirPrice的productName:" + productName);
 //                    continue;
 //                }
+
                 BigDecimal sellPrice = BigDecimal.valueOf(Double.parseDouble(StringUtils.isNoneBlank((row[7] + "")) ? (row[7] + "") : "0"));
                 BigDecimal theirPrice = BigDecimal.valueOf(Double.parseDouble(StringUtils.isNoneBlank((row[8] + "")) ? (row[8] + "") : "0"));
                 String fruit_des = (String) row[10];
@@ -1078,6 +1078,7 @@ public class ExcelController extends BaseController {
                         product = _saveProduct(1, null, productName, fruit_des, "", "", "中国", "广东省", "", "件", "", new Integer[]{Integer.parseInt(type.getId() + "")});
                         // 添加到缓存
                         productByNameMap.put(product.getName(), product);
+                        productByIdMap.put(product.getId(), product);
                     } else {
                         product.setStatus(1);
                         product.setFruitDes(fruit_des);
@@ -1333,6 +1334,7 @@ public class ExcelController extends BaseController {
         product.setStoreWay(storeWay);
         product.setCreateTime(new Date());
         product.setUpdateTime(new Date());
+        product.save();
         Product.dao.save(product, new String[]{img}, new String[]{fruit_type}, types, new Integer[]{0});
         return product;
     }
