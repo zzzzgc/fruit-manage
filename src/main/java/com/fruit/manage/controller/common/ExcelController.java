@@ -671,18 +671,18 @@ public class ExcelController extends BaseController {
             c8.setCellValue("商品备注");
 
             sql = "SELECT " +
-                    "od.product_name, " +
-                    "od.product_standard_name, " +
-                    "ps.weight_price, " +
-                    "od.num, " +
-                    "od.actual_send_goods_num, " +
-                    "od.sell_price, " +
-                    "o.pay_reality_need_money, " +
-                    "od.buy_remark " +
+                        "od.product_name, " +
+                        "od.product_standard_name, " +
+                        "ps.weight_price, " +
+                        "od.num, " +
+                        "od.actual_send_goods_num, " +
+                        "od.sell_price, " +
+                        "o.pay_reality_need_money, " +
+                        "od.buy_remark " +
                     "FROM " +
-                    "b_order AS o " +
-                    "INNER JOIN b_order_detail AS od ON o.order_id = od.order_id " +
-                    "INNER JOIN b_product_standard AS ps ON od.product_standard_id = ps.id " +
+                        "b_order AS o " +
+                        "INNER JOIN b_order_detail AS od ON o.order_id = od.order_id " +
+                        "INNER JOIN b_product_standard AS ps ON od.product_standard_id = ps.id " +
                     "WHERE o.order_id = ? ";
             List<OrderDetail> orderDetails = OrderDetail.dao.find(sql, orderId);
             for (OrderDetail orderDetail : orderDetails) {

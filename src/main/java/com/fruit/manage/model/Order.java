@@ -94,7 +94,7 @@ public class Order extends BaseOrder<Order> {
                 "\to.create_time,\n" +
                 "\to.update_time,\n" +
                 "\to.order_id,\n" +
-                "\tau.`name` AS a_user_sales,\n" +
+                "\tau.nick_name AS a_user_sales,\n" +
                 "\tinfo.business_name,\n" +
                 "\tinfo.id AS business_info_id,\n" +
                 "\tu.id AS business_user_id,\n" +
