@@ -237,7 +237,8 @@ public class ExcelController extends BaseController {
                     "linfo.buy_address, " +
                     "linfo.buy_user_name, " +
                     "linfo.delivery_type, " +
-                    "au.`name` AS sales_name, " +
+                    "info.business_name, " +
+                    "au.nick_name AS sales_name, " +
                     "au.phone AS sales_phone " +
                     "FROM " +
                     "b_order AS o " +
@@ -263,12 +264,13 @@ public class ExcelController extends BaseController {
                 String buyPhone = order.get("buy_phone");
                 String buyAddress = order.get("buy_address");
                 String buyUserName = order.get("buy_user_name");
+                String businessName = order.get("business_name");
                 Integer deliveryType = order.get("delivery_type");
                 String salesName = order.get("sales_name");
                 String salesPhone = order.get("sales_phone");
 
                 // 创建表
-                XSSFSheet sheet = wb.createSheet(businessUserName + "_商家出货单");
+                XSSFSheet sheet = wb.createSheet(businessName + "_商家出货单");
                 // 去除网格线
                 sheet.setDisplayGridlines(false);
                 sheet.setDefaultRowHeight((short) (512));
@@ -381,7 +383,7 @@ public class ExcelController extends BaseController {
                 c1.setCellValue("商品名称");
                 c2.setCellValue("规格名称");
                 c3.setCellValue("规格编号");
-                c4.setCellValue("重量（斤）");
+                c4.setCellValue("重量斤");
                 c5.setCellValue("下单数量");
                 c6.setCellValue("实发数量");
                 c7.setCellValue("商品备注");
@@ -390,7 +392,7 @@ public class ExcelController extends BaseController {
                         "od.product_name, " +
                         "od.product_standard_name, " +
                         "od.product_standard_id, " +
-                        "ps.weight_price, " +
+                        "ps.sub_title, " +
                         "od.num, " +
                         "od.actual_send_goods_num, " +
                         "od.buy_remark " +
@@ -426,9 +428,9 @@ public class ExcelController extends BaseController {
                     c1.setCellValue(orderDetail.get("product_name").toString());
                     c2.setCellValue(orderDetail.get("product_standard_name").toString());
                     c3.setCellValue((Integer) orderDetail.get("product_standard_id"));
-                    c4.setCellValue(((BigDecimal) orderDetail.get("weight_price")).doubleValue());
+                    c4.setCellValue(orderDetail.get("sub_title").toString());
                     c5.setCellValue((Integer) orderDetail.get("num"));
-                    c6.setCellValue(0);
+//                    c6.setCellValue(0);
                     c7.setCellValue(orderDetail.get("buy_remark") != null ? orderDetail.get("buy_remark").toString() : null);
 
                 }
@@ -517,7 +519,8 @@ public class ExcelController extends BaseController {
                 "linfo.buy_address, " +
                 "linfo.buy_user_name, " +
                 "linfo.delivery_type, " +
-                "au.`name` AS sales_name, " +
+                "info.business_name, " +
+                "au.nick_name AS sales_name, " +
                 "au.phone AS sales_phone " +
                 "FROM " +
                 "b_order AS o " +
@@ -543,6 +546,7 @@ public class ExcelController extends BaseController {
             rowCount = 0;
             String orderId = order.get("order_id");
             String businessUserName = order.get("business_user_name");
+            String businessName = order.get("business_name");
             String buyPhone = order.get("buy_phone");
             String buyAddress = order.get("buy_address");
             String buyUserName = order.get("buy_user_name");
@@ -551,7 +555,7 @@ public class ExcelController extends BaseController {
             String salesPhone = order.get("sales_phone");
 
             // 创建表
-            XSSFSheet sheet = wb.createSheet(businessUserName + "_商家出货单");
+            XSSFSheet sheet = wb.createSheet(businessName + "_商家收款单");
             // 去除网格线
             sheet.setDisplayGridlines(false);
             sheet.setDefaultRowHeight((short) (512));
@@ -564,7 +568,7 @@ public class ExcelController extends BaseController {
             int textHeight = 20;
 
             // 表样式
-            XSSFCellStyle styleTable = ExcelStyle.getStyleTableByOne(wb, 3);
+            XSSFCellStyle styleTable = ExcelStyle.getStyleTableByTwo(wb, 3);
             int tableHeight = 30;
 
             // 规范: 设置为1-3合并 ?-6合并 ?-9合并的单元格名称.
@@ -579,7 +583,7 @@ public class ExcelController extends BaseController {
             _mergedRegionNowRow(sheet, row, 1, 9);
             c9 = row.createCell(0);
             c9.setCellStyle(styleTitle);
-            c9.setCellValue(DateFormatUtils.format(now, "yyyy-MM-dd") + "广州嘻果出货单" + now.getTime());
+            c9.setCellValue(DateFormatUtils.format(now, "yyyy-MM-dd") + "广州嘻果商家收款单" + now.getTime());
 
             // 2 line
             row = sheet.createRow(rowCount++);
@@ -787,14 +791,14 @@ public class ExcelController extends BaseController {
         int textHeight = 20;
 
         // 表样式
-        XSSFCellStyle styleTable = ExcelStyle.getStyleTableByOne(wb, 3);
+        XSSFCellStyle styleTable = ExcelStyle.getStyleTableByTwo(wb, 3);
         int tableHeight = 30;
 
 
         procurementPlanGroup.forEach(
                 (productStandardName, procurementPlanList) -> {
                     try {
-                        XSSFSheet sheet = wb.createSheet();
+                        XSSFSheet sheet = wb.createSheet(productStandardName + "_采购计划单");
                         sheet.setDisplayGridlines(false);
                         sheet.setDefaultRowHeight((short) (512));
 
@@ -861,13 +865,13 @@ public class ExcelController extends BaseController {
                             c1.setCellValue(procurementPlan.get("productName") + "");
                             c2.setCellValue(procurementPlan.get("productStandardName") + "");
                             c3.setCellValue(procurementPlan.get("productStandardID") + "");
-                            c4.setCellValue(procurementPlan.get("fruitWeight") + "");
+                            c4.setCellValue(procurementPlan.get("sub_title") + "");
                             c5.setCellValue(procurementPlan.get("sellPrice") + "");
                             c6.setCellValue(procurementPlan.get("purchaseNum") + "");
                             c7.setCellValue(procurementPlan.get("inventoryNum") + "");
-                            c8.setCellValue(procurementPlan.get("procurementNum") + "");
-                            c9.setCellValue(procurementPlan.get("procurementPrice") + "");
-                            c10.setCellValue(procurementPlan.get("procurementRemark") + "");
+                            c8.setCellValue("");
+                            c9.setCellValue("");
+                            c10.setCellValue("");
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -970,7 +974,7 @@ public class ExcelController extends BaseController {
                 if (!StringUtils.isNotBlank(typeName)) {
                     // 首个内容为空,String的concat会报nullPointer异常
                     String errorRowStr = Arrays.stream(row).map(obj -> {
-                        if (obj!=null) {
+                        if (obj != null) {
                             return obj.toString();
                         }
                         return null;
@@ -983,7 +987,7 @@ public class ExcelController extends BaseController {
                 String productName = (String) row[2];
                 if (!StringUtils.isNotBlank(productName)) {
                     String errorRowStr = Arrays.stream(row).map(obj -> {
-                        if (obj!=null) {
+                        if (obj != null) {
                             return obj.toString();
                         }
                         return null;
@@ -1001,7 +1005,7 @@ public class ExcelController extends BaseController {
 
                 if (productName.contains("  ")) {
                     String errorRowStr = Arrays.stream(row).map(obj -> {
-                        if (obj!=null) {
+                        if (obj != null) {
                             return obj.toString();
                         }
                         return null;
