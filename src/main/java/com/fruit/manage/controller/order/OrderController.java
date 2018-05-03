@@ -542,7 +542,19 @@ public class OrderController extends BaseController {
     public void delLogisticsInfo() {
         String orderId = getPara("orderID");
         try {
-            LogisticsInfo.dao.delLogisticsInfoByOrderID(orderId);
+//            LogisticsInfo.dao.delLogisticsInfoByOrderID(orderId);
+            LogisticsInfo logisticsInfo = LogisticsInfo.dao.getLogisticeInfoByOrderID(orderId);
+            logisticsInfo.setSendGoodsTotalCost(new BigDecimal(0));
+            logisticsInfo.setPackageNum(0);
+            logisticsInfo.setTricycleCost(new BigDecimal(0));
+            logisticsInfo.setFreightCost(new BigDecimal(0));
+            logisticsInfo.setTransshipmentCost(new BigDecimal(0));
+            logisticsInfo.setPackageCost(new BigDecimal(0));
+            logisticsInfo.setRealitySendNum(0);
+            logisticsInfo.setLicensePlateNumber(null);
+            logisticsInfo.setDeliveryInfo(null);
+            logisticsInfo.setUpdateTime(new Date());
+            logisticsInfo.update();
             renderNull();
         } catch (Exception e) {
         }
