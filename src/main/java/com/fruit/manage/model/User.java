@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import com.jfinal.plugin.activerecord.Record;
 import org.apache.commons.lang3.StringUtils;
 
 import com.fruit.manage.model.base.BaseUser;
@@ -123,30 +124,35 @@ public class User extends BaseUser<User> {
 		return dao.findFirst(sql.toString(),businessInfoID);
 	}
 
+	public User getUserById(Integer id) {
+		String sql = "select * from a_user where id = ? ";
+		return findFirst(sql, id);
+	}
+
 	/**
 	 * 判断是否是销售人员
 	 * @return 是不是销售 true 是  false 不是
 	 */
 	public boolean isSales(Integer uid) {
+
+		String sql = "SELECT COUNT(1) FROM a_user au INNER JOIN a_user_role aur ON aur.user_id = au.id WHERE aur.role_id = 4 AND au.id = 119";
+		Record first = Db.findFirst(sql);
+		String count = first.getStr("count(1)");
 		User user = dao.findById(uid);
 		Integer isSales = user.getIsSales();
-		if (isSales == 0) {
-			return false;
+		if (isSales == 1) {
+			return true;
 		}
-		return true;
+		return false;
 	}
 
-	public User getUserById(Integer id) {
-		String sql = "select * from a_user where id = ? ";
-		return findFirst(sql, id);
-	}
 	/**
 	 * 获取所有的用户编号和用户名
 	 * @return 所有的用户编号和用户名
 	 * TODO 这个方面不可取，必须要根据角色ID去获取
 	 */
 	public List<User> getAllUser(){
-		String sql="select u.id,u.`name` from a_user u";
+		String sql="select u.id,u.`name`,u.nick_name from a_user u";
 		return find(sql);
 	}
 

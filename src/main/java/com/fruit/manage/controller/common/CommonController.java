@@ -5,7 +5,6 @@ import com.fruit.manage.constant.OrderConstant;
 import com.fruit.manage.constant.ShipmentConstant;
 import com.fruit.manage.model.Menu;
 import com.fruit.manage.model.Permission;
-import com.fruit.manage.model.User;
 import com.fruit.manage.util.Constant;
 import com.jfinal.kit.PathKit;
 import com.jfinal.kit.PropKit;
@@ -54,12 +53,13 @@ public class CommonController extends BaseController {
      */
     public void download() {
         String fileName = getPara("fileName");
-        renderFile(new File(FILE_PATH+File.separator + fileName));
+        renderFile(new File(FILE_PATH + File.separator + fileName));
     }
 
     /**
      * 重命名文件
      * 避免出现重名的文件
+     *
      * @param uploadFile
      * @param request
      * @return
@@ -140,7 +140,7 @@ public class CommonController extends BaseController {
     /**
      * 获取所有物流发送方式
      */
-    public void getAllShipmentType(){
+    public void getAllShipmentType() {
         renderJson(ShipmentConstant.SHIPMENT_TYPE);
     }
 }
