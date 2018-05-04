@@ -32,58 +32,56 @@ public class BusinessUser extends BaseBusinessUser<BusinessUser> {
      */
     public List<BusinessUser> getBusinessUsersByUid(Integer uid) {
         // 销售只能获取自己的客户,其他人能获取全部,但是其他人除了超级管理员都不能调用这个方法,因为权限控制.
-        String sql = "SELECT\n" +
-                "\tu.`name` AS business_user_name,\n" +
-                "\tu.id,\n" +
-                "\tu.phone,\n" +
-                "\tu.nick_name,\n" +
-                "\tu.a_user_sales_id AS sales_id\n" +
-                "FROM\n" +
-                "\tb_business_user AS u ";
-        if (!User.dao.isSales(uid)) {
-            return dao.find(sql);
-        }
-        // 销售只能获取自己的客户
-        return dao.find(sql + " WHERE u.a_user_sales_id = ? ", uid);
+        String sql = "SELECT  " +
+                "u.`name` AS business_user_name,  " +
+                "u.id,  " +
+                "u.phone,  " +
+                "u.nick_name,  " +
+                "u.a_user_sales_id AS sales_id  " +
+                "FROM  " +
+                //只能获取自己的客户
+                "b_business_user AS u WHERE u.a_user_sales_id = ? ";
+        return dao.find(sql, uid);
     }
 
     /**
      * 根据uid和查询字段获取用户信息
+     *
      * @param uid
      */
     public List<BusinessUser> getBusinessUsersByUidAndQuery(Integer uid, String queryString) {
         // 销售只能获取自己的客户,其他人能获取全部,但是其他人除了超级管理员都不能调用这个方法,因为权限控制.
-        String sql = "SELECT\n" +
-                "\tu.`name` AS business_user_name,\n" +
-                "\tu.id,\n" +
-                "\tu.phone,\n" +
-                "\tu.nick_name,\n" +
-                "\tu.a_user_sales_id AS sales_id\n" +
-                "FROM\n" +
-                "\tb_business_user AS u ";
-        if (!User.dao.isSales(uid)) {
-            return dao.find(sql + " WHERE u.`name` LIKE CONCAT('%',?,'%')", queryString);
-        }
-        // 销售只能获取自己的客户
-        return dao.find(sql + " WHERE u.a_user_sales_id = ? AND u.`name` LIKE CONCAT('%','?,'%')", uid,queryString);
+        String sql = "SELECT  " +
+                "u.`name` AS business_user_name,  " +
+                "u.id,  " +
+                "u.phone,  " +
+                "u.nick_name,  " +
+                "u.a_user_sales_id AS sales_id  " +
+                "FROM  " +
+                "b_business_user AS u  " +
+                // 销售只能获取自己的客户
+                "WHERE u.a_user_sales_id = ? AND u.`name` LIKE CONCAT('%','?,'%')";
+        return dao.find(sql, uid, queryString);
     }
 
     /**
      * 根据手机号码获取商户信息
+     *
      * @param phone 手机号码
      * @return 返回一个商户信息
      */
-    public BusinessUser getBusinessUserByPhone(String phone){
-        String sql="select * from b_business_user bu where bu.phone = ?";
-        return dao.findFirst(sql,phone);
+    public BusinessUser getBusinessUserByPhone(String phone) {
+        String sql = "select * from b_business_user bu where bu.phone = ?";
+        return dao.findFirst(sql, phone);
     }
 
     /**
      * 获取商户必要信息
+     *
      * @param customerId
      * @return
      */
-    public BusinessUser getCustomerInfo(String customerId){
+    public BusinessUser getCustomerInfo(String customerId) {
         StringBuffer sql = new StringBuffer();
         String selectStr = "SELECT\n" +
                 "\tCONCAT(\n" +
@@ -102,16 +100,17 @@ public class BusinessUser extends BaseBusinessUser<BusinessUser> {
                 "INNER JOIN b_business_info AS info ON u.id = info.u_id\n" +
                 "INNER JOIN a_user AS au ON u.a_user_sales_id = au.id WHERE 1 = 1 ");
         sql.append("AND u.id = ? ");
-        return dao.findFirst(selectStr + sql,customerId);
+        return dao.findFirst(selectStr + sql, customerId);
     }
 
     /**
      * 根据用户编号获取用户姓名，电话号码
+     *
      * @param businessUserId
      * @return
      */
-    public BusinessUser getBusinessUserByID(Integer businessUserId){
-        String sql="select bu.id,bu.name,bu.phone,bu.a_user_sales_id from b_business_user bu  where bu.id = ?";
-        return findFirst(sql,businessUserId);
+    public BusinessUser getBusinessUserByID(Integer businessUserId) {
+        String sql = "select bu.id,bu.name,bu.phone,bu.a_user_sales_id from b_business_user bu  where bu.id = ?";
+        return findFirst(sql, businessUserId);
     }
 }

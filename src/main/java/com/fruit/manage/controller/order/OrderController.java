@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.fruit.manage.base.BaseController;
 import com.fruit.manage.constant.OrderConstant;
 import com.fruit.manage.constant.OrderStatusCode;
+import com.fruit.manage.constant.RoleKeyCode;
 import com.fruit.manage.constant.UserTypeConstant;
 import com.fruit.manage.model.*;
 import com.fruit.manage.util.Constant;
@@ -270,7 +271,7 @@ public class OrderController extends BaseController {
                 LogisticsInfo logisticsInfo = new LogisticsInfo();
                 logisticsInfo.setUId(uid);
                 logisticsInfo.setOrderId(orderId);
-                logisticsInfo.setBuyAddress(info.getAddressProvince()+info.getAddressCity()+info.getAddressDetail());
+                logisticsInfo.setBuyAddress(info.getAddressProvince() + info.getAddressCity() + info.getAddressDetail());
                 logisticsInfo.setBuyPhone(info.getPhone());
                 logisticsInfo.setBuyUserName(info.getBusinessName());
                 logisticsInfo.setDeliveryType(info.getShipmentsType());
@@ -343,16 +344,14 @@ public class OrderController extends BaseController {
                   "binfo.business_name " +
                 "FROM " +
                   "a_user AS au " +
-                "INNER JOIN a_user_role ON a_user_role.user_id = au.id " +
-                "INNER JOIN a_role AS r ON a_user_role.role_id = r.id " +
+                "INNER JOIN a_user_role aur ON aur.user_id = au.id " +
                 "INNER JOIN b_business_user AS bu ON au.id = bu.a_user_sales_id " +
-                "INNER JOIN b_business_info AS binfo ON binfo.u_id = bu.id ";
-        if (!User.dao.isSales(uid)) {
-            renderJson(BusinessUser.dao.find(sql));
-            return;
-        }
+                "INNER JOIN b_business_info AS binfo ON binfo.u_id = bu.id " +
+                "WHERE " +
+                  "bu.a_user_sales_id = ? " +
+                "";
         // 销售只能获取自己的客户
-        renderJson(BusinessUser.dao.find(sql + "WHERE r.role_key = 'salesAdmin' AND bu.a_user_sales_id = ?", uid));
+        renderJson(BusinessUser.dao.find(sql,uid));
     }
 
     /**
@@ -411,7 +410,7 @@ public class OrderController extends BaseController {
             BusinessInfo businessInfo = BusinessInfo.dao.getBusinessInfoByID(businessInfoID);
             BusinessUser businessUser = BusinessUser.dao.getBusinessUserByID(businessUserID);
             LogisticsInfo logisticsInfoUpdate = LogisticsInfo.dao.getLogisticsDetailInfoByOrderID(orderId);
-            if (logisticsInfo != null && logisticsInfoUpdate!=null) {
+            if (logisticsInfo != null && logisticsInfoUpdate != null) {
 
                 //发货总费用(send_goods_total_cost)：打包费用（package_cost）+三路车费用（tricycle_cost）+发货和装车费用（freight_cost）+ 中转费用和短途费用（transshipment_cost）
                 BigDecimal packageCost = logisticsInfo.getPackageCost() == null ? new BigDecimal(0) : logisticsInfo.getPackageCost();

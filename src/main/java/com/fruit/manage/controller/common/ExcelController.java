@@ -224,6 +224,7 @@ public class ExcelController extends BaseController {
 
             Calendar calendar = Calendar.getInstance();
             if (calendar.get(Calendar.HOUR_OF_DAY) < 12) {
+
                 // 超過11:59:59算明天的訂單
                 calendar.add(Calendar.DAY_OF_MONTH, -1);
             }
@@ -246,11 +247,15 @@ public class ExcelController extends BaseController {
                     "INNER JOIN b_business_info AS info ON bu.id = info.u_id " +
                     "INNER JOIN a_user AS au ON bu.a_user_sales_id = au.id " +
                     "LEFT JOIN b_logistics_info AS linfo ON linfo.order_id = o.order_id " +
+                    "INNER JOIN a_user_role ON a_user_role.user_id = au.id " +
+                    "INNER JOIN a_role AS r ON a_user_role.role_id = r.id " +
                     "WHERE " +
                     "o.order_status in (5) " +
                     "AND o.create_time BETWEEN ? " +
                     "AND ? ";
+
             List<Order> orders = Order.dao.find(sql, startDateStr, endDateStr);
+
             Date now = new Date();
 
             if (orders.size() < 1) {
@@ -432,7 +437,6 @@ public class ExcelController extends BaseController {
                     c5.setCellValue((Integer) orderDetail.get("num"));
 //                    c6.setCellValue(0);
                     c7.setCellValue(orderDetail.get("buy_remark") != null ? orderDetail.get("buy_remark").toString() : null);
-
                 }
                 // 添加三行空行
 //            sheet.createRow(rowCount++).setRowStyle(styleTable);
@@ -671,18 +675,18 @@ public class ExcelController extends BaseController {
             c8.setCellValue("商品备注");
 
             sql = "SELECT " +
-                        "od.product_name, " +
-                        "od.product_standard_name, " +
-                        "ps.weight_price, " +
-                        "od.num, " +
-                        "od.actual_send_goods_num, " +
-                        "od.sell_price, " +
-                        "o.pay_reality_need_money, " +
-                        "od.buy_remark " +
+                    "od.product_name, " +
+                    "od.product_standard_name, " +
+                    "ps.weight_price, " +
+                    "od.num, " +
+                    "od.actual_send_goods_num, " +
+                    "od.sell_price, " +
+                    "o.pay_reality_need_money, " +
+                    "od.buy_remark " +
                     "FROM " +
-                        "b_order AS o " +
-                        "INNER JOIN b_order_detail AS od ON o.order_id = od.order_id " +
-                        "INNER JOIN b_product_standard AS ps ON od.product_standard_id = ps.id " +
+                    "b_order AS o " +
+                    "INNER JOIN b_order_detail AS od ON o.order_id = od.order_id " +
+                    "INNER JOIN b_product_standard AS ps ON od.product_standard_id = ps.id " +
                     "WHERE o.order_id = ? ";
             List<OrderDetail> orderDetails = OrderDetail.dao.find(sql, orderId);
             for (OrderDetail orderDetail : orderDetails) {

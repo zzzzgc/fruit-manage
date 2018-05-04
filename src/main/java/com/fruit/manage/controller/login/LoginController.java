@@ -14,52 +14,52 @@ import com.fruit.manage.util.DataResult;
 import com.jfinal.kit.HashKit;
 
 public class LoginController extends BaseController {
-	
-	private Logger logger = Logger.getLogger(getClass());
-	
-	/**
-	 * 登录操作
-	 */
-	public void auth(){
-		Object uid = getSessionAttr(Constant.SESSION_UID);
-		if(uid != null){
-			renderJson(new DataResult<>(DataResult.CODE_SUCCESS, "登录成功"));
-		}
-		String userName = getPara("username");
-		String password = StringUtils.isNotBlank(getPara("password")) ? HashKit.md5(getPara("password")) : getPara("password");
-		
-		Subject subject=SecurityUtils.getSubject();
-		UsernamePasswordToken token=new UsernamePasswordToken(userName, password);
-		try{
-			subject.login(token);
-			Session session = subject.getSession();
-			session.setAttribute(Constant.SESSION_UID, User.dao.getUser(userName).getId());
-			renderNull();
-		}catch(Exception e){
-			if(StringUtils.isAllBlank(userName, password)){
-				renderLogin("身份认证失败");
-			}else{
-				renderErrorText("用户名或密码错误");
-			}
-		}
-	}
-	
-	/**
-	 * 退出登录操作
-	 */
-	public void logout(){
-		Object uid = getSessionAttr(Constant.SESSION_UID);
-		if(null != uid){
-			logger.info("登出系统：uid="+uid.toString());
-		}
-		getSession().invalidate();
-		// shiro登出
-		try {
-			SecurityUtils.getSubject().logout();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		renderNull();
-	}
+
+    private Logger logger = Logger.getLogger(getClass());
+
+    /**
+     * 登录操作
+     */
+    public void auth() {
+        Object uid = getSessionAttr(Constant.SESSION_UID);
+        if (uid != null) {
+            renderJson(new DataResult<>(DataResult.CODE_SUCCESS, "登录成功"));
+        }
+        String userName = getPara("username");
+        String password = StringUtils.isNotBlank(getPara("password")) ? HashKit.md5(getPara("password")) : getPara("password");
+
+        Subject subject = SecurityUtils.getSubject();
+        UsernamePasswordToken token = new UsernamePasswordToken(userName, password);
+        try {
+            subject.login(token);
+            Session session = subject.getSession();
+            session.setAttribute(Constant.SESSION_UID, User.dao.getUser(userName).getId());
+            renderNull();
+        } catch (Exception e) {
+            if (StringUtils.isAllBlank(userName, password)) {
+                renderLogin("身份认证失败");
+            } else {
+                renderErrorText("用户名或密码错误");
+            }
+        }
+    }
+
+    /**
+     * 退出登录操作
+     */
+    public void logout() {
+        Object uid = getSessionAttr(Constant.SESSION_UID);
+        if (null != uid) {
+            logger.info("登出系统：uid=" + uid.toString());
+        }
+        // shiro登出
+        try {
+            SecurityUtils.getSubject().logout();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        getSession().invalidate();
+        renderNull();
+    }
 
 }
