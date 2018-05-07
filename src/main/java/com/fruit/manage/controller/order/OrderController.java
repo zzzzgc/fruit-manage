@@ -448,6 +448,11 @@ public class OrderController extends BaseController {
         String orderId = getPara("orderId");
         Integer userId = getParaToInt("businessUserId");
         LogisticsInfo logisticsInfo = LogisticsInfo.dao.getLogisticeInfoByOrderID(orderId);
+        Integer orderStatus = Order.dao.getOrderStatusByOrderId(orderId);
+        if (orderStatus < 15) {
+            renderErrorText("请先对订单号为"+orderId+"进行配送！");
+            return;
+        }
         if (logisticsInfo != null) {
             BigDecimal orderPayRealityNeedMoney = OrderDetail.dao.getOrderPayRealityNeedMoneyByOrderID(orderId);
             if (logisticsInfo == null)
@@ -472,9 +477,10 @@ public class OrderController extends BaseController {
             list.add(payOrderInfos);
             renderJson(list);
         } else {
-            List<String> list = new ArrayList<>();
-            list.add("error");
-            renderJson(list);
+            renderErrorText("物流信息为空!");
+//            List<String> list = new ArrayList<>();
+//            list.add("error");
+//            renderJson(list);
         }
     }
 

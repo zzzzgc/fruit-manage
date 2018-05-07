@@ -266,4 +266,14 @@ public class Order extends BaseOrder<Order> {
                 "INNER JOIN a_user AS au ON bu.a_user_sales_id = au.id WHERE 1 = 1 ");
         return Order.dao.find(selectStr + sql, customerId);
     }
+
+    /**
+     *根据订单编号获取订单的状态
+     * @param orderId 订单编号
+     * @return
+     */
+    public Integer getOrderStatusByOrderId(String orderId) {
+        String sql = "select order_status from b_order where order_id = ?";
+        return Db.queryInt(sql, orderId);
+    }
 }
