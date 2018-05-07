@@ -518,11 +518,19 @@ public class ExcelController extends BaseController {
         String endDateStr = DateTimeKit.formatDateToStyle("yyyy-MM-dd", calendar.getTime()) + " 12:00:00";
         String sql = "SELECT " +
                 "o.order_id, " +
+                "o.order_id, " +
                 "bu.`name` AS business_user_name, " +
                 "linfo.buy_phone, " +
                 "linfo.buy_address, " +
                 "linfo.buy_user_name, " +
                 "linfo.delivery_type, " +
+
+                "linfo.tricycle_cost, " +
+                "linfo.freight_cost, " +
+                "linfo.transshipment_cost, " +
+                "linfo.package_num, " +
+                "linfo.send_goods_total_cost, " +
+
                 "info.business_name, " +
                 "au.nick_name AS sales_name, " +
                 "au.phone AS sales_phone " +
@@ -555,6 +563,14 @@ public class ExcelController extends BaseController {
             String buyAddress = order.get("buy_address");
             String buyUserName = order.get("buy_user_name");
             Integer deliveryType = order.get("delivery_type");
+
+            String tricycle_cost = order.get("tricycle_cost");
+            String freight_cost = order.get("freight_cost");
+            String transshipment_cost = order.get("transshipment_cost");
+            String package_num = order.get("package_num");
+            String send_goods_total_cost = order.get("send_goods_total_cost");
+
+
             String salesName = order.get("sales_name");
             String salesPhone = order.get("sales_phone");
 
@@ -718,6 +734,50 @@ public class ExcelController extends BaseController {
                 c7.setCellValue(orderDetail.get("pay_reality_need_money") != null ? orderDetail.get("pay_reality_need_money").toString() : null);
                 c8.setCellValue(orderDetail.get("buy_remark") != null ? orderDetail.get("buy_remark").toString() : null);
             }
+
+            row = sheet.createRow(rowCount++);
+            row.setHeightInPoints(textHeight);
+            _mergedRegionNowRow(sheet, row, 1, 3);
+            _mergedRegionNowRow(sheet, row, 4, 6);
+            _mergedRegionNowRow(sheet, row, 7, 9);
+            c3 = row.createCell(0);
+            c6 = row.createCell(3);
+            c9 = row.createCell(6);
+            c3.setCellStyle(styleText);
+            c6.setCellStyle(styleText);
+            c9.setCellStyle(styleText);
+            c3.setCellValue("三轮车费:" + tricycle_cost);
+            c6.setCellValue("装车费:" + freight_cost);
+            c9.setCellValue("运费:" + transshipment_cost);
+
+
+            row = sheet.createRow(rowCount++);
+            row.setHeightInPoints(textHeight);
+            _mergedRegionNowRow(sheet, row, 1, 3);
+            _mergedRegionNowRow(sheet, row, 4, 6);
+            _mergedRegionNowRow(sheet, row, 7, 9);
+            c3 = row.createCell(0);
+            c6 = row.createCell(3);
+            c9 = row.createCell(6);
+            c3.setCellStyle(styleText);
+            c6.setCellStyle(styleText);
+            c9.setCellStyle(styleText);
+            c3.setCellValue("打包费:" + package_num);
+            c6.setCellValue("本次货款:" + send_goods_total_cost);
+            c9.setCellValue("前次未结:" + salesPhone);
+
+            row = sheet.createRow(rowCount++);
+            row.setHeightInPoints(textHeight);
+            _mergedRegionNowRow(sheet, row, 1, 3);
+            _mergedRegionNowRow(sheet, row, 4, 6);
+            c3 = row.createCell(0);
+            c6 = row.createCell(3);
+            c3.setCellStyle(styleText);
+            c6.setCellStyle(styleText);
+            c3.setCellValue("本次已付:" + ShipmentConstant.SHIPMENT_TYPE.get(deliveryType));
+            c6.setCellValue("本次应付:" + salesName);
+
+
         }
 
         try {
@@ -783,6 +843,11 @@ public class ExcelController extends BaseController {
                         plan -> plan.get("procurement_name")
                 )
         );
+
+        // 需要导出采购汇总_采购计划单
+        procurementPlanGroup.put("采购汇总", planList);
+
+
         String[] headers = {"商品名", "规格名", "规格编码", "重量(斤)", "报价", "下单量", "库存量", "采购量", "采购单价", "下单备注"};
 
         XSSFWorkbook wb = new XSSFWorkbook();
@@ -936,16 +1001,17 @@ public class ExcelController extends BaseController {
                     ExcelRdTypeEnum.STRING
             });
 
-            List<Product> finalProducts = Product.dao.find("select * from b_product ");
-            List<ProductStandard> productStandardAllInfo = ProductStandard.dao.find("select * from b_product_standard ");
-            List<Type> types = Type.dao.find("select * from b_type ");
-            List<TypeGroup> typeGroups = TypeGroup.dao.find("select * from b_type_group ");
-
             Db.update("UPDATE b_type_group SET status = 0");
             Db.update("UPDATE b_product SET status = 0");
             Db.update("UPDATE b_product_standard SET status = 0");
             Db.update("UPDATE b_type SET status = 0");
             Db.update("DELETE FROM b_product_type");
+
+            List<Product> finalProducts = Product.dao.find("select * from b_product ");
+            List<ProductStandard> productStandardAllInfo = ProductStandard.dao.find("select * from b_product_standard ");
+            List<Type> types = Type.dao.find("select * from b_type ");
+            List<TypeGroup> typeGroups = TypeGroup.dao.find("select * from b_type_group ");
+            List<ProductType> productTypes = ProductType.dao.find("select * from b_product_type");
 
             TypeGroup typeGroup = TypeGroup.dao.findFirst("select * from b_type_group tg where tg.`name` = '所有商品' ");
             Db.update("UPDATE b_type_group tg SET status = 1 where tg.`name` = '所有商品'");
@@ -955,6 +1021,8 @@ public class ExcelController extends BaseController {
             Map<Integer, ProductStandard> productStandardByIdMap = productStandardAllInfo.stream().collect(Collectors.toMap(ProductStandard::getId, Function.identity()));
             Map<String, ProductStandard> productStandardByNameANDPIdMap = productStandardAllInfo.stream().collect(Collectors.toMap(ps -> ps.getProductId() + "-" + ps.getName(), Function.identity()));
             Map<String, Type> typeByNameMap = types.stream().collect(Collectors.toMap(Type::getName, Function.identity()));
+            Map<String, ProductType> productTypeMap = productTypes.stream().collect(Collectors.toMap(pt -> pt.getProductId() + "-" + pt.getTypeId(), Function.identity()));
+
 
             for (Object[] row : excel) {
                 Arrays.stream(row).forEach(System.out::print);
@@ -1104,7 +1172,7 @@ public class ExcelController extends BaseController {
                         productStandardByNameANDPIdMap.put(productStandard.getProductId() + "-" + productStandard.getName(), productStandard);
                         productStandardByIdMap.put(productStandard.getId(), productStandard);
 
-                        //追加副标题 TODO
+                        //追加副标题
                         productStandard.setSubTitle(subhead);
                         productStandard.update();
                     } else {
@@ -1118,14 +1186,18 @@ public class ExcelController extends BaseController {
                         productStandard.update();
                     }
                     productStandardId = productStandard.getId();
-
                 }
 
-                ProductType productType = new ProductType();
-                productType.setTypeId(Integer.parseInt(type.getId() + ""));
-                productType.setProductId(productId);
-                productType.setCreateTime(new Date());
-                productType.save();
+                ProductType productType = productTypeMap.get(productId+"-"+type.getId());
+                if (productType == null) {
+                    productType = new ProductType();
+                    productType.setTypeId(Integer.parseInt(type.getId() + ""));
+                    productType.setProductId(productId);
+                    productType.setCreateTime(new Date());
+                    productType.save();
+
+                    productTypeMap.put(productId+"-"+type.getId(),productType);
+                }
 
                 _saveProcurementQuota(productId, productName, productStandardName, productStandardId, procurementName);
             }
@@ -1332,7 +1404,7 @@ public class ExcelController extends BaseController {
         product.setSort(10L);
         measure_unit = StringUtils.isNotBlank(measure_unit) ? measure_unit : "件";
         product.setMeasureUnit(measure_unit);
-        brand = (StringUtils.isNoneBlank(brand)) ? brand : "暂无";
+        brand = (StringUtils.isNoneBlank(brand)) ? brand : "待添加";
         product.setBrand(brand);
         product.setStatus(status);
         product.setFruitType(fruit_type);
@@ -1452,6 +1524,9 @@ public class ExcelController extends BaseController {
                 procurementName = "曹雄斌";
                 break;
             case "D":
+                procurementName = "林镇全";
+                break;
+            case "E":
                 procurementName = "林镇全";
                 break;
             default:

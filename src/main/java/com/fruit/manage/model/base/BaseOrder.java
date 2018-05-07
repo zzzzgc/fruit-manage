@@ -57,6 +57,30 @@ public abstract class BaseOrder<M extends BaseOrder<M>> extends Model<M> impleme
 		return get("pay_need_money");
 	}
 
+	public void setPayRealityNeedMoney(java.math.BigDecimal payRealityNeedMoney) {
+		set("pay_reality_need_money", payRealityNeedMoney);
+	}
+
+	public java.math.BigDecimal getPayRealityNeedMoney() {
+		return get("pay_reality_need_money");
+	}
+
+	public void setPayLogisticsMoney(java.math.BigDecimal payLogisticsMoney) {
+		set("pay_logistics_money", payLogisticsMoney);
+	}
+
+	public java.math.BigDecimal getPayLogisticsMoney() {
+		return get("pay_logistics_money");
+	}
+
+	public void setPayAllMoney(java.math.BigDecimal payAllMoney) {
+		set("pay_all_money", payAllMoney);
+	}
+
+	public java.math.BigDecimal getPayAllMoney() {
+		return get("pay_all_money");
+	}
+
 	public void setPayTotalMoney(java.math.BigDecimal payTotalMoney) {
 		set("pay_total_money", payTotalMoney);
 	}
@@ -127,14 +151,6 @@ public abstract class BaseOrder<M extends BaseOrder<M>> extends Model<M> impleme
 
 	public java.util.Date getUpdateTime() {
 		return get("update_time");
-	}
-
-	public void setPayRealityNeedMoney(java.math.BigDecimal payRealityNeedMoney) {
-		set("pay_reality_need_money", payRealityNeedMoney);
-	}
-
-	public java.math.BigDecimal getPayRealityNeedMoney() {
-		return get("pay_reality_need_money");
 	}
 
 }
