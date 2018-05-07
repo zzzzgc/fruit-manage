@@ -106,6 +106,10 @@ public class ProductStandard extends BaseProductStandard<ProductStandard> {
                 "\tps.product_id,\n" +
                 "\tp.measure_unit,\n" +
                 "\tp.`name` AS product_name,\n" +
+
+                //商户规格副标题
+                " ps.sub_title, " +
+
                 "\tp.brand\n" +
                 "FROM\n" +
                 "\tb_product_standard AS ps\n" +

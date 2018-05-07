@@ -44,6 +44,10 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
                 " o.product_standard_id, "+
                 "\to.num AS actual_send_goods_num,\n" +
                 "\tp.brand,\n" +
+
+                //商户规格副标题
+                " ps.sub_title, " +
+
                 "\tps.gross_weight\n" +
                 "FROM\n" +
                 "\tb_order_detail AS o\n" +
