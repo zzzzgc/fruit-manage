@@ -450,6 +450,12 @@ public class OrderController extends BaseController {
 
                 logisticsInfoUpdate.setUpdateTime(new Date());
                 logisticsInfoUpdate.update();
+
+                Order order = Order.dao.getOrder(orderId);
+                order.setPayLogisticsMoney(sendGoodsTotalCost);
+                //修改订单产生的总费用 = 订单费用+发货物流费用
+                order.setPayAllMoney(order.getPayRealityNeedMoney().add(sendGoodsTotalCost));
+                order.update();
             }
             renderNull();
         } catch (Exception e) {
