@@ -106,7 +106,10 @@ public class ProcurementPlan extends BaseProcurementPlan<ProcurementPlan> {
                         "(SELECT 0) AS procurementNeedPrice, " +
                         "(SELECT 0) AS procurementTotalPrice, " +
                     // 订单详细下单备注，多个以分号拼接
-                    "(SELECT group_concat(buy_remark SEPARATOR ';') from b_order_detail od2 where od2.product_standard_id in (ol.product_standard_id)) as orderRemark " +
+                        " (SELECT group_concat(CONCAT(num,measure_unit,'|',buy_remark) SEPARATOR ';')  as concatStr " +
+                        " from b_order_detail od2  " +
+                        " where od2.product_standard_id in (ol.product_standard_id)) as orderRemark  " +
+//                    "(SELECT group_concat(buy_remark SEPARATOR ';') from b_order_detail od2 where od2.product_standard_id in (ol.product_standard_id)) as orderRemark " +
 //                  "(SELECT '') AS orderRemark " +
                 "FROM " +
                         "b_order_log ol, " +
