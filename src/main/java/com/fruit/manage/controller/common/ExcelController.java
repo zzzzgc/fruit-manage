@@ -518,7 +518,8 @@ public class ExcelController extends BaseController {
         String endDateStr = DateTimeKit.formatDateToStyle("yyyy-MM-dd", calendar.getTime()) + " 12:00:00";
         String sql = "SELECT " +
                 "o.order_id, " +
-                "o.order_id, " +
+                "o.pay_all_money, " +
+                "o.pay_total_money, " +
                 "bu.`name` AS business_user_name, " +
                 "linfo.buy_phone, " +
                 "linfo.buy_address, " +
@@ -557,6 +558,8 @@ public class ExcelController extends BaseController {
         for (Order order : orders) {
             rowCount = 0;
             String orderId = order.get("order_id");
+            String pay_all_money = order.get("pay_all_money");
+            String pay_total_money = order.get("pay_total_money");
             String businessUserName = order.get("business_user_name");
             String businessName = order.get("business_name");
             String buyPhone = order.get("buy_phone");
@@ -763,19 +766,19 @@ public class ExcelController extends BaseController {
             c6.setCellStyle(styleText);
             c9.setCellStyle(styleText);
             c3.setCellValue("打包费:" + package_num);
-            c6.setCellValue("本次货款:" + send_goods_total_cost);
-            c9.setCellValue("前次未结:" + salesPhone);
+            c6.setCellValue("本次货款:" + pay_all_money);
+//            c9.setCellValue("前次未结:" + salesPhone);
 
             row = sheet.createRow(rowCount++);
-            row.setHeightInPoints(textHeight);
+//            row.setHeightInPoints(textHeight);
             _mergedRegionNowRow(sheet, row, 1, 3);
-            _mergedRegionNowRow(sheet, row, 4, 6);
+//            _mergedRegionNowRow(sheet, row, 4, 6);
             c3 = row.createCell(0);
-            c6 = row.createCell(3);
+//            c6 = row.createCell(3);
             c3.setCellStyle(styleText);
-            c6.setCellStyle(styleText);
-            c3.setCellValue("本次已付:" + ShipmentConstant.SHIPMENT_TYPE.get(deliveryType));
-            c6.setCellValue("本次应付:" + salesName);
+//            c6.setCellStyle(styleText);
+            c3.setCellValue("本次已付:" + pay_total_money);
+//            c6.setCellValue("本次应付:" + salesName);
 
 
         }
