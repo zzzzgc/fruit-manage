@@ -41,12 +41,13 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
                 "\to.actual_deliver_num,\n" +
                 " b_o.pay_reality_need_money," +
                 " ps.stock, " +
-                " o.product_standard_id, "+
+                " o.product_standard_id, " +
                 "\to.num AS actual_send_goods_num,\n" +
                 "\tp.brand,\n" +
 
                 //商户规格副标题
                 " ps.sub_title, " +
+                " o.buy_remark, " +
 
                 "\tps.gross_weight\n" +
                 "FROM\n" +
