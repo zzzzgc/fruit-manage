@@ -349,7 +349,8 @@ public class OrderController extends BaseController {
                 "INNER JOIN b_business_info AS binfo ON binfo.u_id = bu.id " +
                 "WHERE " +
                   "bu.a_user_sales_id = ? " +
-                "";
+                // 因为User的角色可以多个，所以查询的数据有多条重复的商家，只有给商家编号分组，就能达到去重
+                " group by bu.id ";
         // 销售只能获取自己的客户
         renderJson(BusinessUser.dao.find(sql,uid));
     }
