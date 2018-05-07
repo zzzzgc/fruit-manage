@@ -347,12 +347,27 @@ public class OrderController extends BaseController {
                 "INNER JOIN a_user_role aur ON aur.user_id = au.id " +
                 "INNER JOIN b_business_user AS bu ON au.id = bu.a_user_sales_id " +
                 "INNER JOIN b_business_info AS binfo ON binfo.u_id = bu.id " +
-                "WHERE " +
-                  "bu.a_user_sales_id = ? " +
+                "WHERE 1=1 " +
+
+                // 给运营角色所有客户可见
+                  "and ( " +
+                        "case  " +
+                          "when " +
+                            "(SELECT ur2.user_id  " +
+                              "from a_user_role ur2   " +
+                              "INNER JOIN a_user u2 on ur2.user_id=u2.id " +
+                              "INNER JOIN a_role r2 on ur2.role_id = r2.id " +
+                // 需要给哪个角色赋权查看所有商户时，需要role_key的范围值
+                              "where r2.role_key = 'operator' " +
+                              "and u2.id =?) is not NULL " +
+                          "then 0 else 1 end = 0 or bu.a_user_sales_id = ? " +
+                  ") "+
+
+//                  "bu.a_user_sales_id = ? " +
                 // 因为User的角色可以多个，所以查询的数据有多条重复的商家，只有给商家编号分组，就能达到去重
                 " group by bu.id ";
         // 销售只能获取自己的客户
-        renderJson(BusinessUser.dao.find(sql,uid));
+        renderJson(BusinessUser.dao.find(sql,uid,uid));
     }
 
     /**
