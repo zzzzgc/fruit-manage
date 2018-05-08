@@ -978,248 +978,253 @@ public class ExcelController extends BaseController {
      * 导入商品信息
      */
     public void importProductAllInfo() {
-//        Db.tx(new IAtom() {
-//            @Override
-//            public boolean run() throws SQLException {
 
-        String fileName = getPara("fileName");
-        String fileUrl = CommonController.FILE_PATH + File.separator + fileName;
-        File file = new File(fileUrl);
-        ArrayList<String> errorRow = new ArrayList<>();
-        try {
-            List<Object[]> excel = ExcelCommon.excelRd(file, 5, 1, new ExcelRdTypeEnum[]{
-                    ExcelRdTypeEnum.STRING,
-                    ExcelRdTypeEnum.STRING,
-                    ExcelRdTypeEnum.STRING,
-                    ExcelRdTypeEnum.STRING,
-                    ExcelRdTypeEnum.STRING,
+        Db.tx(new IAtom() {
+            @Override
+            public boolean run() throws SQLException {
+                String fileName = getPara("fileName");
+                String fileUrl = CommonController.FILE_PATH + File.separator + fileName;
+                File file = new File(fileUrl);
+                ArrayList<String> errorRow = new ArrayList<>();
+                try {
+                    List<Object[]> excel = ExcelCommon.excelRd(file, 5, 1, new ExcelRdTypeEnum[]{
+                            ExcelRdTypeEnum.STRING,
+                            ExcelRdTypeEnum.STRING,
+                            ExcelRdTypeEnum.STRING,
+                            ExcelRdTypeEnum.STRING,
+                            ExcelRdTypeEnum.STRING,
 
-                    ExcelRdTypeEnum.STRING,
-                    ExcelRdTypeEnum.INTEGER,
-                    ExcelRdTypeEnum.INTEGER,
-                    ExcelRdTypeEnum.DOUBLE,
-                    ExcelRdTypeEnum.DOUBLE,
+                            ExcelRdTypeEnum.STRING,
+                            ExcelRdTypeEnum.INTEGER,
+                            ExcelRdTypeEnum.INTEGER,
+                            ExcelRdTypeEnum.DOUBLE,
+                            ExcelRdTypeEnum.DOUBLE,
 
-                    ExcelRdTypeEnum.STRING,
-                    ExcelRdTypeEnum.STRING
-            });
+                            ExcelRdTypeEnum.STRING,
+                            ExcelRdTypeEnum.STRING
+                    });
 
-            Db.update("UPDATE b_type_group SET status = 0");
-            Db.update("UPDATE b_product SET status = 0");
-            Db.update("UPDATE b_product_standard SET status = 0");
-            Db.update("UPDATE b_type SET status = 0");
-            Db.update("DELETE FROM b_product_type");
+                    Db.update("UPDATE b_type_group SET status = 0");
+                    Db.update("UPDATE b_product SET status = 0");
+                    Db.update("UPDATE b_product_standard SET status = 0");
+                    Db.update("UPDATE b_type SET status = 0");
+                    Db.update("DELETE FROM b_product_type");
 
-            List<Product> finalProducts = Product.dao.find("select * from b_product ");
-            List<ProductStandard> productStandardAllInfo = ProductStandard.dao.find("select * from b_product_standard ");
-            List<Type> types = Type.dao.find("select * from b_type ");
-            List<TypeGroup> typeGroups = TypeGroup.dao.find("select * from b_type_group ");
-            List<ProductType> productTypes = ProductType.dao.find("select * from b_product_type");
+                    List<Product> finalProducts = Product.dao.find("select * from b_product ");
+                    List<ProductStandard> productStandardAllInfo = ProductStandard.dao.find("select * from b_product_standard ");
+                    List<Type> types = Type.dao.find("select * from b_type ");
+                    List<TypeGroup> typeGroups = TypeGroup.dao.find("select * from b_type_group ");
+                    List<ProductType> productTypes = ProductType.dao.find("select * from b_product_type");
 
-            TypeGroup typeGroup = TypeGroup.dao.findFirst("select * from b_type_group tg where tg.`name` = '所有商品' ");
-            Db.update("UPDATE b_type_group tg SET status = 1 where tg.`name` = '所有商品'");
+                    TypeGroup typeGroup = TypeGroup.dao.findFirst("select * from b_type_group tg where tg.`name` = '所有商品' ");
+                    Db.update("UPDATE b_type_group tg SET status = 1 where tg.`name` = '所有商品'");
 
-            Map<String, Product> productByNameMap = finalProducts.stream().collect(Collectors.toMap(Product::getName, Function.identity()));
-            Map<Integer, Product> productByIdMap = finalProducts.stream().collect(Collectors.toMap(Product::getId, Function.identity()));
-            Map<Integer, ProductStandard> productStandardByIdMap = productStandardAllInfo.stream().collect(Collectors.toMap(ProductStandard::getId, Function.identity()));
-            Map<String, ProductStandard> productStandardByNameANDPIdMap = productStandardAllInfo.stream().collect(Collectors.toMap(ps -> ps.getProductId() + "-" + ps.getName(), Function.identity()));
-            Map<String, Type> typeByNameMap = types.stream().collect(Collectors.toMap(Type::getName, Function.identity()));
-            Map<String, ProductType> productTypeMap = productTypes.stream().collect(Collectors.toMap(pt -> pt.getProductId() + "-" + pt.getTypeId(), Function.identity()));
+                    Map<String, Product> productByNameMap = finalProducts.stream().collect(Collectors.toMap(Product::getName, Function.identity()));
+                    Map<Integer, Product> productByIdMap = finalProducts.stream().collect(Collectors.toMap(Product::getId, Function.identity()));
+                    Map<Integer, ProductStandard> productStandardByIdMap = productStandardAllInfo.stream().collect(Collectors.toMap(ProductStandard::getId, Function.identity()));
+                    Map<String, ProductStandard> productStandardByNameANDPIdMap = productStandardAllInfo.stream().collect(Collectors.toMap(ps -> ps.getProductId() + "-" + ps.getName(), Function.identity()));
+                    Map<String, Type> typeByNameMap = types.stream().collect(Collectors.toMap(Type::getName, Function.identity()));
+                    Map<String, ProductType> productTypeMap = productTypes.stream().collect(Collectors.toMap(pt -> pt.getProductId() + "-" + pt.getTypeId(), Function.identity()));
 
 
-            for (Object[] row : excel) {
-                Arrays.stream(row).forEach(System.out::print);
-                System.out.println();
+                    for (Object[] row : excel) {
+                        Arrays.stream(row).forEach(System.out::print);
+                        System.out.println();
 
-                String productIdInfo = (String) row[0];
+                        String productIdInfo = (String) row[0];
 
-                Integer productId = 0;
-                Integer productStandardId = 0;
+                        Integer productId = 0;
+                        Integer productStandardId = 0;
 
-                if (StringUtils.isNotBlank(productIdInfo)) {
-                    // 不为空
-                    String[] idInfo = productIdInfo.split("-");
-                    if (idInfo.length == 2) {
-                        productId = Integer.parseInt(idInfo[0]);
-                        productStandardId = Integer.parseInt(idInfo[1]);
-                    }
-                }
-
-                String typeName = (String) row[1];
-                if (!StringUtils.isNotBlank(typeName)) {
-                    // 首个内容为空,String的concat会报nullPointer异常
-                    String errorRowStr = Arrays.stream(row).map(obj -> {
-                        if (obj != null) {
-                            return obj.toString();
+                        if (StringUtils.isNotBlank(productIdInfo)) {
+                            // 不为空
+                            String[] idInfo = productIdInfo.split("-");
+                            if (idInfo.length == 2) {
+                                productId = Integer.parseInt(idInfo[0]);
+                                productStandardId = Integer.parseInt(idInfo[1]);
+                            }
                         }
-                        return null;
-                    }).reduce("", (acc, str) -> acc += str);
-                    errorRow.add("商品分类为空:  " + errorRowStr);
-                    continue;
-                }
-                typeName = typeName.trim();
 
-                String productName = (String) row[2];
-                if (!StringUtils.isNotBlank(productName)) {
-                    String errorRowStr = Arrays.stream(row).map(obj -> {
-                        if (obj != null) {
-                            return obj.toString();
+                        String typeName = (String) row[1];
+                        if (!StringUtils.isNotBlank(typeName)) {
+                            // 首个内容为空,String的concat会报nullPointer异常
+                            String errorRowStr = Arrays.stream(row).map(obj -> {
+                                if (obj != null) {
+                                    return obj.toString();
+                                }
+                                return null;
+                            }).reduce("", (acc, str) -> acc += str);
+                            errorRow.add("商品分类为空:  " + errorRowStr);
+                            continue;
                         }
-                        return null;
-                    }).reduce("", (acc, str) -> acc += str);
-                    errorRow.add("商品名为空:  " + errorRowStr);
-                    continue;
-                }
-                productName = productName.trim();
+                        typeName = typeName.trim();
 
-                String productStandardName = (String) row[3];
-                if (!StringUtils.isNotBlank(productStandardName)) {
-                    productStandardName = "箱";
-                }
-                productStandardName = productStandardName.trim();
-
-                if (productName.contains("  ")) {
-                    String errorRowStr = Arrays.stream(row).map(obj -> {
-                        if (obj != null) {
-                            return obj.toString();
+                        String productName = (String) row[2];
+                        if (!StringUtils.isNotBlank(productName)) {
+                            String errorRowStr = Arrays.stream(row).map(obj -> {
+                                if (obj != null) {
+                                    return obj.toString();
+                                }
+                                return null;
+                            }).reduce("", (acc, str) -> acc += str);
+                            errorRow.add("商品名为空:  " + errorRowStr);
+                            continue;
                         }
-                        return null;
-                    }).reduce("", (acc, str) -> acc += str);
-                    errorRow.add("跳过多空行的内容:" + errorRowStr);
-                    continue;
-                }
-                String subhead = row[4] != null ? row[4] + "" : "";
-                String procurementName = (String) row[5];
-                if (row[7] == null) {
-                    errorRow.add("商品报价数据为空:" + productName);
-                    continue;
-                }
+                        productName = productName.trim();
+
+                        String productStandardName = (String) row[3];
+                        if (!StringUtils.isNotBlank(productStandardName)) {
+                            productStandardName = "箱";
+                        }
+                        productStandardName = productStandardName.trim();
+
+                        if (productName.contains("  ")) {
+                            String errorRowStr = Arrays.stream(row).map(obj -> {
+                                if (obj != null) {
+                                    return obj.toString();
+                                }
+                                return null;
+                            }).reduce("", (acc, str) -> acc += str);
+                            errorRow.add("跳过多空行的内容:" + errorRowStr);
+                            continue;
+                        }
+                        String subhead = row[4] != null ? row[4] + "" : "";
+                        String procurementName = (String) row[5];
+                        if (row[7] == null) {
+                            errorRow.add("商品报价数据为空:" + productName);
+                            continue;
+                        }
 
 //                if (row[8] == null) {
 //                    errorRow.add("数据为空theirPrice的productName:" + productName);
 //                    continue;
 //                }
 
-                BigDecimal sellPrice = BigDecimal.valueOf(Double.parseDouble(StringUtils.isNoneBlank((row[7] + "")) ? (row[7] + "") : "0"));
-                BigDecimal theirPrice = BigDecimal.valueOf(Double.parseDouble(StringUtils.isNoneBlank((row[8] + "")) ? (row[8] + "") : "0"));
-                String fruit_des = (String) row[10];
+                        BigDecimal sellPrice = BigDecimal.valueOf(Double.parseDouble(StringUtils.isNoneBlank((row[7] + "")) ? (row[7] + "") : "0"));
+                        BigDecimal theirPrice = BigDecimal.valueOf(Double.parseDouble(StringUtils.isNoneBlank((row[8] + "")) ? (row[8] + "") : "0"));
+                        String fruit_des = (String) row[10];
 
-                Type type = typeByNameMap.get(typeName);
-                if (type == null) {
-                    type = _saveProductType(Integer.parseInt(typeGroup.getId() + ""), typeName);
-                    typeByNameMap.put(type.getName(), type);
+                        Type type = typeByNameMap.get(typeName);
+                        if (type == null) {
+                            type = _saveProductType(Integer.parseInt(typeGroup.getId() + ""), typeName);
+                            typeByNameMap.put(type.getName(), type);
+                        } else {
+                            type.setGroupId(Integer.parseInt(typeGroup.getId() + ""));
+                            type.setStatus(1);
+                            type.update();
+                        }
+
+
+                        if (productId != 0 && productStandardId != 0) {
+
+                            Product product = productByIdMap.get(productId);
+                            if (product == null) {
+                                product = _saveProduct(1, productId, productName, fruit_des, "", "", "中国", "广东省", "", "件", "", new Integer[]{Integer.parseInt(type.getId() + "")});
+                                // 添加到缓存
+                                productByNameMap.put(product.getName(), product);
+                                productByIdMap.put(product.getId(), product);
+                            } else {
+                                product.setFruitDes(fruit_des);
+                                product.setStatus(1);
+                                product.setUpdateTime(new Date());
+                                product.update();
+                            }
+
+
+                            ProductStandard productStandard = productStandardByIdMap.get(productStandardId);
+                            if (productStandard == null) {
+                                productStandard = _saveProductStandard(1, productStandardId, productStandardName, sellPrice.doubleValue(), theirPrice.doubleValue(), productId, subhead);
+                                // 添加到缓存
+                                productStandardByNameANDPIdMap.put(productStandard.getProductId() + "-" + productStandard.getName(), productStandard);
+                                productStandardByIdMap.put(productStandard.getId(), productStandard);
+                            } else {
+                                productStandard.setSubTitle(subhead);
+                                productStandard.setStatus(1);
+                                productStandard.setSellPrice(sellPrice);
+                                productStandard.setProductId(productId);
+                                productStandard.setCostPrice(theirPrice);
+                                productStandard.setName(productStandardName);
+                                productStandard.setUpdateTime(new Date());
+                                productStandard.update();
+                            }
+                        } else {
+                            // 根据name
+
+
+                            // 确保Product 和 ProductId
+                            Product product = productByNameMap.get(productName);
+                            if (product == null) {
+                                product = _saveProduct(1, null, productName, fruit_des, "", "", "中国", "广东省", "", "件", "", new Integer[]{Integer.parseInt(type.getId() + "")});
+                                // 添加到缓存
+                                productByNameMap.put(product.getName(), product);
+                                productByIdMap.put(product.getId(), product);
+                            } else {
+                                product.setStatus(1);
+                                product.setFruitDes(fruit_des);
+                                product.setUpdateTime(new Date());
+                                product.update();
+                            }
+                            productId = product.getId();
+
+
+                            // 确保productStandard 和 productStandardId
+                            ProductStandard productStandard = productStandardByNameANDPIdMap.get(productId + "-" + productStandardName);
+                            if (productStandard == null) {
+                                productStandard = _saveProductStandard(1, null, productStandardName, sellPrice.doubleValue(), theirPrice.doubleValue(), productId, subhead);
+                                // 添加到缓存
+                                productStandardByNameANDPIdMap.put(productStandard.getProductId() + "-" + productStandard.getName(), productStandard);
+                                productStandardByIdMap.put(productStandard.getId(), productStandard);
+
+                                //追加副标题
+                                productStandard.setSubTitle(subhead);
+                                productStandard.update();
+                            } else {
+                                productStandard.setSubTitle(subhead);
+                                productStandard.setStatus(1);
+                                productStandard.setSellPrice(sellPrice);
+                                productStandard.setProductId(productId);
+                                productStandard.setCostPrice(theirPrice);
+                                productStandard.setName(productStandardName);
+                                productStandard.setUpdateTime(new Date());
+                                productStandard.update();
+                            }
+                            productStandardId = productStandard.getId();
+                        }
+
+                        ProductType productType = productTypeMap.get(productId + "-" + type.getId());
+                        if (productType == null) {
+                            productType = new ProductType();
+                            productType.setTypeId(Integer.parseInt(type.getId() + ""));
+                            productType.setProductId(productId);
+                            productType.setCreateTime(new Date());
+                            productType.save();
+
+                            productTypeMap.put(productId + "-" + type.getId(), productType);
+                        }
+
+                        _saveProcurementQuota(productId, productName, productStandardName, productStandardId, procurementName);
+                    }
+
+                    System.out.println();
+                    for (String error : errorRow) {
+                        System.out.println(error);
+                    }
+                } catch (Exception e) {
+                    renderErrorText("导入失败");
+                    e.printStackTrace();
+                    return false;
+                } finally {
+                    file.delete();
+                }
+
+                if (errorRow.size() > 0) {
+                    renderJson(errorRow);
                 } else {
-                    type.setGroupId(Integer.parseInt(typeGroup.getId() + ""));
-                    type.setStatus(1);
-                    type.update();
+                    renderNull();
                 }
-
-
-                if (productId != 0 && productStandardId != 0) {
-
-                    Product product = productByIdMap.get(productId);
-                    if (product == null) {
-                        product = _saveProduct(1, productId, productName, fruit_des, "", "", "中国", "广东省", "", "件", "", new Integer[]{Integer.parseInt(type.getId() + "")});
-                        // 添加到缓存
-                        productByNameMap.put(product.getName(), product);
-                        productByIdMap.put(product.getId(), product);
-                    } else {
-                        product.setFruitDes(fruit_des);
-                        product.setStatus(1);
-                        product.setUpdateTime(new Date());
-                        product.update();
-                    }
-
-
-                    ProductStandard productStandard = productStandardByIdMap.get(productStandardId);
-                    if (productStandard == null) {
-                        productStandard = _saveProductStandard(1, productStandardId, productStandardName, sellPrice.doubleValue(), theirPrice.doubleValue(), productId, subhead);
-                        // 添加到缓存
-                        productStandardByNameANDPIdMap.put(productStandard.getProductId() + "-" + productStandard.getName(), productStandard);
-                        productStandardByIdMap.put(productStandard.getId(), productStandard);
-                    } else {
-                        productStandard.setSubTitle(subhead);
-                        productStandard.setStatus(1);
-                        productStandard.setSellPrice(sellPrice);
-                        productStandard.setProductId(productId);
-                        productStandard.setCostPrice(theirPrice);
-                        productStandard.setName(productStandardName);
-                        productStandard.setUpdateTime(new Date());
-                        productStandard.update();
-                    }
-                } else {
-                    // 根据name
-
-
-                    // 确保Product 和 ProductId
-                    Product product = productByNameMap.get(productName);
-                    if (product == null) {
-                        product = _saveProduct(1, null, productName, fruit_des, "", "", "中国", "广东省", "", "件", "", new Integer[]{Integer.parseInt(type.getId() + "")});
-                        // 添加到缓存
-                        productByNameMap.put(product.getName(), product);
-                        productByIdMap.put(product.getId(), product);
-                    } else {
-                        product.setStatus(1);
-                        product.setFruitDes(fruit_des);
-                        product.setUpdateTime(new Date());
-                        product.update();
-                    }
-                    productId = product.getId();
-
-
-                    // 确保productStandard 和 productStandardId
-                    ProductStandard productStandard = productStandardByNameANDPIdMap.get(productId + "-" + productStandardName);
-                    if (productStandard == null) {
-                        productStandard = _saveProductStandard(1, null, productStandardName, sellPrice.doubleValue(), theirPrice.doubleValue(), productId, subhead);
-                        // 添加到缓存
-                        productStandardByNameANDPIdMap.put(productStandard.getProductId() + "-" + productStandard.getName(), productStandard);
-                        productStandardByIdMap.put(productStandard.getId(), productStandard);
-
-                        //追加副标题
-                        productStandard.setSubTitle(subhead);
-                        productStandard.update();
-                    } else {
-                        productStandard.setSubTitle(subhead);
-                        productStandard.setStatus(1);
-                        productStandard.setSellPrice(sellPrice);
-                        productStandard.setProductId(productId);
-                        productStandard.setCostPrice(theirPrice);
-                        productStandard.setName(productStandardName);
-                        productStandard.setUpdateTime(new Date());
-                        productStandard.update();
-                    }
-                    productStandardId = productStandard.getId();
-                }
-
-                ProductType productType = productTypeMap.get(productId+"-"+type.getId());
-                if (productType == null) {
-                    productType = new ProductType();
-                    productType.setTypeId(Integer.parseInt(type.getId() + ""));
-                    productType.setProductId(productId);
-                    productType.setCreateTime(new Date());
-                    productType.save();
-
-                    productTypeMap.put(productId+"-"+type.getId(),productType);
-                }
-
-                _saveProcurementQuota(productId, productName, productStandardName, productStandardId, procurementName);
+                return true;
             }
-
-            System.out.println();
-            for (String error : errorRow) {
-                System.out.println(error);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            file.delete();
-        }
-
-        if (errorRow.size() > 0) {
-            renderJson(errorRow);
-        } else {
-            renderNull();
-        }
+        });
     }
 
 
