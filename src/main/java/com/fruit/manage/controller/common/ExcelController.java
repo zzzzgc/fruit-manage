@@ -1530,9 +1530,10 @@ public class ExcelController extends BaseController {
                 procurementName = "林镇全";
                 break;
             case "E":
-                procurementName = "林镇全";
+                procurementName = "黄俊哲";
                 break;
             default:
+                procurementName = "占位用采购用户";
                 break;
         }
         User user = User.dao.findFirst("select * from a_user where nick_name LIKE ? ", "%" + procurementName + "%");
