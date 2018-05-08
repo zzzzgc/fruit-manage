@@ -36,8 +36,7 @@ public class _MappingKit {
 		arp.addMapping("b_check_inventory", "id", CheckInventory.class);
 		arp.addMapping("b_check_inventory_detail", "id", CheckInventoryDetail.class);
 		arp.addMapping("b_logistics_info", "id", LogisticsInfo.class);
-		// Composite Primary Key order: id,refund_status
-		arp.addMapping("b_order", "id,refund_status", Order.class);
+		arp.addMapping("b_order", "id", Order.class);
 		arp.addMapping("b_order_detail", "id", OrderDetail.class);
 		arp.addMapping("b_order_log", "id", OrderLog.class);
 		arp.addMapping("b_out_warehouse", "id", OutWarehouse.class);
