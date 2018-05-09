@@ -102,6 +102,16 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
         return Db.queryBigDecimal(sql,orderId);
     }
 
+    /**
+     * 根据订单详细编号获取订单详细
+     * @param id 订单详细编号
+     * @return
+     */
+    public OrderDetail getOrderDetailById(Integer id) {
+        String sql = "SELECT * from b_order_detail where id = ? ";
+        return findFirst(sql, id);
+    }
+
     private OrderLog getOrderLog(String orderId, Integer productId, Integer productStandardId, Integer changeNum) {
         OrderLog orderLog = new OrderLog();
         // 未知用户

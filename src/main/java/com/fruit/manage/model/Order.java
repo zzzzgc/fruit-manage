@@ -197,11 +197,19 @@ public class Order extends BaseOrder<Order> {
                 "\to.order_status,\n" +
                 "\to.create_time,\n" +
                 "\to.pay_need_money,\n" +
-                " o.pay_reality_need_money,"+
+                " o.pay_reality_need_money," +
                 "\tinfo.business_name,\n" +
                 "\tli.buy_address,\n" +
                 "\tli.buy_phone,\n" +
                 "\tli.buy_user_name,\n" +
+
+                //查询实际支付总额
+                " o.pay_total_money, " +
+                " li.delivery_info, " +
+                " li.license_plate_number, " +
+                " info.business_contacts, "+
+                " info.phone as contactPhone, " +
+
                 "\tli.delivery_type ";
 
         StringBuffer sql = new StringBuffer();

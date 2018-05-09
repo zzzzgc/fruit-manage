@@ -2,22 +2,16 @@ package com.fruit.manage.controller.order;
 
 import com.alibaba.fastjson.JSON;
 import com.fruit.manage.base.BaseController;
-import com.fruit.manage.constant.OrderConstant;
-import com.fruit.manage.constant.OrderStatusCode;
-import com.fruit.manage.constant.RoleKeyCode;
-import com.fruit.manage.constant.UserTypeConstant;
+import com.fruit.manage.constant.*;
 import com.fruit.manage.model.*;
 import com.fruit.manage.util.Constant;
+import com.fruit.manage.util.DateAndStringFormat;
 import com.fruit.manage.util.IdUtil;
 import com.jfinal.aop.Before;
-import com.jfinal.ext2.kit.DateTimeKit;
-import com.jfinal.ext2.kit.RandomKit;
-import com.jfinal.kit.StrKit;
 import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import org.apache.log4j.Logger;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
-import sun.rmi.runtime.Log;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -184,6 +178,58 @@ public class OrderController extends BaseController {
     }
 
     /**
+     * 根据订单号获取订单详情里必要信息
+     */
+    public void getOrderDetailElse() {
+        String orderId = getPara("orderId");
+        String sql= "select pay_of_type,pay_of_time from b_pay_order_info where 1=1 and order_id = ? order by pay_of_time DESC";
+        PayOrderInfo payOrderInfo = PayOrderInfo.dao.findFirst(sql, orderId);
+        String dateStr = "暂无";
+        String payOfType = "暂无";
+        if (payOrderInfo != null && payOrderInfo.getPayOfTime()!=null) {
+            dateStr = DateAndStringFormat.getStringDateShort(payOrderInfo.getPayOfTime());
+            payOfType = PayOfTypeStatusCode.getPayType(payOrderInfo.getPayOfType());
+        }
+        Map<String, Object> map = new HashMap<>(10);
+        map.put("payOfTime", dateStr);
+        map.put("payOfType", payOfType);
+        renderJson(map);
+    }
+
+    public void updateOrderDetailElse() {
+        OrderDetail orderDetail = getModel(OrderDetail.class, "", true);
+        OrderDetail orderDetail2 = OrderDetail.dao.getOrderDetailById(orderDetail.getId());
+        if (orderDetail2 != null && orderDetail2.getActualSendGoodsNum()!=null) {
+
+            // 报价价格差值
+            BigDecimal diffPrice = orderDetail.getSellPrice().subtract(orderDetail2.getSellPrice());
+            // 该订单详细的总价格差值save
+            BigDecimal totalMoneyBefore = orderDetail.getSellPrice().multiply(new BigDecimal(orderDetail2.getActualSendGoodsNum()));
+            BigDecimal totalMoneyAfter = orderDetail2.getSellPrice().multiply(new BigDecimal(orderDetail2.getActualSendGoodsNum()));
+            // 改之前减改之后
+            BigDecimal totalMoneyDiff =totalMoneyAfter.subtract(totalMoneyBefore);
+
+            orderDetail2.setSellPrice(orderDetail.getSellPrice());
+            orderDetail2.setActualDeliverNum(orderDetail.getActualDeliverNum());
+            Integer userId =getSessionAttr(Constant.SESSION_UID);
+            orderDetail2.update(UserTypeConstant.B_USER,userId);
+
+
+            // 修改订单实际需要支付的总总金额
+            Order order = Order.dao.getOrder(orderDetail2.getOrderId());
+            order.setPayRealityNeedMoney(order.getPayRealityNeedMoney().subtract(totalMoneyDiff));
+            order.setPayAllMoney(order.getPayAllMoney().subtract(totalMoneyDiff));
+//            order.setPayNeedMoney(order.getPayNeedMoney().subtract(totalMoneyDiff));
+            order.update();
+            // 修改订单总价格
+            renderNull();
+        }else {
+            renderErrorText("订单必须为配送！");
+        }
+
+    }
+
+    /**
      * 保存添加的新订单
      */
     @Before(Tx.class)
@@ -219,6 +265,7 @@ public class OrderController extends BaseController {
                     }*/
                     // 实际需要支付金额 = （所有子订单=销售价*实际发货数量）
                     payRealityNeedMoney = payRealityNeedMoney.add(sellPrice.multiply(new BigDecimal(actualSendGoodsNum)));
+                    orderDetail.setActualDeliverNum(actualSendGoodsNum);
                 }
                 orderDetail.setTotalPay(totalPay);
                 payNeedMoney = payNeedMoney.add(totalPay);
@@ -579,7 +626,8 @@ public class OrderController extends BaseController {
             logisticsInfo.setPackageCost(new BigDecimal(0));
             logisticsInfo.setRealitySendNum(0);
             logisticsInfo.setLicensePlateNumber(null);
-            logisticsInfo.setDeliveryInfo(null);
+            // 暂时不需要
+//            logisticsInfo.setDeliveryInfo(null);
             logisticsInfo.setUpdateTime(new Date());
             logisticsInfo.update();
             renderNull();
