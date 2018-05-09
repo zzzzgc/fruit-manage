@@ -216,7 +216,10 @@ public class Order extends BaseOrder<Order> {
         sql.append("FROM\n" +
                 "\tb_order AS o \n" +
                 "INNER JOIN b_business_user AS u ON o.u_id = u.id\n" +
-                "LEFT JOIN b_logistics_info AS li ON o.u_id = li.u_id\n" +
+                // 不能用userId关联两表,而是要用order_id关联两表
+                "LEFT JOIN b_logistics_info AS li ON o.order_id = li.order_id\n" +
+//                "LEFT JOIN b_logistics_info AS li ON o.u_id = li.u_id\n" +
+
                 "INNER JOIN b_business_info AS info ON u.id = info.u_id\n" +
                 "INNER JOIN a_user AS au ON u.a_user_sales_id = au.id\n" +
                 "WHERE\n" +
