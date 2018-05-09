@@ -1,8 +1,10 @@
 package com.fruit.manage.controller.order;
 
 import com.fruit.manage.base.BaseController;
+import com.fruit.manage.constant.UserTypeConstant;
 import com.fruit.manage.model.Order;
 import com.fruit.manage.model.PayOrderInfo;
+import com.fruit.manage.util.Constant;
 import com.jfinal.log.Logger;
 
 import java.math.BigDecimal;
@@ -22,6 +24,9 @@ public class PayOrderController extends BaseController {
     public void addPayOrder() {
         Date currentTime = new Date();
         PayOrderInfo payOrderInfo = getModel(PayOrderInfo.class, "", true);
+        Integer operationId = getSessionAttr(Constant.SESSION_UID);
+        payOrderInfo.setOperationId(operationId);
+        payOrderInfo.setOperationType(UserTypeConstant.A_USER.getValue());
         payOrderInfo.setCreateTime(currentTime);
         payOrderInfo.setPayOfTime(currentTime);
         payOrderInfo.save();
