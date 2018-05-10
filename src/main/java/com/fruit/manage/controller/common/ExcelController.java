@@ -1,6 +1,7 @@
 package com.fruit.manage.controller.common;
 
 import com.fruit.manage.base.BaseController;
+import com.fruit.manage.constant.RoleKeyCode;
 import com.fruit.manage.constant.ShipmentConstant;
 import com.fruit.manage.model.*;
 import com.fruit.manage.util.Constant;
@@ -216,6 +217,7 @@ public class ExcelController extends BaseController {
      */
     @Before(Tx.class)
     public void getBusinessSendGoodsBilling() {
+        Integer uid = getSessionAttr(Constant.SESSION_UID);
         try {
             int rowCount;
 
@@ -228,10 +230,16 @@ public class ExcelController extends BaseController {
                 // 超過11:59:59算明天的訂單
                 calendar.add(Calendar.DAY_OF_MONTH, -1);
             }
+            List<Object> params = new ArrayList<Object>();
+
             String startDateStr = DateTimeKit.formatDateToStyle("yyyy-MM-dd", calendar.getTime()) + " 12:00:00";
             calendar.add(Calendar.DAY_OF_MONTH, 1);
             String endDateStr = DateTimeKit.formatDateToStyle("yyyy-MM-dd", calendar.getTime()) + " 12:00:00";
-            String sql = "SELECT " +
+
+            params.add(startDateStr);
+            params.add(endDateStr);
+
+            StringBuilder sql = new StringBuilder("SELECT " +
                     "o.order_id, " +
                     "bu.`name` AS business_user_name, " +
                     "linfo.buy_phone, " +
@@ -247,14 +255,19 @@ public class ExcelController extends BaseController {
                     "INNER JOIN b_business_info AS info ON bu.id = info.u_id " +
                     "INNER JOIN a_user AS au ON bu.a_user_sales_id = au.id " +
                     "LEFT JOIN b_logistics_info AS linfo ON linfo.order_id = o.order_id " +
-                    "INNER JOIN a_user_role ON a_user_role.user_id = au.id " +
-                    "INNER JOIN a_role AS r ON a_user_role.role_id = r.id " +
                     "WHERE " +
-                    "o.order_status in (5) " +
+                    "o.order_status <> 0 " +
                     "AND o.create_time BETWEEN ? " +
-                    "AND ? ";
+                    "AND ? ");
+            // 运行查看所有
+            if (!User.dao.isRole(uid, RoleKeyCode.OPERATOR.getKey())) {
+                if (User.dao.isRole(uid, RoleKeyCode.SALES.getKey())) {
+                    sql.append("AND bu.a_user_sales_id = ? ");
+                    params.add(uid);
+                }
+            }
 
-            List<Order> orders = Order.dao.find(sql, startDateStr, endDateStr);
+            List<Order> orders = Order.dao.find(sql.toString(), params.toArray());
 
             Date now = new Date();
 
@@ -393,7 +406,7 @@ public class ExcelController extends BaseController {
                 c6.setCellValue("实发数量");
                 c7.setCellValue("商品备注");
 
-                sql = "SELECT " +
+                String sql2 = "SELECT " +
                         "od.product_name, " +
                         "od.product_standard_name, " +
                         "od.product_standard_id, " +
@@ -406,7 +419,7 @@ public class ExcelController extends BaseController {
                         "INNER JOIN b_order_detail AS od ON o.order_id = od.order_id " +
                         "INNER JOIN b_product_standard AS ps ON od.product_standard_id = ps.id " +
                         "WHERE o.order_id = ? ";
-                List<OrderDetail> orderDetails = OrderDetail.dao.find(sql, orderId);
+                List<OrderDetail> orderDetails = OrderDetail.dao.find(sql2, orderId);
                 for (OrderDetail orderDetail : orderDetails) {
                     row = sheet.createRow(rowCount++);
                     row.setHeightInPoints(tableHeight);
@@ -767,7 +780,7 @@ public class ExcelController extends BaseController {
             c9.setCellStyle(styleText);
             c3.setCellValue("打包费:" + package_cost);
             c6.setCellValue("本次货款:" + pay_all_money);
-//            c9.setCellValue("前次未结:" + salesPhone);
+            c9.setCellValue("前次未结:" + salesPhone);
 
             row = sheet.createRow(rowCount++);
 //            row.setHeightInPoints(textHeight);
