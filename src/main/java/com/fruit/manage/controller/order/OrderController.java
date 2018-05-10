@@ -182,11 +182,11 @@ public class OrderController extends BaseController {
      */
     public void getOrderDetailElse() {
         String orderId = getPara("orderId");
-        String sql = "select pay_of_type,pay_of_time from b_pay_order_info where 1=1 and order_id = ? order by pay_of_time DESC";
+        String sql= "select pay_of_type,pay_of_time from b_pay_order_info where 1=1 and order_id = ? order by pay_of_time DESC";
         PayOrderInfo payOrderInfo = PayOrderInfo.dao.findFirst(sql, orderId);
         String dateStr = "暂无";
         String payOfType = "暂无";
-        if (payOrderInfo != null && payOrderInfo.getPayOfTime() != null) {
+        if (payOrderInfo != null && payOrderInfo.getPayOfTime()!=null) {
             dateStr = DateAndStringFormat.getStringDateShort(payOrderInfo.getPayOfTime());
             payOfType = PayOfTypeStatusCode.getPayType(payOrderInfo.getPayOfType());
         }
@@ -200,31 +200,35 @@ public class OrderController extends BaseController {
         OrderDetail orderDetail = getModel(OrderDetail.class, "", true);
         OrderDetail orderDetail2 = OrderDetail.dao.getOrderDetailById(orderDetail.getId());
         if (orderDetail2 != null && orderDetail2.getActualSendGoodsNum() != null) {
-
-            // 报价价格差值
-            BigDecimal diffPrice = orderDetail.getSellPrice().subtract(orderDetail2.getSellPrice());
-            // 该订单详细的总价格差值save
-            BigDecimal totalMoneyBefore = orderDetail.getSellPrice().multiply(new BigDecimal(orderDetail2.getActualSendGoodsNum()));
-            BigDecimal totalMoneyAfter = orderDetail2.getSellPrice().multiply(new BigDecimal(orderDetail2.getActualSendGoodsNum()));
-            // 改之前减改之后
-            BigDecimal totalMoneyDiff = totalMoneyAfter.subtract(totalMoneyBefore);
-
-            orderDetail2.setSellPrice(orderDetail.getSellPrice());
-            orderDetail2.setActualDeliverNum(orderDetail.getActualDeliverNum());
-            Integer userId = getSessionAttr(Constant.SESSION_UID);
-            orderDetail2.update(UserTypeConstant.B_USER, userId);
-
-
-            // 修改订单实际需要支付的总总金额
             Order order = Order.dao.getOrder(orderDetail2.getOrderId());
-            order.setPayRealityNeedMoney(order.getPayRealityNeedMoney().subtract(totalMoneyDiff));
-            order.setPayAllMoney(order.getPayAllMoney().subtract(totalMoneyDiff));
+            if (order.getPayAllMoney() != null) {
+
+                // 报价价格差值
+                BigDecimal diffPrice = orderDetail.getSellPrice().subtract(orderDetail2.getSellPrice());
+                // 该订单详细的总价格差值save
+                BigDecimal totalMoneyBefore = orderDetail.getSellPrice().multiply(new BigDecimal(orderDetail2.getActualSendGoodsNum()));
+                BigDecimal totalMoneyAfter = orderDetail2.getSellPrice().multiply(new BigDecimal(orderDetail2.getActualSendGoodsNum()));
+                // 改之前减改之后
+                BigDecimal totalMoneyDiff = totalMoneyAfter.subtract(totalMoneyBefore);
+
+                orderDetail2.setSellPrice(orderDetail.getSellPrice());
+                orderDetail2.setActualDeliverNum(orderDetail.getActualDeliverNum());
+                Integer userId = getSessionAttr(Constant.SESSION_UID);
+                orderDetail2.update(UserTypeConstant.B_USER, userId);
+
+
+                // 修改订单实际需要支付的总总金额
+                order.setPayRealityNeedMoney(order.getPayRealityNeedMoney().subtract(totalMoneyDiff));
+                order.setPayAllMoney(order.getPayAllMoney().subtract(totalMoneyDiff));
 //            order.setPayNeedMoney(order.getPayNeedMoney().subtract(totalMoneyDiff));
-            order.update();
-            // 修改订单总价格
-            renderNull();
+                order.update();
+                // 修改订单总价格
+                renderNull();
+            }else{
+                renderErrorText("订单必须为配送状态!");
+            }
         } else {
-            renderErrorText("订单必须为配送！");
+            renderErrorText("订单必须为配送状态!");
         }
 
     }
@@ -253,6 +257,16 @@ public class OrderController extends BaseController {
                 Integer actualSendGoodsNum = orderDetail.getActualSendGoodsNum();
                 // 有实际发货的数量,在配货的时候减库存
                 if (actualSendGoodsNum != null && actualSendGoodsNum != 0) {
+                    /*//根据商品规格编号获取商品规格信息
+                    ProductStandard productStandard=ProductStandard.dao.findById(orderDetail.getProductStandardId());
+                    //判断仓库数量是否小于实发数数量
+                    if(productStandard!=null && productStandard.getStock()>=actualSendGoodsNum) {
+                        // 执行出库操作：库存量-发货量
+                        productStandard.setStock(productStandard.getStock()-actualSendGoodsNum);
+                        productStandard.update();
+                    }else{
+                        throw new RuntimeException("");
+                    }*/
                     // 实际需要支付金额 = （所有子订单=销售价*实际发货数量）
                     payRealityNeedMoney = payRealityNeedMoney.add(sellPrice.multiply(new BigDecimal(actualSendGoodsNum)));
                     orderDetail.setActualDeliverNum(actualSendGoodsNum);
@@ -273,10 +287,6 @@ public class OrderController extends BaseController {
             order.setPayNeedMoney(payNeedMoney);
             // 设置实际支付需要的金额
             order.setPayRealityNeedMoney(payRealityNeedMoney);
-            Order oldOrder = Order.dao.findById(order.getId());
-            if (oldOrder.getPayLogisticsMoney() !=null) {
-                order.setPayAllMoney(oldOrder.getPayLogisticsMoney().add(payRealityNeedMoney));
-            }
             order.setUpdateTime(now);
             order.update();
         } else {
@@ -377,38 +387,38 @@ public class OrderController extends BaseController {
         // 销售只能获取自己的客户,其他人能获取全部,但是其他人除了超级管理员都不能调用这个方法,因为权限控制.
         // name必须为value ,是获取该值的关键(前端)
         String sql = "SELECT " +
-                "bu.`name`, " +
-                "bu.id, " +
-                "bu.phone, " +
-                "bu.nick_name, " +
-                "bu.a_user_sales_id, " +
-                "binfo.business_name " +
+                  "bu.`name`, " +
+                  "bu.id, " +
+                  "bu.phone, " +
+                  "bu.nick_name, " +
+                  "bu.a_user_sales_id, " +
+                  "binfo.business_name " +
                 "FROM " +
-                "a_user AS au " +
+                  "a_user AS au " +
                 "INNER JOIN a_user_role aur ON aur.user_id = au.id " +
                 "INNER JOIN b_business_user AS bu ON au.id = bu.a_user_sales_id " +
                 "INNER JOIN b_business_info AS binfo ON binfo.u_id = bu.id " +
                 "WHERE 1=1 " +
 
                 // 给运营角色所有客户可见
-                "and ( " +
-                "case  " +
-                "when " +
-                "(SELECT ur2.user_id  " +
-                "from a_user_role ur2   " +
-                "INNER JOIN a_user u2 on ur2.user_id=u2.id " +
-                "INNER JOIN a_role r2 on ur2.role_id = r2.id " +
+                  "and ( " +
+                        "case  " +
+                          "when " +
+                            "(SELECT ur2.user_id  " +
+                              "from a_user_role ur2   " +
+                              "INNER JOIN a_user u2 on ur2.user_id=u2.id " +
+                              "INNER JOIN a_role r2 on ur2.role_id = r2.id " +
                 // 需要给哪个角色赋权查看所有商户时，需要role_key的范围值
-                "where r2.role_key = 'operator' " +
-                "and u2.id =?) is not NULL " +
-                "then 0 else 1 end = 0 or bu.a_user_sales_id = ? " +
-                ") " +
+                              "where r2.role_key = 'operator' " +
+                              "and u2.id =?) is not NULL " +
+                          "then 0 else 1 end = 0 or bu.a_user_sales_id = ? " +
+                  ") "+
 
 //                  "bu.a_user_sales_id = ? " +
                 // 因为User的角色可以多个，所以查询的数据有多条重复的商家，只有给商家编号分组，就能达到去重
                 " group by bu.id ";
         // 销售只能获取自己的客户
-        renderJson(BusinessUser.dao.find(sql, uid, uid));
+        renderJson(BusinessUser.dao.find(sql,uid,uid));
     }
 
     /**
@@ -513,7 +523,7 @@ public class OrderController extends BaseController {
         LogisticsInfo logisticsInfo = LogisticsInfo.dao.getLogisticeInfoByOrderID(orderId);
         Integer orderStatus = Order.dao.getOrderStatusByOrderId(orderId);
         if (orderStatus < 15) {
-            renderErrorText("请先对订单号为" + orderId + "进行配送！");
+            renderErrorText("请先对订单号为"+orderId+"进行配送！");
             return;
         }
         if (logisticsInfo != null) {
@@ -630,90 +640,10 @@ public class OrderController extends BaseController {
     }
 
     /**
-     * 根据客户id获取客户信息
+     * 根据客户id获取客户的所有未支付的订单
      */
     public void getCustomerOrderInfo() {
         Integer customerId = getParaToInt("customerId");
         renderJson(Order.dao.getCustomerOrderInfo(customerId));
-    }
-
-    /**
-     * 获取该商户未支付的所有订单
-     */
-    public void getCustomerPayOrderInfo() {
-        Integer customerId = getParaToInt("customerId");
-        renderJson(Order.dao.getCustomerPayOrderInfo(customerId));
-    }
-
-    /**
-     * 单支付方式多订单的分摊
-     */
-    @Before(Tx.class)
-    public void saveApportionInfo() {
-        Integer uid = getSessionAttr(Constant.SESSION_UID);
-        Integer customerId = getParaToInt("customerId");
-        BigDecimal payMoney = BigDecimal.valueOf(Double.valueOf(getPara("payMoney")));
-        Integer payType = getParaToInt("payType");
-        Date payDate = getParaToDate("payDate");
-        List<Order> apportionOrders = Order.dao.getCustomerPayOrderInfo2(customerId);
-        for (Order apportionOrder : apportionOrders) {
-            // 总需支付金额(实发金额+所有物流费用)
-            BigDecimal payAllMoney = apportionOrder.getPayAllMoney();
-            // 用户已支付金额
-            BigDecimal payTotalMoney = apportionOrder.getPayTotalMoney();
-            //订单欠款金额
-            BigDecimal arrearageMoney = payAllMoney.subtract(payTotalMoney);
-            // 分摊后余额
-            payMoney = payMoney.subtract(arrearageMoney);
-
-            if (payMoney.compareTo(BigDecimal.ZERO) >= 0) {
-                //余额大于等于0,完整分摊一笔(已支付)
-                apportionOrder.setPayTotalMoney(apportionOrder.getPayAllMoney());
-                apportionOrder.setPayStatus(OrderPayStatusCode.IS_OK.getStatus());
-                apportionOrder.update();
-
-                PayOrderInfo payOrderInfo = new PayOrderInfo();
-                payOrderInfo.setUserId(apportionOrder.getUId());
-                payOrderInfo.setOperationId(uid);
-                payOrderInfo.setOperationType(UserTypeConstant.A_USER.getValue());
-                payOrderInfo.setPayReallyTotalMoney(apportionOrder.getPayAllMoney());
-                payOrderInfo.setPayTheMoney(payAllMoney);
-                payOrderInfo.setSaleId(apportionOrder.get("a_user_sales_id"));
-                payOrderInfo.setOrderId(apportionOrder.getOrderId());
-                payOrderInfo.setPayOfType(payType);
-                payOrderInfo.setPayOfTime(payDate);
-                payOrderInfo.setCreateTime(new Date());
-                payOrderInfo.save();
-            } else {
-                //余额小于0,不能完整扣完(订单还不能是已支付状态).把余额全给他即可
-
-                // 还原余额
-                payMoney = payMoney.add(arrearageMoney);
-
-                apportionOrder.setPayTotalMoney(payTotalMoney.add(payMoney));
-                apportionOrder.update();
-
-                PayOrderInfo payOrderInfo = new PayOrderInfo();
-                payOrderInfo.setUserId(uid);
-                payOrderInfo.setOperationId(uid);
-                payOrderInfo.setOperationType(UserTypeConstant.A_USER.getValue());
-                payOrderInfo.setPayReallyTotalMoney(apportionOrder.getPayAllMoney());
-                payOrderInfo.setPayTheMoney(payMoney);
-                payOrderInfo.setSaleId(apportionOrder.get("a_user_sales_id"));
-                payOrderInfo.setOrderId(apportionOrder.getOrderId());
-                payOrderInfo.setPayOfType(payType);
-                payOrderInfo.setPayOfTime(payDate);
-                payOrderInfo.setCreateTime(new Date());
-                payOrderInfo.save();
-                renderNull();
-                return;
-            }
-        }
-
-        // 添加剩余余额到用户余额中
-        BusinessUser customer = BusinessUser.dao.findById(customerId);
-        customer.setMoney(customer.getMoney().add(payMoney));
-        customer.update();
-        renderNull();
     }
 }
