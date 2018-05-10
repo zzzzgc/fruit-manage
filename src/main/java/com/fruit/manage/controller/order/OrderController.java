@@ -13,6 +13,7 @@ import com.jfinal.plugin.activerecord.tx.Tx;
 import org.apache.log4j.Logger;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 
+import javax.sound.midi.Soundbank;
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -193,6 +194,54 @@ public class OrderController extends BaseController {
         Map<String, Object> map = new HashMap<>(10);
         map.put("payOfTime", dateStr);
         map.put("payOfType", payOfType);
+        renderJson(map);
+    }
+
+    /**
+     * 更新报损表
+     */
+    @Before(Tx.class)
+    public void updateBreakage() {
+        Date date = new Date();
+        OrderBreakage orderBreakage = getModel(OrderBreakage.class, "", true);
+        String order_id = getPara("order_id");
+        String[] imgs = getParaValues("imgs");
+        orderBreakage.setAudit(0);
+        orderBreakage.setOrderId(order_id);
+        // 如果报损单的编号不为空并且大于0，则编辑
+        if (orderBreakage.getId() != null && orderBreakage.getId()>0) {
+            orderBreakage.update();
+        }else {
+            orderBreakage.setCreateTime(date);
+            orderBreakage.save();
+        }
+        System.out.println(orderBreakage.get("id").toString());
+        // 根据报损编号删除报损关联图片
+        OrderBreakageImg.dao.delOrderBreakageImgByBreakageId(orderBreakage.getId());
+        OrderBreakageImg orderBreakageImg =null;
+        if (imgs != null && !("").equals(imgs) && imgs.length > 0) {
+            for (int i = 0; i < imgs.length; i++) {
+                orderBreakageImg = new OrderBreakageImg();
+                orderBreakageImg.setBreakageId(orderBreakage.getId());
+                orderBreakageImg.setImgUrl(imgs[i]);
+                orderBreakageImg.setSort(i + 1);
+                orderBreakageImg.setCreateTime(date);
+                orderBreakageImg.save();
+            }
+        }
+        renderNull();
+    }
+
+    /**
+     * 过去订单报损数据
+     */
+    public void getBreakageInfo() {
+        String orderId = getPara("orderId");
+        Integer psId = getParaToInt("productStandardId");
+        Map<String, Object> map = new HashMap<>(2);
+        OrderBreakage orderBreakage=OrderBreakage.dao.getOrderBreakageInfoByOrderIdAndPSId(orderId, psId);
+        map.put("orderBreakage",orderBreakage);
+        map.put("orderBreakageImg",OrderBreakageImg.dao.getOrderBreakageImgByBreakageId(orderBreakage.getId()));
         renderJson(map);
     }
 

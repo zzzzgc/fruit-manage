@@ -73,14 +73,6 @@ public abstract class BaseBusinessUser<M extends BaseBusinessUser<M>> extends Mo
 		return getStr("sequence");
 	}
 
-	public void setStatus(java.lang.Integer status) {
-		set("status", status);
-	}
-
-	public java.lang.Integer getStatus() {
-		return getInt("status");
-	}
-
 	public void setIp(java.lang.String ip) {
 		set("ip", ip);
 	}
