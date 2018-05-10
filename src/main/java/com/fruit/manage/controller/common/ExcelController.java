@@ -529,7 +529,7 @@ public class ExcelController extends BaseController {
                 "linfo.tricycle_cost, " +
                 "linfo.freight_cost, " +
                 "linfo.transshipment_cost, " +
-                "linfo.package_num, " +
+                "linfo.package_cost, " +
                 "linfo.send_goods_total_cost, " +
 
                 "info.business_name, " +
@@ -558,8 +558,8 @@ public class ExcelController extends BaseController {
         for (Order order : orders) {
             rowCount = 0;
             String orderId = order.get("order_id");
-            String pay_all_money = order.get("pay_all_money");
-            String pay_total_money = order.get("pay_total_money");
+            BigDecimal pay_all_money = order.get("pay_all_money");
+            BigDecimal pay_total_money = order.get("pay_total_money");
             String businessUserName = order.get("business_user_name");
             String businessName = order.get("business_name");
             String buyPhone = order.get("buy_phone");
@@ -567,11 +567,11 @@ public class ExcelController extends BaseController {
             String buyUserName = order.get("buy_user_name");
             Integer deliveryType = order.get("delivery_type");
 
-            String tricycle_cost = order.get("tricycle_cost");
-            String freight_cost = order.get("freight_cost");
-            String transshipment_cost = order.get("transshipment_cost");
-            String package_num = order.get("package_num");
-            String send_goods_total_cost = order.get("send_goods_total_cost");
+            BigDecimal tricycle_cost = order.get("tricycle_cost");
+            BigDecimal freight_cost = order.get("freight_cost");
+            BigDecimal transshipment_cost = order.get("transshipment_cost");
+            BigDecimal package_cost = order.get("package_cost");
+            BigDecimal send_goods_total_cost = order.get("send_goods_total_cost");
 
 
             String salesName = order.get("sales_name");
@@ -765,7 +765,7 @@ public class ExcelController extends BaseController {
             c3.setCellStyle(styleText);
             c6.setCellStyle(styleText);
             c9.setCellStyle(styleText);
-            c3.setCellValue("打包费:" + package_num);
+            c3.setCellValue("打包费:" + package_cost);
             c6.setCellValue("本次货款:" + pay_all_money);
 //            c9.setCellValue("前次未结:" + salesPhone);
 

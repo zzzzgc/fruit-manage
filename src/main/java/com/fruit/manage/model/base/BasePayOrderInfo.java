@@ -17,20 +17,44 @@ public abstract class BasePayOrderInfo<M extends BasePayOrderInfo<M>> extends Mo
 		return getInt("id");
 	}
 
+	public void setOrderId(java.lang.String orderId) {
+		set("order_id", orderId);
+	}
+
+	public java.lang.String getOrderId() {
+		return getStr("order_id");
+	}
+
+	public void setUserId(java.lang.Integer userId) {
+		set("user_id", userId);
+	}
+
+	public java.lang.Integer getUserId() {
+		return getInt("user_id");
+	}
+
+	public void setOperationId(java.lang.Integer operationId) {
+		set("operation_id", operationId);
+	}
+
+	public java.lang.Integer getOperationId() {
+		return getInt("operation_id");
+	}
+
+	public void setOperationType(java.lang.Integer operationType) {
+		set("operation_type", operationType);
+	}
+
+	public java.lang.Integer getOperationType() {
+		return getInt("operation_type");
+	}
+
 	public void setPayOfType(java.lang.Integer payOfType) {
 		set("pay_of_type", payOfType);
 	}
 
 	public java.lang.Integer getPayOfType() {
 		return getInt("pay_of_type");
-	}
-
-	public void setPayOfTime(java.util.Date payOfTime) {
-		set("pay_of_time", payOfTime);
-	}
-
-	public java.util.Date getPayOfTime() {
-		return get("pay_of_time");
 	}
 
 	public void setPayReallyTotalMoney(java.math.BigDecimal payReallyTotalMoney) {
@@ -57,14 +81,6 @@ public abstract class BasePayOrderInfo<M extends BasePayOrderInfo<M>> extends Mo
 		return getStr("pay_of_evidence");
 	}
 
-	public void setUserId(java.lang.Integer userId) {
-		set("user_id", userId);
-	}
-
-	public java.lang.Integer getUserId() {
-		return getInt("user_id");
-	}
-
 	public void setSaleId(java.lang.Integer saleId) {
 		set("sale_id", saleId);
 	}
@@ -73,12 +89,12 @@ public abstract class BasePayOrderInfo<M extends BasePayOrderInfo<M>> extends Mo
 		return getInt("sale_id");
 	}
 
-	public void setOrderId(java.lang.String orderId) {
-		set("order_id", orderId);
+	public void setPayOfTime(java.util.Date payOfTime) {
+		set("pay_of_time", payOfTime);
 	}
 
-	public java.lang.String getOrderId() {
-		return getStr("order_id");
+	public java.util.Date getPayOfTime() {
+		return get("pay_of_time");
 	}
 
 	public void setCreateTime(java.util.Date createTime) {

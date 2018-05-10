@@ -1,5 +1,7 @@
 package com.fruit.manage.model;
 
+import com.fruit.manage.constant.OrderPayStatusCode;
+import com.fruit.manage.constant.OrderStatusCode;
 import com.fruit.manage.model.base.BaseOrder;
 import com.jfinal.kit.StrKit;
 import com.jfinal.plugin.activerecord.Db;
@@ -256,23 +258,22 @@ public class Order extends BaseOrder<Order> {
      * 获取客户的所有未付款(包含部分付款)订单信息和客户信息
      */
     public List<Order> getCustomerOrderInfo(Integer customerId) {
-        String selectStr = "SELECT\n" +
-                "\tCONCAT(\n" +
-                "\t\tinfo.address_province,\n" +
-                "\t\tinfo.address_city,\n" +
-                "\t\tinfo.address_detail\n" +
-                "\t) AS buy_address,\n" +
-                "\tinfo.phone,\n" +
-                "\tinfo.business_name,\n" +
-                "bu.`name` AS customer_name,\n" +
-                "au.`name` AS sales_id ";
-
-        StringBuilder sql = new StringBuilder();
-        sql.append("FROM\n" +
-                "\tb_business_info AS info\n" +
-                "INNER JOIN b_business_user AS bu ON info.id = bu.id\n" +
-                "INNER JOIN a_user AS au ON bu.a_user_sales_id = au.id WHERE 1 = 1 ");
-        return Order.dao.find(selectStr + sql, customerId);
+        String sql = "SELECT " +
+                  "CONCAT( " +
+                    "bi.address_province, " +
+                    "bi.address_city, " +
+                    "bi.address_detail " +
+                  ") AS address, " +
+                  "bu.nick_name AS bName, " +
+                  "au.nick_name AS aName, " +
+                  "bu.phone " +
+                "FROM " +
+                  "b_business_user bu " +
+                "INNER JOIN a_user au ON bu.a_user_sales_id = au.id " +
+                "INNER JOIN b_business_info bi ON bi.u_id = bu.id " +
+                "WHERE " +
+                  "bu.id = ? ";
+        return Order.dao.find(sql, customerId);
     }
 
     /**
@@ -283,5 +284,51 @@ public class Order extends BaseOrder<Order> {
     public Integer getOrderStatusByOrderId(String orderId) {
         String sql = "select order_status from b_order where order_id = ?";
         return Db.queryInt(sql, orderId);
+    }
+
+    /**
+     * 获取用户的信息
+     * @param customerId 用户id
+     * @return
+     */
+    public List<Order> getCustomerPayOrderInfo(Integer customerId) {
+        String sql ="SELECT " +
+                  "o.create_time, " +
+                  "au.nick_name, " +
+                  "o.order_id, " +
+                  "o.order_status, " +
+                  "o.pay_all_money, " +
+                  "o.pay_total_money, " +
+                "o.pay_all_money - o.pay_total_money as arrearage " +
+                "FROM " +
+                  "b_business_user bu " +
+                "INNER JOIN a_user au ON bu.a_user_sales_id = au.id " +
+                "INNER JOIN b_order o ON o.u_id = bu.id " +
+                "WHERE " +
+                  "o.order_status IN (15, 20, 25) " +
+                  "AND o.pay_status = " + OrderPayStatusCode.WAIT_PAYMENT.getStatus() + " " +
+                  "AND bu.id = ? " +
+                  "ORDER BY o.create_time ASC";
+        return dao.find(sql,customerId);
+    }
+
+    /**
+     * 获取用户的信息
+     * @param customerId 用户id
+     * @return
+     */
+    public List<Order> getCustomerPayOrderInfo2(Integer customerId) {
+        String sql ="SELECT " +
+                "o.*," +
+                "bu.a_user_sales_id " +
+                "FROM " +
+                "b_business_user bu " +
+                "INNER JOIN b_order o ON o.u_id = bu.id " +
+                "WHERE " +
+                "o.order_status IN (15, 20, 25) " +
+                "AND bu.id = ? " +
+                "AND o.pay_status = " + OrderPayStatusCode.WAIT_PAYMENT.getStatus() + " " +
+                "ORDER BY o.create_time ASC";
+        return dao.find(sql,customerId);
     }
 }
