@@ -13,6 +13,8 @@ import com.fruit.manage.util.Constant;
 import com.fruit.manage.util.DataResult;
 import com.jfinal.kit.HashKit;
 
+import java.util.Date;
+
 public class LoginController extends BaseController {
 
     private Logger logger = Logger.getLogger(getClass());
@@ -33,7 +35,10 @@ public class LoginController extends BaseController {
         try {
             subject.login(token);
             Session session = subject.getSession();
-            session.setAttribute(Constant.SESSION_UID, User.dao.getUser(userName).getId());
+            User user = User.dao.getUser(userName);
+            user.setLastLoginTime(new Date());
+            user.update();
+            session.setAttribute(Constant.SESSION_UID, user.getId());
             renderNull();
         } catch (Exception e) {
             if (StringUtils.isAllBlank(userName, password)) {

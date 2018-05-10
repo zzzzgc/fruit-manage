@@ -105,4 +105,12 @@ public abstract class BaseBusinessUser<M extends BaseBusinessUser<M>> extends Mo
 		return get("update_time");
 	}
 
+	public void setMoney(java.math.BigDecimal money) {
+		set("money", money);
+	}
+
+	public java.math.BigDecimal getMoney() {
+		return get("money");
+	}
+
 }

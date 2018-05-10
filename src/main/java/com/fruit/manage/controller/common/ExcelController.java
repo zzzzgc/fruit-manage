@@ -1,6 +1,7 @@
 package com.fruit.manage.controller.common;
 
 import com.fruit.manage.base.BaseController;
+import com.fruit.manage.constant.RoleKeyCode;
 import com.fruit.manage.constant.ShipmentConstant;
 import com.fruit.manage.model.*;
 import com.fruit.manage.util.Constant;
@@ -14,6 +15,7 @@ import com.jfinal.ext2.kit.DateTimeKit;
 import com.jfinal.ext2.kit.RandomKit;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.IAtom;
+import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
@@ -216,6 +218,7 @@ public class ExcelController extends BaseController {
      */
     @Before(Tx.class)
     public void getBusinessSendGoodsBilling() {
+        Integer uid = getSessionAttr(Constant.SESSION_UID);
         try {
             int rowCount;
 
@@ -228,10 +231,16 @@ public class ExcelController extends BaseController {
                 // 超過11:59:59算明天的訂單
                 calendar.add(Calendar.DAY_OF_MONTH, -1);
             }
+            List<Object> params = new ArrayList<Object>();
+
             String startDateStr = DateTimeKit.formatDateToStyle("yyyy-MM-dd", calendar.getTime()) + " 12:00:00";
             calendar.add(Calendar.DAY_OF_MONTH, 1);
             String endDateStr = DateTimeKit.formatDateToStyle("yyyy-MM-dd", calendar.getTime()) + " 12:00:00";
-            String sql = "SELECT " +
+
+            params.add(startDateStr);
+            params.add(endDateStr);
+
+            StringBuilder sql = new StringBuilder("SELECT " +
                     "o.order_id, " +
                     "bu.`name` AS business_user_name, " +
                     "linfo.buy_phone, " +
@@ -247,14 +256,19 @@ public class ExcelController extends BaseController {
                     "INNER JOIN b_business_info AS info ON bu.id = info.u_id " +
                     "INNER JOIN a_user AS au ON bu.a_user_sales_id = au.id " +
                     "LEFT JOIN b_logistics_info AS linfo ON linfo.order_id = o.order_id " +
-                    "INNER JOIN a_user_role ON a_user_role.user_id = au.id " +
-                    "INNER JOIN a_role AS r ON a_user_role.role_id = r.id " +
                     "WHERE " +
-                    "o.order_status in (5) " +
+                    "o.order_status <> 0 " +
                     "AND o.create_time BETWEEN ? " +
-                    "AND ? ";
+                    "AND ? ");
+            // 运行查看所有
+            if (!User.dao.isRole(uid, RoleKeyCode.OPERATOR.getKey())) {
+                if (User.dao.isRole(uid, RoleKeyCode.SALES.getKey())) {
+                    sql.append("AND bu.a_user_sales_id = ? ");
+                    params.add(uid);
+                }
+            }
 
-            List<Order> orders = Order.dao.find(sql, startDateStr, endDateStr);
+            List<Order> orders = Order.dao.find(sql.toString(), params.toArray());
 
             Date now = new Date();
 
@@ -393,7 +407,7 @@ public class ExcelController extends BaseController {
                 c6.setCellValue("实发数量");
                 c7.setCellValue("商品备注");
 
-                sql = "SELECT " +
+                String sql2 = "SELECT " +
                         "od.product_name, " +
                         "od.product_standard_name, " +
                         "od.product_standard_id, " +
@@ -406,7 +420,7 @@ public class ExcelController extends BaseController {
                         "INNER JOIN b_order_detail AS od ON o.order_id = od.order_id " +
                         "INNER JOIN b_product_standard AS ps ON od.product_standard_id = ps.id " +
                         "WHERE o.order_id = ? ";
-                List<OrderDetail> orderDetails = OrderDetail.dao.find(sql, orderId);
+                List<OrderDetail> orderDetails = OrderDetail.dao.find(sql2, orderId);
                 for (OrderDetail orderDetail : orderDetails) {
                     row = sheet.createRow(rowCount++);
                     row.setHeightInPoints(tableHeight);
@@ -521,6 +535,7 @@ public class ExcelController extends BaseController {
                 "o.pay_all_money, " +
                 "o.pay_total_money, " +
                 "bu.`name` AS business_user_name, " +
+                "bu.id AS business_id, " +
                 "linfo.buy_phone, " +
                 "linfo.buy_address, " +
                 "linfo.buy_user_name, " +
@@ -529,7 +544,7 @@ public class ExcelController extends BaseController {
                 "linfo.tricycle_cost, " +
                 "linfo.freight_cost, " +
                 "linfo.transshipment_cost, " +
-                "linfo.package_num, " +
+                "linfo.package_cost, " +
                 "linfo.send_goods_total_cost, " +
 
                 "info.business_name, " +
@@ -558,8 +573,9 @@ public class ExcelController extends BaseController {
         for (Order order : orders) {
             rowCount = 0;
             String orderId = order.get("order_id");
-            String pay_all_money = order.get("pay_all_money");
-            String pay_total_money = order.get("pay_total_money");
+            Integer businessId = order.get("business_id");
+            BigDecimal pay_all_money = order.get("pay_all_money");
+            BigDecimal pay_total_money = order.get("pay_total_money");
             String businessUserName = order.get("business_user_name");
             String businessName = order.get("business_name");
             String buyPhone = order.get("buy_phone");
@@ -567,11 +583,11 @@ public class ExcelController extends BaseController {
             String buyUserName = order.get("buy_user_name");
             Integer deliveryType = order.get("delivery_type");
 
-            String tricycle_cost = order.get("tricycle_cost");
-            String freight_cost = order.get("freight_cost");
-            String transshipment_cost = order.get("transshipment_cost");
-            String package_num = order.get("package_num");
-            String send_goods_total_cost = order.get("send_goods_total_cost");
+            BigDecimal tricycle_cost = order.get("tricycle_cost");
+            BigDecimal freight_cost = order.get("freight_cost");
+            BigDecimal transshipment_cost = order.get("transshipment_cost");
+            BigDecimal package_cost = order.get("package_cost");
+            BigDecimal send_goods_total_cost = order.get("send_goods_total_cost");
 
 
             String salesName = order.get("sales_name");
@@ -753,6 +769,11 @@ public class ExcelController extends BaseController {
             c6.setCellValue("装车费:" + freight_cost);
             c9.setCellValue("运费:" + transshipment_cost);
 
+            sql = "SELECT SUM(o.pay_all_money- o.pay_total_money)  from b_order o where o.pay_status = 0 AND o.u_id = ? ";
+
+            Record record = Db.findFirst(sql, businessId);
+
+            BigDecimal allOrderPrice = (BigDecimal) record.getColumnValues()[0];
 
             row = sheet.createRow(rowCount++);
             row.setHeightInPoints(textHeight);
@@ -765,20 +786,20 @@ public class ExcelController extends BaseController {
             c3.setCellStyle(styleText);
             c6.setCellStyle(styleText);
             c9.setCellStyle(styleText);
-            c3.setCellValue("打包费:" + package_num);
+            c3.setCellValue("打包费:" + package_cost);
             c6.setCellValue("本次货款:" + pay_all_money);
-//            c9.setCellValue("前次未结:" + salesPhone);
+            c9.setCellValue("前次未结:" + allOrderPrice.subtract(pay_all_money).add(pay_total_money) );
 
             row = sheet.createRow(rowCount++);
-//            row.setHeightInPoints(textHeight);
+            row.setHeightInPoints(textHeight);
             _mergedRegionNowRow(sheet, row, 1, 3);
-//            _mergedRegionNowRow(sheet, row, 4, 6);
+            _mergedRegionNowRow(sheet, row, 4, 6);
             c3 = row.createCell(0);
-//            c6 = row.createCell(3);
+            c6 = row.createCell(3);
             c3.setCellStyle(styleText);
-//            c6.setCellStyle(styleText);
+            c6.setCellStyle(styleText);
             c3.setCellValue("本次已付:" + pay_total_money);
-//            c6.setCellValue("本次应付:" + salesName);
+            c6.setCellValue("本次应付:" + allOrderPrice);
 
 
         }
