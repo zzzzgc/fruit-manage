@@ -15,6 +15,7 @@ import com.jfinal.ext2.kit.DateTimeKit;
 import com.jfinal.ext2.kit.RandomKit;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.IAtom;
+import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
@@ -534,6 +535,7 @@ public class ExcelController extends BaseController {
                 "o.pay_all_money, " +
                 "o.pay_total_money, " +
                 "bu.`name` AS business_user_name, " +
+                "bu.id AS business_id, " +
                 "linfo.buy_phone, " +
                 "linfo.buy_address, " +
                 "linfo.buy_user_name, " +
@@ -571,6 +573,7 @@ public class ExcelController extends BaseController {
         for (Order order : orders) {
             rowCount = 0;
             String orderId = order.get("order_id");
+            Integer businessId = order.get("business_id");
             BigDecimal pay_all_money = order.get("pay_all_money");
             BigDecimal pay_total_money = order.get("pay_total_money");
             String businessUserName = order.get("business_user_name");
@@ -766,6 +769,11 @@ public class ExcelController extends BaseController {
             c6.setCellValue("装车费:" + freight_cost);
             c9.setCellValue("运费:" + transshipment_cost);
 
+            sql = "SELECT SUM(o.pay_all_money- o.pay_total_money)  from b_order o where o.pay_status = 0 AND o.u_id = ? ";
+
+            Record record = Db.findFirst(sql, businessId);
+
+            BigDecimal allOrderPrice = (BigDecimal) record.getColumnValues()[0];
 
             row = sheet.createRow(rowCount++);
             row.setHeightInPoints(textHeight);
@@ -780,18 +788,18 @@ public class ExcelController extends BaseController {
             c9.setCellStyle(styleText);
             c3.setCellValue("打包费:" + package_cost);
             c6.setCellValue("本次货款:" + pay_all_money);
-            c9.setCellValue("前次未结:" + salesPhone);
+            c9.setCellValue("前次未结:" + allOrderPrice.subtract(pay_all_money).add(pay_total_money) );
 
             row = sheet.createRow(rowCount++);
-//            row.setHeightInPoints(textHeight);
+            row.setHeightInPoints(textHeight);
             _mergedRegionNowRow(sheet, row, 1, 3);
-//            _mergedRegionNowRow(sheet, row, 4, 6);
+            _mergedRegionNowRow(sheet, row, 4, 6);
             c3 = row.createCell(0);
-//            c6 = row.createCell(3);
+            c6 = row.createCell(3);
             c3.setCellStyle(styleText);
-//            c6.setCellStyle(styleText);
+            c6.setCellStyle(styleText);
             c3.setCellValue("本次已付:" + pay_total_money);
-//            c6.setCellValue("本次应付:" + salesName);
+            c6.setCellValue("本次应付:" + allOrderPrice);
 
 
         }
