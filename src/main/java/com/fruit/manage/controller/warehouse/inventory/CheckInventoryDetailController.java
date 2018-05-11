@@ -147,7 +147,7 @@ public class CheckInventoryDetailController extends BaseController {
                         average = new BigDecimal(0);
                     }
                     if (productStandard.getStock() == null || productStandard.getStock() == 0) {
-                        nullInfo+="商品规格编号"+productStandard.getId()+"为空,";
+                        nullInfo+="商品规格编号"+productStandard.getId()+"的库存为空,";
                         continue;
                     }
                      // 库存单价=【期初库存总额+期中入库单价*(期中入库数量-期中出库数量)】/期末库存数量
@@ -174,7 +174,10 @@ public class CheckInventoryDetailController extends BaseController {
             }
         }
         if (nullInfo != "") {
+            System.out.println("-------------导入盘点单 START-------------");
+            System.out.println(nullInfo);
             renderErrorText(nullInfo);
+            System.out.println("-------------导入盘点单 END-------------");
         }
         renderNull();
     }
