@@ -120,7 +120,9 @@ public class CheckInventoryDetailController extends BaseController {
                     checkInventoryDetail.setProductName(list.get(0)+"");
                     checkInventoryDetail.setProductStandardName(list.get(1)+"");
                     checkInventoryDetail.setProductStandardId(Integer.parseInt(list.get(2)+""));
-                    checkInventoryDetail.setProductWeight(Double.parseDouble(list.get(3)+""));
+                    // 重量改为副标题
+                    checkInventoryDetail.setProductWeight(list.get(3)+"");
+//                    checkInventoryDetail.setProductWeight(Double.parseDouble(list.get(3)+""));
 
                     //获取前一天的
                     CheckInventoryDetail checkInventoryDetail2=CheckInventoryDetail.dao.getCheckInventoryDetail(Integer.parseInt(list.get(2)+""),startTime,endTime);
