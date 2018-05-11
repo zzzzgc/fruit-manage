@@ -137,6 +137,9 @@ public class WarehousePutDetailController extends BaseController {
                         putAllTypeCount.put(Integer.parseInt(list.get(2) + ""), "countNeed");
                         // 弃用
                         putAllTotalCost = putAllTotalCost.add(procurementTotalPrice.add(boothCost));
+                        if (BigDecimal.ZERO.compareTo(putNum) == 0 ){
+                            continue;
+                        }
                         //入库单价 = （入库总价+摊位费）/ 入库数量
                         BigDecimal averagePrice = (procurementTotalPrice.add(boothCost)).divide(putNum, 2, BigDecimal.ROUND_HALF_DOWN);
 
@@ -161,7 +164,6 @@ public class WarehousePutDetailController extends BaseController {
 
                         // 根据商品规格编号修改商品规格的库存量
                         updateProductStandardStore(putWarehouseDetail.getProductStandardId(), putWarehouseDetail.getPutNum(), putWarehouseDetail.getProductStandardName(), putWarehouseDetail.getProductId(), putWarehouseDetail.getProductName());
-
 
                         PutWarehouse putWarehouse = PutWarehouse.dao.getPutWarehouseById(putId);
                         putWarehouse.setPutTime(currentTime);

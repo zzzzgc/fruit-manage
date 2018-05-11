@@ -8,6 +8,7 @@ import com.fruit.manage.model.OutWarehouseDetail;
 import com.fruit.manage.util.ExcelCommon;
 import com.fruit.manage.util.excel.ExcelException;
 import com.jfinal.ext.kit.DateKit;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.log4j.Logger;
 import org.apache.poi.ss.usermodel.Row;
@@ -46,7 +47,7 @@ public class WarehouseOutContrller extends BaseController {
         // 下单时间
         String[] createTime = getParaValues("create_time");
 
-        renderJson(OutWarehouse.dao.getData(pageNum, pageSize, orderBy, isASC, createTime,outWarehouse));
+        renderJson(OutWarehouse.dao.getData(pageNum, pageSize, orderBy, isASC, createTime, outWarehouse));
     }
 
     /**
@@ -54,12 +55,11 @@ public class WarehouseOutContrller extends BaseController {
      */
     public void save() {
         String CreateTimeStr = getPara("create_Time");
-        Integer out_type = getParaToInt("out_type");
+        Integer outType = getParaToInt("out_type");
         Date createTime = DateKit.toDate(CreateTimeStr);
-        System.out.println(createTime);
         OutWarehouse outWarehouse = new OutWarehouse();
         outWarehouse.setOutTime(createTime);
-        outWarehouse.setOutType(out_type);
+        outWarehouse.setOutType(outType);
         outWarehouse.setUpdateTime(new Date());
         outWarehouse.setCreateTime(new Date());
         outWarehouse.setWarehouseAddress("运城");
@@ -191,7 +191,7 @@ public class WarehouseOutContrller extends BaseController {
 
             // 获取出库详细的历史数据
             List<OutWarehouseDetail> oldOutWarehouseDetail = OutWarehouseDetail.dao.getOutWarehouseDetail(outId);
-            Map<Integer, OutWarehouseDetail> oldOutWarehouseDetailMap = oldOutWarehouseDetail == null? new HashMap<>(1):oldOutWarehouseDetail.stream().collect(Collectors.toMap(OutWarehouseDetail::getProductStandardId, Function.identity()));
+            Map<Integer, OutWarehouseDetail> oldOutWarehouseDetailMap = oldOutWarehouseDetail == null ? new HashMap<>(1) : oldOutWarehouseDetail.stream().collect(Collectors.toMap(outWarehouseDetail->outWarehouseDetail.getProductStandardId()+outWarehouseDetail.getUserId(), Function.identity()));
 
             for (OutWarehouseDetail outWarehouseDetail : oldOutWarehouseDetail) {
                 productTotalNum += outWarehouseDetail.getOutNum();
@@ -222,9 +222,9 @@ public class WarehouseOutContrller extends BaseController {
                     Row row = sheet.getRow(j);
 
                     // 一共有7列
-                    Integer productStandardId = (int)row.getCell(2).getNumericCellValue();
-                    BigDecimal productWeight = new BigDecimal(row.getCell(3).getNumericCellValue());
-                    Integer outNum = (int)row.getCell(5).getNumericCellValue();
+                    Integer productStandardId = (int) row.getCell(2).getNumericCellValue();
+                    String productWeight = row.getCell(3).getStringCellValue();
+                    Integer outNum = (int) row.getCell(5).getNumericCellValue();
                     String outRemark = row.getCell(6).getStringCellValue();
 
 
@@ -237,7 +237,7 @@ public class WarehouseOutContrller extends BaseController {
                     BigDecimal sellPrice = orderDetail.getSellPrice();
                     BigDecimal totalPrice = sellPrice.multiply(new BigDecimal(outNum));
 
-                    OutWarehouseDetail outWarehouseDetail = oldOutWarehouseDetailMap.get(productStandardId);
+                    OutWarehouseDetail outWarehouseDetail = oldOutWarehouseDetailMap.get(productStandardId+orderDetail.getUId());
 
                     if (outWarehouseDetail == null) {
                         OutWarehouseDetail owd = new OutWarehouseDetail();
@@ -266,7 +266,7 @@ public class WarehouseOutContrller extends BaseController {
                         ++productStandardTotalNum;
                         allTotalPrice = allTotalPrice.add(totalPrice);
                         // 避免重复添加
-                        oldOutWarehouseDetailMap.put(orderDetail.getProductStandardId(),owd);
+                        oldOutWarehouseDetailMap.put(orderDetail.getProductStandardId(), owd);
                     } else {
                         // 只需要更新 库户名 出库数量 重量
                         outWarehouseDetail.setUserName(userName);

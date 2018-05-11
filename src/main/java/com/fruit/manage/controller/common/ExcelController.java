@@ -11,6 +11,7 @@ import com.fruit.manage.util.excel.ExcelStyle;
 import com.fruit.manage.util.excelRd.ExcelRdException;
 import com.fruit.manage.util.excelRd.ExcelRdTypeEnum;
 import com.jfinal.aop.Before;
+import com.jfinal.ext.kit.DateKit;
 import com.jfinal.ext2.kit.DateTimeKit;
 import com.jfinal.ext2.kit.RandomKit;
 import com.jfinal.plugin.activerecord.Db;
@@ -289,7 +290,7 @@ public class ExcelController extends BaseController {
                 String salesPhone = order.get("sales_phone");
 
                 // 创建表
-                XSSFSheet sheet = wb.createSheet(businessName + "_商家出货单");
+                XSSFSheet sheet = wb.createSheet(businessName + "_" + DateKit.toStr(new Date(),"MM月dd日"));
                 // 去除网格线
                 sheet.setDisplayGridlines(false);
                 sheet.setDefaultRowHeight((short) (512));

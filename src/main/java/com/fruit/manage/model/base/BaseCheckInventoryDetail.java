@@ -57,12 +57,12 @@ public abstract class BaseCheckInventoryDetail<M extends BaseCheckInventoryDetai
 		return getStr("check_inventory_id");
 	}
 
-	public void setProductWeight(java.lang.Double productWeight) {
+	public void setProductWeight(java.lang.String productWeight) {
 		set("product_weight", productWeight);
 	}
 
-	public java.lang.Double getProductWeight() {
-		return getDouble("product_weight");
+	public java.lang.String getProductWeight() {
+		return getStr("product_weight");
 	}
 
 	public void setInventoryPrice(java.math.BigDecimal inventoryPrice) {

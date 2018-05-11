@@ -546,12 +546,12 @@ public class PlanDetailController extends BaseController {
 
     }
 
-    public void putInStore(Integer productStandardId, Integer changeNum) {
-        ProductStandard productStandard = ProductStandard.dao.getProductStandardById(productStandardId);
-        if (productStandard != null) {
-            productStandard.setStock(productStandard.getStock() + changeNum);
-            productStandard.update();
-        }
-    }
+//    public void putInStore(Integer productStandardId, Integer changeNum) {
+//        ProductStandard productStandard = ProductStandard.dao.getProductStandardById(productStandardId);
+//        if (productStandard != null) {
+//            productStandard.setStock(productStandard.getStock() + changeNum);
+//            productStandard.update();
+//        }
+//    }
 
 }

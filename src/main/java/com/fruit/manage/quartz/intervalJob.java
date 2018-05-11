@@ -39,7 +39,7 @@ public class intervalJob implements Runnable {
      */
     @Before(Tx.class)
     public static void changeDeliveryOrder() {
-        Db.update("UPDATE b_order AS o\n" +
+        int update = Db.update("UPDATE b_order AS o\n" +
                 "INNER JOIN b_logistics_info AS li ON o.order_id = li.order_id\n" +
                 "SET \n" +
                 "o.order_status = (\n" +
@@ -53,6 +53,9 @@ public class intervalJob implements Runnable {
                 "WHERE\n" +
                 "\to.order_status = 15\n" +
                 "AND DATEDIFF(NOW(), li.send_goods_time) > 3");
+        if (update > 0) {
+            System.out.println("更改" + update +"条数据到已送达或已完成");
+        }
     }
 
     /**

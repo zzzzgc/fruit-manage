@@ -65,12 +65,12 @@ public abstract class BaseOutWarehouseDetail<M extends BaseOutWarehouseDetail<M>
 		return getStr("product_standard_name");
 	}
 
-	public void setProductWeight(java.math.BigDecimal productWeight) {
+	public void setProductWeight(java.lang.String productWeight) {
 		set("product_weight", productWeight);
 	}
 
-	public java.math.BigDecimal getProductWeight() {
-		return get("product_weight");
+	public java.lang.String getProductWeight() {
+		return getStr("product_weight");
 	}
 
 	public void setOutNum(java.lang.Integer outNum) {

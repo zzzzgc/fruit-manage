@@ -120,6 +120,7 @@ public class OrderController extends BaseController {
             Integer orderStatus = order.getOrderStatus();
 
             Integer nextStatus = OrderConstant.nextStatus(orderStatus);
+            System.out.println("orderId:" + orderId + ",原来的状态是:" + orderStatus + ",后来的状态是:" + nextStatus);
             if (nextStatus.equals(OrderStatusCode.DELETED.getStatus())) {
                 renderErrorText("数据有问题或接口异常丶没有下一个状态了");
                 return;
@@ -183,11 +184,11 @@ public class OrderController extends BaseController {
      */
     public void getOrderDetailElse() {
         String orderId = getPara("orderId");
-        String sql= "select pay_of_type,pay_of_time from b_pay_order_info where 1=1 and order_id = ? order by pay_of_time DESC";
+        String sql = "select pay_of_type,pay_of_time from b_pay_order_info where 1=1 and order_id = ? order by pay_of_time DESC";
         PayOrderInfo payOrderInfo = PayOrderInfo.dao.findFirst(sql, orderId);
         String dateStr = "暂无";
         String payOfType = "暂无";
-        if (payOrderInfo != null && payOrderInfo.getPayOfTime()!=null) {
+        if (payOrderInfo != null && payOrderInfo.getPayOfTime() != null) {
             dateStr = DateAndStringFormat.getStringDateShort(payOrderInfo.getPayOfTime());
             payOfType = PayOfTypeStatusCode.getPayType(payOrderInfo.getPayOfType());
         }
@@ -209,16 +210,16 @@ public class OrderController extends BaseController {
         orderBreakage.setAudit(0);
         orderBreakage.setOrderId(order_id);
         // 如果报损单的编号不为空并且大于0，则编辑
-        if (orderBreakage.getId() != null && orderBreakage.getId()>0) {
+        if (orderBreakage.getId() != null && orderBreakage.getId() > 0) {
             orderBreakage.update();
-        }else {
+        } else {
             orderBreakage.setCreateTime(date);
             orderBreakage.save();
         }
         System.out.println(orderBreakage.get("id").toString());
         // 根据报损编号删除报损关联图片
         OrderBreakageImg.dao.delOrderBreakageImgByBreakageId(orderBreakage.getId());
-        OrderBreakageImg orderBreakageImg =null;
+        OrderBreakageImg orderBreakageImg = null;
         if (imgs != null && !("").equals(imgs) && imgs.length > 0) {
             for (int i = 0; i < imgs.length; i++) {
                 orderBreakageImg = new OrderBreakageImg();
@@ -239,9 +240,9 @@ public class OrderController extends BaseController {
         String orderId = getPara("orderId");
         Integer psId = getParaToInt("productStandardId");
         Map<String, Object> map = new HashMap<>(2);
-        OrderBreakage orderBreakage=OrderBreakage.dao.getOrderBreakageInfoByOrderIdAndPSId(orderId, psId);
-        map.put("orderBreakage",orderBreakage);
-        map.put("orderBreakageImg",OrderBreakageImg.dao.getOrderBreakageImgByBreakageId(orderBreakage.getId()));
+        OrderBreakage orderBreakage = OrderBreakage.dao.getOrderBreakageInfoByOrderIdAndPSId(orderId, psId);
+        map.put("orderBreakage", orderBreakage);
+        map.put("orderBreakageImg", OrderBreakageImg.dao.getOrderBreakageImgByBreakageId(orderBreakage.getId()));
         renderJson(map);
     }
 
@@ -273,7 +274,7 @@ public class OrderController extends BaseController {
                 order.update();
                 // 修改订单总价格
                 renderNull();
-            }else{
+            } else {
                 renderErrorText("订单必须为配送状态!");
             }
         } else {
@@ -436,38 +437,38 @@ public class OrderController extends BaseController {
         // 销售只能获取自己的客户,其他人能获取全部,但是其他人除了超级管理员都不能调用这个方法,因为权限控制.
         // name必须为value ,是获取该值的关键(前端)
         String sql = "SELECT " +
-                  "bu.`name`, " +
-                  "bu.id, " +
-                  "bu.phone, " +
-                  "bu.nick_name, " +
-                  "bu.a_user_sales_id, " +
-                  "binfo.business_name " +
+                "bu.`name`, " +
+                "bu.id, " +
+                "bu.phone, " +
+                "bu.nick_name, " +
+                "bu.a_user_sales_id, " +
+                "binfo.business_name " +
                 "FROM " +
-                  "a_user AS au " +
+                "a_user AS au " +
                 "INNER JOIN a_user_role aur ON aur.user_id = au.id " +
                 "INNER JOIN b_business_user AS bu ON au.id = bu.a_user_sales_id " +
                 "INNER JOIN b_business_info AS binfo ON binfo.u_id = bu.id " +
                 "WHERE 1=1 " +
 
                 // 给运营角色所有客户可见
-                  "and ( " +
-                        "case  " +
-                          "when " +
-                            "(SELECT ur2.user_id  " +
-                              "from a_user_role ur2   " +
-                              "INNER JOIN a_user u2 on ur2.user_id=u2.id " +
-                              "INNER JOIN a_role r2 on ur2.role_id = r2.id " +
+                "and ( " +
+                "case  " +
+                "when " +
+                "(SELECT ur2.user_id  " +
+                "from a_user_role ur2   " +
+                "INNER JOIN a_user u2 on ur2.user_id=u2.id " +
+                "INNER JOIN a_role r2 on ur2.role_id = r2.id " +
                 // 需要给哪个角色赋权查看所有商户时，需要role_key的范围值
-                              "where r2.role_key = 'operator' " +
-                              "and u2.id =?) is not NULL " +
-                          "then 0 else 1 end = 0 or bu.a_user_sales_id = ? " +
-                  ") "+
+                "where r2.role_key = 'operator' " +
+                "and u2.id =?) is not NULL " +
+                "then 0 else 1 end = 0 or bu.a_user_sales_id = ? " +
+                ") " +
 
 //                  "bu.a_user_sales_id = ? " +
                 // 因为User的角色可以多个，所以查询的数据有多条重复的商家，只有给商家编号分组，就能达到去重
                 " group by bu.id ";
         // 销售只能获取自己的客户
-        renderJson(BusinessUser.dao.find(sql,uid,uid));
+        renderJson(BusinessUser.dao.find(sql, uid, uid));
     }
 
     /**
@@ -572,7 +573,7 @@ public class OrderController extends BaseController {
         LogisticsInfo logisticsInfo = LogisticsInfo.dao.getLogisticeInfoByOrderID(orderId);
         Integer orderStatus = Order.dao.getOrderStatusByOrderId(orderId);
         if (orderStatus < 15) {
-            renderErrorText("请先对订单号为"+orderId+"进行配送！");
+            renderErrorText("请先对订单号为" + orderId + "进行配送！");
             return;
         }
         if (logisticsInfo != null) {
