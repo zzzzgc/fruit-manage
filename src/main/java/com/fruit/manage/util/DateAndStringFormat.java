@@ -41,6 +41,13 @@ public class DateAndStringFormat {
         Date strtodate = formatter.parse(strDate, pos);
         return strtodate;
     }
+
+    public static Date strToDate(String strDate,String pattern) {
+        SimpleDateFormat formatter = new SimpleDateFormat(pattern);
+        ParsePosition pos = new ParsePosition(0);
+        Date strtodate = formatter.parse(strDate, pos);
+        return strtodate;
+    }
     /**
      * 获取现在时间
      *
