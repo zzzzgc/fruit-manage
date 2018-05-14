@@ -57,12 +57,12 @@ public abstract class BasePutWarehouseDetail<M extends BasePutWarehouseDetail<M>
 		return getInt("product_standard_id");
 	}
 
-	public void setProductWeight(java.lang.Double productWeight) {
+	public void setProductWeight(java.lang.String productWeight) {
 		set("product_weight", productWeight);
 	}
 
-	public java.lang.Double getProductWeight() {
-		return getDouble("product_weight");
+	public java.lang.String getProductWeight() {
+		return getStr("product_weight");
 	}
 
 	public void setProcurementPrice(java.math.BigDecimal procurementPrice) {

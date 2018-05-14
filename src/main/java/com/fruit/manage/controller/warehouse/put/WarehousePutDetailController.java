@@ -150,7 +150,7 @@ public class WarehousePutDetailController extends BaseController {
                         putWarehouseDetail.setProductName(list.get(0) + "");
                         putWarehouseDetail.setProductStandardName(list.get(1) + "");
                         putWarehouseDetail.setProductStandardId(Integer.parseInt(list.get(2) + ""));
-                        putWarehouseDetail.setProductWeight(Double.parseDouble(list.get(3) + ""));
+                        putWarehouseDetail.setProductWeight(list.get(3) + "");
                         putWarehouseDetail.setProcurementPrice(procurementPrice);
                         putWarehouseDetail.setProcurementTotalPrice(procurementTotalPrice);
                         putWarehouseDetail.setBoothCost(boothCost);
@@ -190,7 +190,7 @@ public class WarehousePutDetailController extends BaseController {
                         putWarehouseDetail.setPutAveragePrice((procurementTotalPrice.add(boothCost)).divide(putNumUpdate, 2, BigDecimal.ROUND_HALF_DOWN));
                         putWarehouseDetail.setUpdateTime(new Date());
                         putWarehouseDetail.setProcurementId(procurementId);
-                        putWarehouseDetail.setProductWeight(Double.parseDouble(list.get(3) + ""));
+                        putWarehouseDetail.setProductWeight(list.get(3) + "");
                         putWarehouseDetail.setBoothCost(boothCost);
                         putWarehouseDetail.setProcurementName(procurementName);
                         putWarehouseDetail.update();
