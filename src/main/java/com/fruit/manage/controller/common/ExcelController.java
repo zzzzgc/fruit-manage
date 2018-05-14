@@ -965,7 +965,7 @@ public class ExcelController extends BaseController {
                             c7.setCellValue(procurementPlan.get("inventoryNum") + "");
                             c8.setCellValue("");
                             c9.setCellValue("");
-                            c10.setCellValue(procurementPlan.get("orderRemark") + "");
+                            c10.setCellValue((procurementPlan.get("orderRemark") + "") == null ? "" : procurementPlan.get("orderRemark") + "");
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
