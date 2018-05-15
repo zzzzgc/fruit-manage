@@ -441,6 +441,9 @@ public class PlanDetailController extends BaseController {
         Db.tx(new IAtom() {
             @Override
             public boolean run() throws SQLException {
+                Integer tableIndex = 0;
+                Integer rowIndex = 1;
+                Map<String, String> map = new HashMap<>(2);
                 try {
                     String fileName = getPara("fileName");
                     String filePath = CommonController.FILE_PATH + File.separator + fileName;
@@ -453,11 +456,14 @@ public class PlanDetailController extends BaseController {
                         Iterator<ExcelRdRow> iterator = listExcelRdRows.get(i).iterator();
                         Integer procurementId = 0;
                         Integer count = 0;
+                        rowIndex = 1;
+                        tableIndex++;
                         // 循环Excel行
                         while (iterator.hasNext()) {
+                            rowIndex++;
+                            count++;
                             ExcelRdRow next = iterator.next();
                             List<Object> row = next.getRow();
-                            count++;
                             if (count == 1 && i == 0) {
                                 String createTimeStr = getPara("createTimeStr").split(" ")[0];
                                 System.out.println("createTimeStr :" + createTimeStr);
@@ -536,14 +542,33 @@ public class PlanDetailController extends BaseController {
                     renderNull();
                     return true;
                 } catch (Exception e) {
-                    renderErrorText("导入失败!");
+                    // 输出错误信息
+                    excelRenderErrorInfo(tableIndex, rowIndex, e.getMessage());
                     e.printStackTrace();
+                    return false;
+//                    String errorMsg = "第"+tableIndex+"张表，第"+rowIndex+"行数据出现异常\n异常信息是："+e.getMessage();
+//                    System.out.println(errorMsg);
+//                    map.put("result", "error");
+//                    map.put("message", errorMsg);
+//                    renderJson(map);
+//                    return false;
                 }
-                return false;
             }
         });
+    }
 
-
+    /**
+     * 输出Excel的错误信息
+     * @param tableIndex
+     * @param rowIndex
+     * @param errorMsg
+     */
+    public void excelRenderErrorInfo(Integer tableIndex, Integer rowIndex, String errorMsg) {
+        if (tableIndex == 0) {
+            renderErrorText(errorMsg);
+        }else{
+            renderErrorText("第"+tableIndex+"张表，第"+rowIndex+"行数据出现异常\n异常信息是："+errorMsg);
+        }
     }
 
 //    public void putInStore(Integer productStandardId, Integer changeNum) {
