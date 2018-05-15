@@ -242,7 +242,9 @@ public class OrderController extends BaseController {
         Map<String, Object> map = new HashMap<>(2);
         OrderBreakage orderBreakage = OrderBreakage.dao.getOrderBreakageInfoByOrderIdAndPSId(orderId, psId);
         map.put("orderBreakage", orderBreakage);
-        map.put("orderBreakageImg", OrderBreakageImg.dao.getOrderBreakageImgByBreakageId(orderBreakage.getId()));
+        if (orderBreakage != null) {
+            map.put("orderBreakageImg", OrderBreakageImg.dao.getOrderBreakageImgByBreakageId(orderBreakage.getId()));
+        }
         renderJson(map);
     }
 
