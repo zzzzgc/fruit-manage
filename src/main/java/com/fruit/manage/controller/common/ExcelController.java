@@ -1051,10 +1051,68 @@ public class ExcelController extends BaseController {
                     Map<String, Type> typeByNameMap = types.stream().collect(Collectors.toMap(Type::getName, Function.identity()));
                     Map<String, ProductType> productTypeMap = productTypes.stream().collect(Collectors.toMap(pt -> pt.getProductId() + "-" + pt.getTypeId(), Function.identity()));
 
+
+                    Map<String, Integer> duplicationCheckProductMap = new HashMap<>();
+                    Map<String, Integer> duplicationCheckProductStandardMap = new HashMap<>();
+
+                    // 异常检测,容错提升
                     for (Object[] row : excel) {
-                        // TODO 檢查存在商品名称重复
-                        // 1.商品名相同,id不同
-                        // 2.
+
+                        String typeName = (String) row[1];
+                        if (!StringUtils.isNotBlank(typeName)) {
+                            continue;
+                        }
+
+                        String productName = (String) row[2];
+                        if (!StringUtils.isNotBlank(productName)) {
+                            continue;
+                        }
+                        productName = productName.trim();
+
+                        String productStandardName = (String) row[3];
+                        if (!StringUtils.isNotBlank(productStandardName)) {
+                            productStandardName = "箱";
+                        }
+                        productStandardName = productStandardName.trim();
+
+                        String productIdInfo = (String) row[0];
+
+                        Integer productId = 0;
+                        Integer productStandardId = 0;
+
+                        if (StringUtils.isNotBlank(productIdInfo)) {
+                            // 不为空
+                            String[] idInfo = productIdInfo.split("-");
+                            if (idInfo.length == 2) {
+                                productId = Integer.parseInt(idInfo[0]);
+                                productStandardId = Integer.parseInt(idInfo[1]);
+
+                                // 1.商品名相同,pId不同
+                                Integer pId = duplicationCheckProductMap.get(productName);
+                                if (productId != null) {
+                                    if (pId != null) {
+                                        if (!productId.equals(pId)) {
+                                            renderErrorText("存在相同商品名称和不同的id的商品：" + productName);
+                                            return false;
+                                        }
+                                    }
+                                    duplicationCheckProductMap.put(productName, productId);
+                                }
+
+
+                                // 1.規格名相同,psId不同
+                                Integer psId = duplicationCheckProductStandardMap.get(productName+productStandardName);
+                                if (productStandardId != null) {
+                                    if (psId != null) {
+                                        if (!productStandardId.equals(psId)) {
+                                            renderErrorText("存在相同商品规格名称和不同的id的商品：" + productName + "，规格：" + productStandardName);
+                                            return false;
+                                        }
+                                    }
+                                    duplicationCheckProductStandardMap.put(productName+productStandardName, productStandardId);
+                                }
+                            }
+                        }
                     }
 
                     for (Object[] row : excel) {
@@ -1641,13 +1699,13 @@ public class ExcelController extends BaseController {
         );
     }
 
-    private void excelExceptionRender(Integer sheetCount,Integer rowCount,String ErrorMsg){
+    private void excelExceptionRender(Integer sheetCount, Integer rowCount, String ErrorMsg) {
         StringBuilder sb = new StringBuilder();
-        sb.append("第"+(sheetCount+1)+"个表");
+        sb.append("第" + (sheetCount + 1) + "个表");
         if (rowCount != null) {
-            sb.append("第"+(rowCount+1)+"行");
+            sb.append("的第" + (rowCount + 1) + "行");
         }
-        sb.append("出现了").append(ErrorMsg);
+        sb.append("出现异常：").append(ErrorMsg);
         renderErrorText(sb.toString());
     }
 }
