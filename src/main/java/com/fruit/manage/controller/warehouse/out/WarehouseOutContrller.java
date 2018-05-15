@@ -336,9 +336,9 @@ public class WarehouseOutContrller extends BaseController {
         StringBuilder sb = new StringBuilder();
         sb.append("第"+(sheetCount+1)+"个表");
         if (rowCount != null) {
-            sb.append("第"+(rowCount+1)+"行");
+            sb.append("的第"+(rowCount+1)+"行");
         }
-        sb.append("出现了").append(ErrorMsg);
+        sb.append("出现异常").append(ErrorMsg);
         renderErrorText(sb.toString());
     }
 
