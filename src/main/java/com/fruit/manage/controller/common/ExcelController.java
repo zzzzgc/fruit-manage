@@ -443,7 +443,6 @@ public class ExcelController extends BaseController {
                     c7.setCellStyle(styleTable);
 
                     c3.setCellType(CellType.NUMERIC);
-                    c4.setCellType(CellType.NUMERIC);
                     c5.setCellType(CellType.NUMERIC);
                     c6.setCellType(CellType.NUMERIC);
 
@@ -1052,8 +1051,14 @@ public class ExcelController extends BaseController {
                     Map<String, Type> typeByNameMap = types.stream().collect(Collectors.toMap(Type::getName, Function.identity()));
                     Map<String, ProductType> productTypeMap = productTypes.stream().collect(Collectors.toMap(pt -> pt.getProductId() + "-" + pt.getTypeId(), Function.identity()));
 
+                    for (Object[] row : excel) {
+                        // TODO 檢查存在商品名称重复
+                        // 1.商品名相同,id不同
+                        // 2.
+                    }
 
                     for (Object[] row : excel) {
+
                         Arrays.stream(row).forEach(System.out::print);
                         System.out.println();
 
@@ -1636,4 +1641,13 @@ public class ExcelController extends BaseController {
         );
     }
 
+    private void excelExceptionRender(Integer sheetCount,Integer rowCount,String ErrorMsg){
+        StringBuilder sb = new StringBuilder();
+        sb.append("第"+(sheetCount+1)+"个表");
+        if (rowCount != null) {
+            sb.append("第"+(rowCount+1)+"行");
+        }
+        sb.append("出现了").append(ErrorMsg);
+        renderErrorText(sb.toString());
+    }
 }

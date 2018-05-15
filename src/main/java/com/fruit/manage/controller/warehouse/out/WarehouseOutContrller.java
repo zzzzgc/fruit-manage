@@ -1,22 +1,27 @@
 package com.fruit.manage.controller.warehouse.out;
 
 import com.fruit.manage.base.BaseController;
+import com.fruit.manage.constant.UserTypeConstant;
 import com.fruit.manage.controller.common.CommonController;
-import com.fruit.manage.model.OrderDetail;
-import com.fruit.manage.model.OutWarehouse;
-import com.fruit.manage.model.OutWarehouseDetail;
+import com.fruit.manage.model.*;
+import com.fruit.manage.util.Constant;
 import com.fruit.manage.util.ExcelCommon;
 import com.fruit.manage.util.excel.ExcelException;
 import com.jfinal.ext.kit.DateKit;
+import com.jfinal.plugin.activerecord.Db;
+import com.jfinal.plugin.activerecord.IAtom;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.log4j.Logger;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -164,135 +169,194 @@ public class WarehouseOutContrller extends BaseController {
         renderJson(returnMap);
     }
 
-
     /**
      * 导入商家出库单
      */
-    public void importExcelOutWarehouse() {
+    public void importExcelOutWarehouse() throws IOException, InvalidFormatException {
+        // TODO 未取到前端传来的owId
+        Db.tx(new IAtom() {
+            @Override
+            public boolean run() throws SQLException {
 
-        try {
-            // TODO 未取到前端传来的owId
-            String fileName = getPara("fileName");
-            Integer outId = getParaToInt("out_id");
+                try {
+                    String fileName = getPara("fileName");
+                    Integer outId = getParaToInt("out_id");
 
-            File file = new File(CommonController.FILE_PATH + File.separator + fileName);
-            XSSFWorkbook sheets = new XSSFWorkbook(file);
+                    File file = new File(CommonController.FILE_PATH + File.separator + fileName);
+                    XSSFWorkbook sheets = new XSSFWorkbook(file);
 
-            Integer colTotalNum = 7;
+                    Integer colTotalNum = 7;
 
-            // 商品数量
-            Integer productTotalNum = 0;
+                    // 商品数量
+                    Integer productTotalNum = 0;
 
-            // 商品品类数量
-            Integer productStandardTotalNum = 0;
+                    // 商品品类数量
+                    Integer productStandardTotalNum = 0;
 
-            // 出库总额
-            BigDecimal allTotalPrice = new BigDecimal(0.00);
+                    // 出库总额
+                    BigDecimal allTotalPrice = new BigDecimal(0.00);
 
-            // 获取出库详细的历史数据
-            List<OutWarehouseDetail> oldOutWarehouseDetail = OutWarehouseDetail.dao.getOutWarehouseDetail(outId);
-            Map<Integer, OutWarehouseDetail> oldOutWarehouseDetailMap = oldOutWarehouseDetail == null ? new HashMap<>(1) : oldOutWarehouseDetail.stream().collect(Collectors.toMap(outWarehouseDetail->outWarehouseDetail.getProductStandardId()+outWarehouseDetail.getUserId(), Function.identity()));
+                    // 获取出库详细的历史数据
+                    List<OutWarehouseDetail> oldOutWarehouseDetail = OutWarehouseDetail.dao.getOutWarehouseDetail(outId);
+                    Map<Integer, OutWarehouseDetail> oldOutWarehouseDetailMap = oldOutWarehouseDetail == null ? new HashMap<>(1) : oldOutWarehouseDetail.stream().collect(Collectors.toMap(outWarehouseDetail -> outWarehouseDetail.getProductStandardId() + outWarehouseDetail.getUserId(), Function.identity()));
 
-            for (OutWarehouseDetail outWarehouseDetail : oldOutWarehouseDetail) {
-                productTotalNum += outWarehouseDetail.getOutNum();
-                ++productStandardTotalNum;
-                allTotalPrice = allTotalPrice.add(outWarehouseDetail.getOutTotalPrice());
-            }
-
-            // 不止一张表
-            for (Sheet sheet : sheets) {
-
-                // 获取用户名
-                String userName = sheet.getRow(1).getCell(0).getStringCellValue();
-                userName = userName.substring(userName.indexOf(":") + 1).trim();
-
-                // 订单号
-                String orderId = sheet.getRow(5).getCell(0).getStringCellValue();
-                orderId = orderId.substring(orderId.indexOf(":") + 1).trim();
-
-                // 获取所有订单详细
-                List<OrderDetail> orderDetails = OrderDetail.dao.getOrderDetails(orderId);
-                Map<Integer, OrderDetail> orderDetailMap = orderDetails.stream().collect(Collectors.toMap(OrderDetail::getProductStandardId, Function.identity()));
-
-                // 列表在7行开始,8倒数第3行结束 (+1-2 = -1)
-                for (int j = 7; j < sheet.getLastRowNum() - 1; j++) {
-                    // 0        1         2      3         4     5       6
-                    // 商品名称,规格名称,规格编码,重量（斤,下单数量,实发数量,商品备注
-
-                    Row row = sheet.getRow(j);
-
-                    // 一共有7列
-                    Integer productStandardId = (int) row.getCell(2).getNumericCellValue();
-                    String productWeight = row.getCell(3).getStringCellValue();
-                    Integer outNum = (int) row.getCell(5).getNumericCellValue();
-                    String outRemark = row.getCell(6).getStringCellValue();
-
-
-                    OrderDetail orderDetail = orderDetailMap.get(productStandardId);
-                    if (orderDetail == null) {
-                        System.out.println("orderId:" + orderId + " 不存在productStandardId:" + productStandardId);
-                        continue;
+                    for (OutWarehouseDetail outWarehouseDetail : oldOutWarehouseDetail) {
+                        productTotalNum += outWarehouseDetail.getOutNum();
+                        ++productStandardTotalNum;
+                        allTotalPrice = allTotalPrice.add(outWarehouseDetail.getOutTotalPrice());
                     }
 
-                    BigDecimal sellPrice = orderDetail.getSellPrice();
-                    BigDecimal totalPrice = sellPrice.multiply(new BigDecimal(outNum));
+                    // 不止一张表
+                    for (int sheetCount = 0; sheetCount < sheets.getNumberOfSheets(); sheetCount++) {
 
-                    OutWarehouseDetail outWarehouseDetail = oldOutWarehouseDetailMap.get(productStandardId+orderDetail.getUId());
+                        try {
+                            Sheet sheet = sheets.getSheetAt(sheetCount);
 
-                    if (outWarehouseDetail == null) {
-                        OutWarehouseDetail owd = new OutWarehouseDetail();
-                        owd.setProductId(orderDetail.getProductId());
-                        owd.setProductName(orderDetail.getProductName());
-                        owd.setProductStandardId(orderDetail.getProductStandardId());
-                        owd.setProductStandardName(orderDetail.getProductStandardName());
-                        owd.setProductWeight(productWeight);
-                        owd.setOutTotalPrice(totalPrice);
-                        owd.setOutId(outId);
-                        owd.setOutAveragePrice(sellPrice);
-                        // 1 商家出货
-                        owd.setOutType(1);
-                        owd.setOutNum(outNum);
-                        owd.setOutPrice(sellPrice);
-                        owd.setOutRemark(outRemark);
-                        owd.setUserId(orderDetail.getUId());
-                        owd.setUserName(userName);
-                        owd.setOrderNum(orderDetail.getNum());
-                        owd.setOrderTime(orderDetail.getCreateTime());
-                        owd.setUpdateTime(new Date());
-                        owd.setCreateTime(new Date());
-                        // TODO 临时
-                        owd.save();
-                        productTotalNum += outNum;
-                        ++productStandardTotalNum;
-                        allTotalPrice = allTotalPrice.add(totalPrice);
-                        // 避免重复添加
-                        oldOutWarehouseDetailMap.put(orderDetail.getProductStandardId(), owd);
-                    } else {
-                        // 只需要更新 库户名 出库数量 重量
-                        outWarehouseDetail.setUserName(userName);
-                        productTotalNum += outNum - outWarehouseDetail.getOutNum();
-                        outWarehouseDetail.setOutNum(outNum);
-                        outWarehouseDetail.setProductWeight(productWeight);
-                        outWarehouseDetail.update();
-                        allTotalPrice = allTotalPrice.add(totalPrice.subtract(outWarehouseDetail.getOutTotalPrice()));
-                        if (outNum == 0) {
-                            --productStandardTotalNum;
+                            // 获取用户名
+                            String userName = sheet.getRow(1).getCell(0).getStringCellValue();
+                            userName = userName.substring(userName.indexOf(":") + 1).trim();
+
+                            // 订单号
+                            String orderId = sheet.getRow(5).getCell(0).getStringCellValue();
+                            orderId = orderId.substring(orderId.indexOf(":") + 1).trim();
+
+                            // 获取所有订单详细
+                            List<OrderDetail> orderDetails = OrderDetail.dao.getOrderDetails(orderId);
+                            Map<Integer, OrderDetail> orderDetailMap = orderDetails.stream().collect(Collectors.toMap(OrderDetail::getProductStandardId, Function.identity()));
+
+                            // 列表在7行开始,8倒数第3行结束 (+1-2 = -1)
+                            for (int j = 7; j < sheet.getLastRowNum() - 1; j++) {
+                                // 0        1         2      3         4     5       6
+                                // 商品名称,规格名称,规格编码,重量（斤,下单数量,实发数量,商品备注
+
+                                try {
+                                    Row row = sheet.getRow(j);
+
+                                    // 一共有7列
+                                    String productName = row.getCell(0).getStringCellValue();
+                                    Integer productStandardId = (int) row.getCell(2).getNumericCellValue();
+                                    String productWeight = row.getCell(3).getStringCellValue();
+                                    Integer outNum =  Integer.valueOf(row.getCell(5).toString());
+                                    String outRemark = row.getCell(6).toString();
+
+                                    ProductStandard productStandard = ProductStandard.dao.findById(productStandardId);
+                                    Integer stock = productStandard.getStock();
+                                    if (stock < outNum) {
+                                        excelExceptionRender(sheetCount,j,"用户" + userName + "的出货单的商品" + productName + "的规格" + productStandard.getName() + "库存为" + stock + "出货数量为" + outNum);
+                                        return false;
+                                    }
+                                    Integer uid = getSessionAttr(Constant.SESSION_UID);
+
+                                    OrderDetail orderDetail = orderDetailMap.get(productStandardId);
+                                    if (orderDetail == null) {
+                                        excelExceptionRender(sheetCount,j,"orderId为" + orderId + "不存在productStandardId为" + productStandardId);
+                                        return false;
+                                    }
+
+                                    productStandard.setStock(stock - outNum);
+                                    // 0入 1出
+                                    boolean update = productStandard.update(UserTypeConstant.A_USER, uid, stock, stock + outNum, "1", productStandard.getName(), productStandard.getProductId(), orderDetail.getProductName());
+
+                                    BigDecimal sellPrice = orderDetail.getSellPrice();
+                                    BigDecimal totalPrice = sellPrice.multiply(new BigDecimal(outNum));
+
+                                    OutWarehouseDetail outWarehouseDetail = oldOutWarehouseDetailMap.get(productStandardId + orderDetail.getUId());
+
+                                    if (outWarehouseDetail == null) {
+                                        OutWarehouseDetail owd = new OutWarehouseDetail();
+                                        owd.setProductId(orderDetail.getProductId());
+                                        owd.setProductName(orderDetail.getProductName());
+                                        owd.setProductStandardId(orderDetail.getProductStandardId());
+                                        owd.setProductStandardName(orderDetail.getProductStandardName());
+                                        owd.setProductWeight(productWeight);
+                                        owd.setOutTotalPrice(totalPrice);
+                                        owd.setOutId(outId);
+                                        owd.setOutAveragePrice(sellPrice);
+                                        // 1 商家出货
+                                        owd.setOutType(1);
+                                        owd.setOutNum(outNum);
+                                        owd.setOutPrice(sellPrice);
+                                        owd.setOutRemark(outRemark);
+                                        owd.setUserId(orderDetail.getUId());
+                                        owd.setUserName(userName);
+                                        owd.setOrderNum(orderDetail.getNum());
+                                        owd.setOrderTime(orderDetail.getCreateTime());
+                                        owd.setUpdateTime(new Date());
+                                        owd.setCreateTime(new Date());
+                                        // TODO 临时
+                                        owd.save();
+                                        productTotalNum += outNum;
+                                        ++productStandardTotalNum;
+                                        allTotalPrice = allTotalPrice.add(totalPrice);
+                                        // 避免重复添加
+                                        oldOutWarehouseDetailMap.put(orderDetail.getProductStandardId(), owd);
+                                    } else {
+                                        // 只需要更新 库户名 出库数量 重量
+                                        outWarehouseDetail.setUserName(userName);
+                                        productTotalNum += outNum - outWarehouseDetail.getOutNum();
+                                        outWarehouseDetail.setOutNum(outNum);
+                                        outWarehouseDetail.setProductWeight(productWeight);
+                                        outWarehouseDetail.update();
+                                        allTotalPrice = allTotalPrice.add(totalPrice.subtract(outWarehouseDetail.getOutTotalPrice()));
+                                        if (outNum == 0) {
+                                            --productStandardTotalNum;
+                                        }
+                                    }
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                    excelExceptionRender(sheetCount,j,e.getMessage());
+                                    return false;
+                                }
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            excelExceptionRender(sheetCount,null,e.getMessage());
+                            return false;
                         }
                     }
+
+                    OutWarehouse ow = new OutWarehouse();
+                    ow.setId(outId);
+                    ow.setOutNum(productTotalNum);
+                    ow.setOutTypeNum(productStandardTotalNum);
+                    ow.setOutTotalPrice(allTotalPrice);
+                    ow.update();
+                    renderNull();
+                    return true;
+                } catch (Exception e) {
+                    renderErrorText("导入失败");
+                    e.printStackTrace();
+                    return false;
                 }
             }
-
-            OutWarehouse ow = new OutWarehouse();
-            ow.setId(outId);
-            ow.setOutNum(productTotalNum);
-            ow.setOutTypeNum(productStandardTotalNum);
-            ow.setOutTotalPrice(allTotalPrice);
-            ow.update();
-
-            renderNull();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        });
     }
+
+    private void excelExceptionRender(Integer sheetCount,Integer rowCount,String ErrorMsg){
+        StringBuilder sb = new StringBuilder();
+        sb.append("第"+(sheetCount+1)+"个表");
+        if (rowCount != null) {
+            sb.append("第"+(rowCount+1)+"行");
+        }
+        sb.append("出现了").append(ErrorMsg);
+        renderErrorText(sb.toString());
+    }
+
+
+    /**
+     * 根据商品规格编号（product_standard_id）修改商品规格的库存
+     *
+     * @param psId
+     * @param changeNum
+     * @return
+     */
+    public boolean updateProductStandardStore(Integer psId, Integer changeNum, String productStandardName, Integer productId, String productName) {
+        ProductStandard productStandard = ProductStandard.dao.getProductStandardById(psId);
+        productStandard.setStock(productStandard.getStock() + changeNum);
+        Integer uid = getSessionAttr(Constant.SESSION_UID);
+        // 0入库 1出库
+        return productStandard.update(UserTypeConstant.A_USER, uid, productStandard.getStock() + changeNum, productStandard.getStock(), "1", productStandardName, productId, productName);
+    }
+
 
 }
