@@ -441,6 +441,8 @@ public class PlanDetailController extends BaseController {
         Db.tx(new IAtom() {
             @Override
             public boolean run() throws SQLException {
+                Integer tableIndex = 0;
+                Integer rowIndex = 1;
                 try {
                     String fileName = getPara("fileName");
                     String filePath = CommonController.FILE_PATH + File.separator + fileName;
@@ -453,11 +455,14 @@ public class PlanDetailController extends BaseController {
                         Iterator<ExcelRdRow> iterator = listExcelRdRows.get(i).iterator();
                         Integer procurementId = 0;
                         Integer count = 0;
+                        rowIndex = 1;
+                        tableIndex++;
                         // 循环Excel行
                         while (iterator.hasNext()) {
+                            rowIndex++;
+                            count++;
                             ExcelRdRow next = iterator.next();
                             List<Object> row = next.getRow();
-                            count++;
                             if (count == 1 && i == 0) {
                                 String createTimeStr = getPara("createTimeStr").split(" ")[0];
                                 System.out.println("createTimeStr :" + createTimeStr);
@@ -480,7 +485,11 @@ public class PlanDetailController extends BaseController {
                                 }
                             }
                             if (count > 2) {
-                                if (procurementId == null || procurementId.equals(0)){
+                                if (count == 3 && i == 0) {
+                                    // 根据时间删除所有的采购计划
+                                    ProcurementPlanDetail.dao.delAllPPlanDetailByTime(createTimes);
+                                }
+                                if (procurementId == null || procurementId.equals(0)) {
                                     continue;
                                 }
                                 //0-商品名，1-规格名，2-规格编码，3-重量(斤)，4-报价，5-下单量，6-库存量，7-采购量，8-采购单价，9-下单备注
@@ -491,10 +500,6 @@ public class PlanDetailController extends BaseController {
                                 Integer procurementNum = Integer.parseInt(row.get(7) + "");
                                 BigDecimal procurementNeedPrice = new BigDecimal(Double.parseDouble(row.get(8) + ""));
                                 String procurementRemark = row.get(9) + "";
-                                if (count == 3 && i == 0) {
-                                    // 根据时间删除所有的采购计划
-                                    ProcurementPlanDetail.dao.delAllPPlanDetailByTime(createTimes);
-                                }
                                 ProcurementPlanDetail pPDtailTwo = mapKeyTwo.get(productStandardId + "-" + procurementId);
                                 if (pPDtailTwo != null) {
                                     pPDtailTwo.setId(null);
@@ -536,14 +541,34 @@ public class PlanDetailController extends BaseController {
                     renderNull();
                     return true;
                 } catch (Exception e) {
-                    renderErrorText("导入失败!");
+                    // 输出错误信息
+                    excelRenderErrorInfo(tableIndex, rowIndex, e.getMessage());
                     e.printStackTrace();
+                    return false;
+//                    String errorMsg = "第"+tableIndex+"张表，第"+rowIndex+"行数据出现异常\n异常信息是："+e.getMessage();
+//                    System.out.println(errorMsg);
+//                    map.put("result", "error");
+//                    map.put("message", errorMsg);
+//                    renderJson(map);
+//                    return false;
                 }
-                return false;
             }
         });
+    }
 
-
+    /**
+     * 输出Excel的错误信息
+     *
+     * @param tableIndex
+     * @param rowIndex
+     * @param errorMsg
+     */
+    public void excelRenderErrorInfo(Integer tableIndex, Integer rowIndex, String errorMsg) {
+        if (tableIndex == 0) {
+            renderErrorText(errorMsg);
+        } else {
+            renderErrorText("第" + tableIndex + "张表，第" + rowIndex + "行数据出现异常\n异常信息是：" + errorMsg);
+        }
     }
 
 //    public void putInStore(Integer productStandardId, Integer changeNum) {

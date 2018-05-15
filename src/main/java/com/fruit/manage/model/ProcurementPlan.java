@@ -89,6 +89,10 @@ public class ProcurementPlan extends BaseProcurementPlan<ProcurementPlan> {
                         "b_order_log ol2 " +
                         "WHERE " +
                         "ol2.product_standard_id = ol.product_standard_id " +
+
+                        //ccz 2018-5-15 添加时间区间
+                        " and ol2.create_time BETWEEN ? AND ? "+
+
                         ") AS purchaseNum, " +
                         "ps.stock AS inventoryNum, " +
                         "(SELECT 0) AS procurementNum, " +
@@ -102,16 +106,22 @@ public class ProcurementPlan extends BaseProcurementPlan<ProcurementPlan> {
                         "b_order_log ol2 " +
                         "WHERE " +
                         "ol2.product_standard_id = ol.product_standard_id " +
+
+                        //ccz 2018-5-15 添加时间区间
+                        " and ol2.create_time BETWEEN ? AND ? "+
+
                         ") AS productStandardNum, " +
                         "(SELECT 0) AS procurementNeedPrice, " +
                         "(SELECT 0) AS procurementTotalPrice, " +
-                    // 订单详细下单备注，多个以分号拼接
+                        // 订单详细下单备注，多个以分号拼接
                         " (SELECT group_concat(CONCAT(num,measure_unit,'|',buy_remark) SEPARATOR ';')  as concatStr " +
                         " from b_order_detail od2  " +
-                        " where od2.product_standard_id in (ol.product_standard_id)) as orderRemark  " +
+                        " where od2.product_standard_id in (ol.product_standard_id) " +
+                        " and od2.create_time BETWEEN ? AND ? " +
+                        " )as orderRemark  " +
 //                    "(SELECT group_concat(buy_remark SEPARATOR ';') from b_order_detail od2 where od2.product_standard_id in (ol.product_standard_id)) as orderRemark " +
 //                  "(SELECT '') AS orderRemark " +
-                "FROM " +
+                        "FROM " +
                         "b_order_log ol, " +
                         "b_product p, " +
                         "b_product_standard ps, " +
@@ -163,6 +173,12 @@ public class ProcurementPlan extends BaseProcurementPlan<ProcurementPlan> {
 //		// 按采购量和售价降序排序
 //		sql.append("order by purchaseNum desc,ps.sell_price desc ");
         List<String> list = new ArrayList<>();
+        list.add(createTime[0]);
+        list.add(createTime[1]);
+        list.add(createTime[0]);
+        list.add(createTime[1]);
+        list.add(createTime[0]);
+        list.add(createTime[1]);
         list.add(createTime[0]);
         list.add(createTime[1]);
         System.out.println("-------------导出要采购的计划 START------------------");
