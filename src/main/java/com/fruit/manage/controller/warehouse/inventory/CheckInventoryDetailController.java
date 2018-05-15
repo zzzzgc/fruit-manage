@@ -107,6 +107,7 @@ public class CheckInventoryDetailController extends BaseController {
                                 checkInventoryDetail2.setInventoryNum(inventoryNumUpdate);
                                 checkInventoryDetail2.setUpdateTime(currentTime);
                                 checkInventoryDetail2.setInventoryRemark(checkInventoryDetail.getInventoryRemark());
+//                                checkInventoryDetail2.setCheckInventoryNum(checkInventoryDetail.getCheckInventoryNum());
                                 checkInventoryDetail2.setUserName(checkInventoryDetail.getUserName());
                                 checkInventoryDetail2.update();
                                 // 修改商品规格库存
@@ -276,6 +277,7 @@ public class CheckInventoryDetailController extends BaseController {
             checkInventoryDetail2.setUpdateTime(currentTime);
             checkInventoryDetail2.setInventoryRemark(checkInventoryDetail.getInventoryRemark());
             checkInventoryDetail2.setUserName(checkInventoryDetail.getUserName());
+            checkInventoryDetail2.setCheckInventoryNum(checkInventoryDetail.getCheckInventoryNum());
             checkInventoryDetail2.update();
             // 修改商品规格库存
             updateProductStandardStore(checkInventoryDetail2.getProductStandardId(), inventoryNumDiffer, checkInventoryDetail2.getProductStandardName(), checkInventoryDetail2.getProductId(), checkInventoryDetail2.getProductName());
