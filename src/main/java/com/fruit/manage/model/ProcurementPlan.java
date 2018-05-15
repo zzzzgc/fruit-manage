@@ -137,6 +137,7 @@ public class ProcurementPlan extends BaseProcurementPlan<ProcurementPlan> {
                         "HAVING " +
                         "purchaseNum > 0 " +
                         "ORDER BY " +
+                        "pq.procurement_name ASC, " +
                         "purchaseNum DESC, " +
                         "ps.sell_price DESC");
 //		sql.append("select p.`name` as productName, ");
