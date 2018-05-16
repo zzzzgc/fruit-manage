@@ -127,77 +127,90 @@ public class ExcelController extends BaseController {
      * 采购:导入采购配额
      */
     public void setProcurementQuota() {
-        Integer uid = getSessionAttr(Constant.SESSION_UID);
-        String name = User.dao.findById(uid).getName();
-        String fileName = getPara("fileName");
-        File file = new File(BASE_PATH + File.separator + fileName);
-        try {
-            // xls表头顺序：商品名,，规格名，规格编码，采购姓名，采购人编码
-            List<Object[]> excelData = ExcelCommon.excelRd(file, 4, 1, new ExcelRdTypeEnum[]{
-                    ExcelRdTypeEnum.STRING,
-                    ExcelRdTypeEnum.INTEGER,
-                    ExcelRdTypeEnum.STRING,
-                    ExcelRdTypeEnum.INTEGER,
-                    ExcelRdTypeEnum.STRING,
-                    ExcelRdTypeEnum.INTEGER
-            });
+        Db.tx(new IAtom() {
+            @Override
+            public boolean run() throws SQLException {
+                Integer uid = getSessionAttr(Constant.SESSION_UID);
+                String name = User.dao.findById(uid).getName();
+                String fileName = getPara("fileName");
+                File file = new File(BASE_PATH + File.separator + fileName);
+                try {
+                    // xls表头顺序：商品名,，规格名，规格编码，采购姓名，采购人编码
+                    List<Object[]> excelData = ExcelCommon.excelRd(file, 4, 1, new ExcelRdTypeEnum[]{
+                            ExcelRdTypeEnum.STRING,
+                            ExcelRdTypeEnum.INTEGER,
+                            ExcelRdTypeEnum.STRING,
+                            ExcelRdTypeEnum.INTEGER,
+                            ExcelRdTypeEnum.STRING,
+                            ExcelRdTypeEnum.INTEGER
+                    });
 
-            // 所有的商品库信息
-            List<ProductStandard> productStandardList = ProductStandard.dao.getProductStandardAllInfo();
+                    // 所有的商品库信息
+                    List<ProductStandard> productStandardList = ProductStandard.dao.getProductStandardAllInfo();
 
-            List<ProcurementQuota> ProcurementQuotas = ProcurementQuota.dao.getProcurementQuotaAllInfo();
-            Map<Object, ProcurementQuota> productStandardId = ProcurementQuotas.stream().collect(Collectors.toMap(quota -> quota.get("product_standard_id"), Function.identity()));
+                    List<ProcurementQuota> ProcurementQuotas = ProcurementQuota.dao.getProcurementQuotaAllInfo();
+                    Map<Object, ProcurementQuota> productStandardId = ProcurementQuotas.stream().collect(Collectors.toMap(quota -> quota.get("product_standard_id"), Function.identity()));
 
-            List<User> users = User.dao.getAllUser();
-            Map<Integer, User> userMap = users.stream().collect(Collectors.toMap(User::getId, Function.identity()));
+                    List<User> users = User.dao.getAllUser();
+                    Map<Integer, User> userMap = users.stream().collect(Collectors.toMap(User::getId, Function.identity()));
 
-            for (Object[] excelRow : excelData) {
-                for (ProductStandard productStandard : productStandardList) {
-                    if (productStandard.get("product_standard_id") != null && productStandard.get("product_standard_id").equals(excelRow[3])) {
-                        Integer procurementId = (Integer) excelRow[5];
-                        User user = userMap.get(procurementId);
-                        String procurementName = user.getName();
+                    int rouCount = 3;
 
-                        ProcurementQuota quota = productStandardId.get(productStandard.get("product_standard_id"));
-                        if (quota == null) {
-                            if (StringUtils.isNotBlank(procurementName) && procurementId != null) {
-                                ProcurementQuota procurementQuota = new ProcurementQuota();
-                                procurementQuota.setProductId(productStandard.get("product_id"));
-                                procurementQuota.setProductName(productStandard.get("product_name"));
-                                procurementQuota.setProductStandardName(productStandard.get("product_standard_name"));
-                                procurementQuota.setProductStandardId(productStandard.get("product_standard_id"));
-                                procurementQuota.setProcurementName(procurementName);
-                                procurementQuota.setProcurementId(procurementId);
-                                procurementQuota.setCreateUserId(uid);
-                                procurementQuota.setCreateUserName(name);
-                                procurementQuota.setUpdateTime(new Date());
-                                procurementQuota.setCreateTime(new Date());
-                                procurementQuota.save();
+                    for (Object[] excelRow : excelData) {
+                        ++rouCount;
+                        try {
+                            for (ProductStandard productStandard : productStandardList) {
+                                if (productStandard.get("product_standard_id") != null && productStandard.get("product_standard_id").equals(excelRow[3])) {
+                                    Integer procurementId = (Integer) excelRow[5];
+                                    User user = userMap.get(procurementId);
+                                    String procurementName = user.getName();
+
+                                    ProcurementQuota quota = productStandardId.get(productStandard.get("product_standard_id"));
+                                    if (quota == null) {
+                                        if (StringUtils.isNotBlank(procurementName) && procurementId != null) {
+                                            ProcurementQuota procurementQuota = new ProcurementQuota();
+                                            procurementQuota.setProductId(productStandard.get("product_id"));
+                                            procurementQuota.setProductName(productStandard.get("product_name"));
+                                            procurementQuota.setProductStandardName(productStandard.get("product_standard_name"));
+                                            procurementQuota.setProductStandardId(productStandard.get("product_standard_id"));
+                                            procurementQuota.setProcurementName(procurementName);
+                                            procurementQuota.setProcurementId(procurementId);
+                                            procurementQuota.setCreateUserId(uid);
+                                            procurementQuota.setCreateUserName(name);
+                                            procurementQuota.setUpdateTime(new Date());
+                                            procurementQuota.setCreateTime(new Date());
+                                            procurementQuota.save();
+                                        }
+                                        break;
+                                    } else {
+                                        quota.setProductId(productStandard.get("product_id"));
+                                        quota.setProductName(productStandard.get("product_name"));
+                                        quota.setProductStandardName(productStandard.get("product_standard_name"));
+                                        quota.setProductStandardId(productStandard.get("product_standard_id"));
+                                        quota.setProcurementName(procurementName);
+                                        quota.setProcurementId(procurementId);
+                                        quota.setCreateUserId(uid);
+                                        quota.setCreateUserName(name);
+                                        quota.setUpdateTime(new Date());
+                                        quota.update();
+                                    }
+                                }
                             }
-                            break;
-                        } else {
-                            quota.setProductId(productStandard.get("product_id"));
-                            quota.setProductName(productStandard.get("product_name"));
-                            quota.setProductStandardName(productStandard.get("product_standard_name"));
-                            quota.setProductStandardId(productStandard.get("product_standard_id"));
-                            quota.setProcurementName(procurementName);
-                            quota.setProcurementId(procurementId);
-                            quota.setCreateUserId(uid);
-                            quota.setCreateUserName(name);
-                            quota.setUpdateTime(new Date());
-                            quota.update();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            excelExceptionRender(1, rouCount, e.getMessage());
+                            return false;
                         }
                     }
+                    renderNull();
+                    return true;
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
+                renderErrorText("导入失败,请联系技术修复");
+                return false;
             }
-            renderNull();
-            return;
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ExcelRdException e) {
-            e.printStackTrace();
-        }
-        renderErrorText("导入失败,请联系技术修复");
+        });
     }
 
 
@@ -992,14 +1005,6 @@ public class ExcelController extends BaseController {
     }
 
     /**
-     * 导入商品的类型
-     */
-    public void importProductType() {
-
-    }
-
-
-    /**
      * 导入商品信息
      */
     public void importProductAllInfo() {
@@ -1101,7 +1106,7 @@ public class ExcelController extends BaseController {
 
 
                                 // 1.規格名相同,psId不同
-                                Integer psId = duplicationCheckProductStandardMap.get(productName+productStandardName);
+                                Integer psId = duplicationCheckProductStandardMap.get(productName + productStandardName);
                                 if (productStandardId != null) {
                                     if (psId != null) {
                                         if (!productStandardId.equals(psId)) {
@@ -1109,7 +1114,7 @@ public class ExcelController extends BaseController {
                                             return false;
                                         }
                                     }
-                                    duplicationCheckProductStandardMap.put(productName+productStandardName, productStandardId);
+                                    duplicationCheckProductStandardMap.put(productName + productStandardName, productStandardId);
                                 }
                             }
                         }
