@@ -22,6 +22,7 @@ public class PayOrderController extends BaseController {
      * 添加支付订单信息
      */
     public void addPayOrder() {
+        //这代码有毒
         Date currentTime = new Date();
         PayOrderInfo payOrderInfo = getModel(PayOrderInfo.class, "", true);
         Integer operationId = getSessionAttr(Constant.SESSION_UID);
@@ -29,6 +30,7 @@ public class PayOrderController extends BaseController {
         payOrderInfo.setOperationType(UserTypeConstant.A_USER.getValue());
         payOrderInfo.setCreateTime(currentTime);
         payOrderInfo.setPayOfTime(currentTime);
+        System.out.println("有毒，支付价格是："+payOrderInfo.getPayTheMoney());
         payOrderInfo.save();
 
         // 修改订单已支付金额
