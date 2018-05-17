@@ -293,7 +293,8 @@ public class OrderController extends BaseController {
         Integer uid = getSessionAttr(Constant.SESSION_UID);
         Order order = getModel(Order.class, "", true);
         String products = getPara("products");
-        Integer business_user_id = getParaToInt("business_user_id");
+        Integer businessUserId = getParaToInt("business_user_id");
+        Date orderCycle = getParaToDate("first_day_order_cycle",new Date());
         List<OrderDetail> orderDetails = JSON.parseArray(products, OrderDetail.class);
         BigDecimal payNeedMoney = new BigDecimal(0);
         BigDecimal payRealityNeedMoney = new BigDecimal(0);
@@ -328,7 +329,7 @@ public class OrderController extends BaseController {
                 if (orderDetail.getId() != null) {
                     orderDetail.update(UserTypeConstant.A_USER, uid);
                 } else {
-                    orderDetail.setUId(business_user_id);
+                    orderDetail.setUId(businessUserId);
                     orderDetail.setOrderId(order.getOrderId());
                     orderDetail.setCreateTime(now);
                     orderDetail.setUpdateTime(now);
@@ -344,7 +345,7 @@ public class OrderController extends BaseController {
         } else {
             //添加,并校验是否存在相同订单周期的订单
 
-            String orderId = IdUtil.createOrderId(business_user_id);
+            String orderId = IdUtil.getOrderId(orderCycle,businessUserId);
             Order nowOrder = Order.dao.getOrder(orderId);
             // 区分该订单周期的订单是否已经被创建
             if (nowOrder == null) {
@@ -356,21 +357,21 @@ public class OrderController extends BaseController {
                     BigDecimal totalPay = sellPrice.multiply(new BigDecimal(num));
                     payNeedMoney = payNeedMoney.add(totalPay);
                     orderDetail.setTotalPay(totalPay);
-                    orderDetail.setCreateTime(now);
-                    orderDetail.setUId(business_user_id);
+                    orderDetail.setUId(businessUserId);
                     orderDetail.setOrderId(order.getOrderId());
+                    orderDetail.setCreateTime(orderCycle);
                     orderDetail.setUpdateTime(now);
                     orderDetail.save(UserTypeConstant.A_USER, uid);
                 }
 
                 order.setPayNeedMoney(payNeedMoney);
                 order.setPayTotalMoney(new BigDecimal(0));
-                order.setUId(business_user_id);
+                order.setUId(businessUserId);
                 order.setUpdateTime(now);
                 order.setCreateTime(now);
                 order.save();
 
-                BusinessInfo info = BusinessInfo.dao.getBusinessInfoByUId(business_user_id);
+                BusinessInfo info = BusinessInfo.dao.getBusinessInfoByUId(businessUserId);
                 LogisticsInfo logisticsInfo = new LogisticsInfo();
                 logisticsInfo.setUId(uid);
                 logisticsInfo.setOrderId(orderId);
@@ -412,7 +413,7 @@ public class OrderController extends BaseController {
 
                     orderDetail.setTotalPay(totalPrice);
                     orderDetail.setOrderId(orderId);
-                    orderDetail.setUId(business_user_id);
+                    orderDetail.setUId(businessUserId);
                     orderDetail.setUpdateTime(now);
                     orderDetail.setCreateTime(now);
                     orderDetail.save(UserTypeConstant.A_USER, uid);
@@ -697,5 +698,85 @@ public class OrderController extends BaseController {
     public void getCustomerOrderInfo() {
         Integer customerId = getParaToInt("customerId");
         renderJson(Order.dao.getCustomerOrderInfo(customerId));
+    }
+
+    /**
+     * 获取该商户未支付的所有订单
+     */
+    public void getCustomerPayOrderInfo() {
+        Integer customerId = getParaToInt("customerId");
+        renderJson(Order.dao.getCustomerPayOrderInfo(customerId));
+    }
+
+    /**
+     * 单支付方式多订单的分摊
+     */
+    @Before(Tx.class)
+    public void saveApportionInfo() {
+        Integer uid = getSessionAttr(Constant.SESSION_UID);
+        Integer customerId = getParaToInt("customerId");
+        BigDecimal payMoney = BigDecimal.valueOf(Double.valueOf(getPara("payMoney")));
+        Integer payType = getParaToInt("payType");
+        Date payDate = getParaToDate("payDate");
+        List<Order> apportionOrders = Order.dao.getCustomerPayOrderInfo2(customerId);
+        for (Order apportionOrder : apportionOrders) {
+            // 总需支付金额(实发金额+所有物流费用)
+            BigDecimal payAllMoney = apportionOrder.getPayAllMoney();
+            // 用户已支付金额
+            BigDecimal payTotalMoney = apportionOrder.getPayTotalMoney();
+            //订单欠款金额
+            BigDecimal arrearageMoney = payAllMoney.subtract(payTotalMoney);
+            // 分摊后余额
+            payMoney = payMoney.subtract(arrearageMoney);
+
+            if (payMoney.compareTo(BigDecimal.ZERO) >= 0) {
+                //余额大于等于0,完整分摊一笔(已支付)
+                apportionOrder.setPayTotalMoney(apportionOrder.getPayAllMoney());
+                apportionOrder.setPayStatus(OrderPayStatusCode.IS_OK.getStatus());
+                apportionOrder.update();
+
+                PayOrderInfo payOrderInfo = new PayOrderInfo();
+                payOrderInfo.setUserId(apportionOrder.getUId());
+                payOrderInfo.setOperationId(uid);
+                payOrderInfo.setOperationType(UserTypeConstant.A_USER.getValue());
+                payOrderInfo.setPayReallyTotalMoney(apportionOrder.getPayAllMoney());
+                payOrderInfo.setPayTheMoney(payAllMoney);
+                payOrderInfo.setSaleId(apportionOrder.get("a_user_sales_id"));
+                payOrderInfo.setOrderId(apportionOrder.getOrderId());
+                payOrderInfo.setPayOfType(payType);
+                payOrderInfo.setPayOfTime(payDate);
+                payOrderInfo.setCreateTime(new Date());
+                payOrderInfo.save();
+            } else {
+                //余额小于0,不能完整扣完(订单还不能是已支付状态).把余额全给他即可
+
+                // 还原余额
+                payMoney = payMoney.add(arrearageMoney);
+
+                apportionOrder.setPayTotalMoney(payTotalMoney.add(payMoney));
+                apportionOrder.update();
+
+                PayOrderInfo payOrderInfo = new PayOrderInfo();
+                payOrderInfo.setUserId(uid);
+                payOrderInfo.setOperationId(uid);
+                payOrderInfo.setOperationType(UserTypeConstant.A_USER.getValue());
+                payOrderInfo.setPayReallyTotalMoney(apportionOrder.getPayAllMoney());
+                payOrderInfo.setPayTheMoney(payMoney);
+                payOrderInfo.setSaleId(apportionOrder.get("a_user_sales_id"));
+                payOrderInfo.setOrderId(apportionOrder.getOrderId());
+                payOrderInfo.setPayOfType(payType);
+                payOrderInfo.setPayOfTime(payDate);
+                payOrderInfo.setCreateTime(new Date());
+                payOrderInfo.save();
+                renderNull();
+                return;
+            }
+        }
+
+        // 添加剩余余额到用户余额中
+        BusinessUser customer = BusinessUser.dao.findById(customerId);
+        customer.setMoney(customer.getMoney().add(payMoney));
+        customer.update();
+        renderNull();
     }
 }

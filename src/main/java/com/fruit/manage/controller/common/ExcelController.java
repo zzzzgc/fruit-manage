@@ -240,12 +240,10 @@ public class ExcelController extends BaseController {
             // 创建Excel
             XSSFWorkbook wb = new XSSFWorkbook();
 
+            // 根据今天的首日订单周期生成  昨天12:00 - 今天12:00
             Calendar calendar = Calendar.getInstance();
-            if (calendar.get(Calendar.HOUR_OF_DAY) < 12) {
-
-                // 超過11:59:59算明天的訂單
-                calendar.add(Calendar.DAY_OF_MONTH, -1);
-            }
+            // 昨天
+            calendar.add(Calendar.DAY_OF_MONTH, -1);
             List<Object> params = new ArrayList<Object>();
 
             String startDateStr = DateTimeKit.formatDateToStyle("yyyy-MM-dd", calendar.getTime()) + " 12:00:00";
@@ -538,14 +536,16 @@ public class ExcelController extends BaseController {
         // 创建Excel
         XSSFWorkbook wb = new XSSFWorkbook();
 
+        // 根据今天的首日订单周期生成  昨天12:00 - 今天12:00
         Calendar calendar = Calendar.getInstance();
-        if (calendar.get(Calendar.HOUR_OF_DAY) < 12) {
-            // 超過11:59:59算明天的訂單
-            calendar.add(Calendar.DAY_OF_MONTH, -1);
-        }
+        // 昨天
+        calendar.add(Calendar.DAY_OF_MONTH, -1);
+        List<Object> params = new ArrayList<Object>();
         String startDateStr = DateTimeKit.formatDateToStyle("yyyy-MM-dd", calendar.getTime()) + " 12:00:00";
+        // 今天
         calendar.add(Calendar.DAY_OF_MONTH, 1);
         String endDateStr = DateTimeKit.formatDateToStyle("yyyy-MM-dd", calendar.getTime()) + " 12:00:00";
+
         String sql = "SELECT " +
                 "o.order_id, " +
                 "o.pay_all_money, " +
