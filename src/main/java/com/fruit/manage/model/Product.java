@@ -33,7 +33,7 @@ public class Product extends BaseProduct<Product> {
 		if(pageSize > 1000) {
 			pageSize = 1000;
 		}
-		String selectSql = "SELECT id,name,country,brand,fruit_type,sort,fresh_time,fruit_des,store_way,create_time,update_time,total_sell_num,week_sell_num,status ";
+		String selectSql = "SELECT id,name,country,brand,fruit_type,sort,fresh_time,fruit_des,store_way,create_time,update_time,total_sell_num,week_sell_num,status,CASE img WHEN \"\" THEN \"缺少图片\" WHEN  NULL THEN \"缺少图片\" ELSE NULL END AS errorInfo ";
 		List<Object> params = new ArrayList<>();
 		StringBuilder sql = new StringBuilder("FROM b_product WHERE 1=1 ");
 		if(productId != null) {
