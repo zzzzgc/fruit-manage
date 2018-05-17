@@ -574,7 +574,7 @@ public class ExcelController extends BaseController {
                 "INNER JOIN b_logistics_info AS linfo ON linfo.order_id = o.order_id " +
                 "WHERE " +
                 // 5 10 15 20 25 30 从已确认到已完成的所有订单都要收款
-                "o.order_status in (" + OrderStatusCode.AFFIRM.getStatus() + "," + OrderStatusCode.WAIT_DISTRIBUTION.getStatus() + "," + OrderStatusCode.DISTRIBUTION.getStatus() + "," + OrderStatusCode.TAKE_DISTRIBUTION.getStatus() + "," + OrderStatusCode.WAIT_PAYMENT.getStatus() + "," + OrderStatusCode.IS_OK.getStatus() + ") " +
+                "o.order_status in (" + OrderStatusCode.WAIT_DISTRIBUTION.getStatus() + "," + OrderStatusCode.DISTRIBUTION.getStatus() + "," + OrderStatusCode.TAKE_DISTRIBUTION.getStatus() + "," + OrderStatusCode.WAIT_PAYMENT.getStatus() + "," + OrderStatusCode.IS_OK.getStatus() + ") " +
                 "AND o.create_time BETWEEN ? " +
                 "AND ? ";
         System.out.println(sql);
@@ -584,7 +584,7 @@ public class ExcelController extends BaseController {
         Date now = new Date();
 
         if (orders.size() < 1) {
-            renderText("没有订单出货,请稍后操作");
+            renderText("没有已配货状态或者已配货之后状态的订单,请稍后操作");
             return;
         }
         for (Order order : orders) {
@@ -723,8 +723,9 @@ public class ExcelController extends BaseController {
             c4.setCellValue("下单数量");
             c5.setCellValue("实发数量");
             c6.setCellValue("单价");
-            c7.setCellValue("总额");
-            c8.setCellValue("商品备注");
+            c7.setCellValue("单品总额");
+            c8.setCellValue("订单总额");
+            c9.setCellValue("商品备注");
 
             sql = "SELECT " +
                     "od.product_name, " +
@@ -752,6 +753,7 @@ public class ExcelController extends BaseController {
                 c6 = row.createCell(5);
                 c7 = row.createCell(6);
                 c8 = row.createCell(7);
+                c9 = row.createCell(8);
                 c1.setCellStyle(styleTable);
                 c2.setCellStyle(styleTable);
                 c3.setCellStyle(styleTable);
@@ -760,6 +762,7 @@ public class ExcelController extends BaseController {
                 c6.setCellStyle(styleTable);
                 c7.setCellStyle(styleTable);
                 c8.setCellStyle(styleTable);
+                c9.setCellStyle(styleTable);
 
                 c1.setCellValue(orderDetail.get("product_name") + "");
                 c2.setCellValue(orderDetail.get("product_standard_name") + "");
@@ -767,8 +770,9 @@ public class ExcelController extends BaseController {
                 c4.setCellValue(orderDetail.get("num") + "");
                 c5.setCellValue(orderDetail.get("actual_send_goods_num") + "");
                 c6.setCellValue(orderDetail.get("sell_price") + "");
-                c7.setCellValue(orderDetail.get("pay_reality_need_money") != null ? orderDetail.get("pay_reality_need_money").toString() : null);
-                c8.setCellValue(orderDetail.get("buy_remark") != null ? orderDetail.get("buy_remark").toString() : null);
+                c7.setCellValue(BigDecimal.valueOf(orderDetail.getActualSendGoodsNum()).multiply(orderDetail.getSellPrice())+"");
+                c8.setCellValue(orderDetail.get("pay_reality_need_money") != null ? orderDetail.get("pay_reality_need_money").toString() : null);
+                c9.setCellValue(orderDetail.get("buy_remark") != null ? orderDetail.get("buy_remark").toString() : null);
             }
 
             row = sheet.createRow(rowCount++);
