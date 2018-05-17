@@ -30,7 +30,7 @@ public class BusinessInfo extends BaseBusinessInfo<BusinessInfo> {
 		return findFirst(sql,id);
 	}
 
-    public Page<BusinessInfo> getData(String searchProvince,String searchCity,String salesName,String sales_phone,String business_id,String business_name,String business_phone,String[] createTime,int pageNum, int pageSize, String orderBy, boolean isASC) {
+    public Page<BusinessInfo> getData(String searchProvince,String searchCity,String salesName,String sales_phone,String business_id,String business_name,String business_phone,String[] createTime,int pageNum, int pageSize, String orderBy, boolean isASC,Integer saleId) {
         ArrayList<Object> params = new ArrayList<Object>();
         StringBuffer sql = new StringBuffer();
         String select = "SELECT " +
@@ -53,6 +53,15 @@ public class BusinessInfo extends BaseBusinessInfo<BusinessInfo> {
                 "JOIN b_business_auth bauth ON bauth.u_id = buser.id " +
                 "WHERE " +
                   "1 = 1 ");
+        // 添加了销售可以看到各自的客户
+//        sql.append(" and (case when ? is null then 0 else 1 end = 0 or buser.a_user_sales_id = ? )\n" +
+//                "\tand auser.id in (SELECT ur.user_id from a_user_role ur INNER JOIN a_role r on ur.role_id = r.id where r.role_key = 'sales') ");
+        sql.append("and ( case when (select ur.user_id from a_user_role ur INNER JOIN a_role r on ur.role_id =r.id where r.role_key = 'supAdmin' and ur.user_id = ? ) is not null then 0 else 1 end =0 ");
+            sql.append(" or ( (CASE WHEN ? IS NULL THEN 0 ELSE 1 END = 0 OR buser.a_user_sales_id = ? ) ");
+            sql.append(" AND auser.id IN ( SELECT ur.user_id FROM a_user_role ur INNER JOIN a_role r ON ur.role_id = r.id WHERE r.role_key = 'sales' ))) ");
+        params.add(saleId);
+        params.add(saleId);
+        params.add(saleId);
         String noStr = "全部";
         if (StrKit.notBlank(searchProvince) && !searchProvince.equals(noStr)) {
             sql.append("and binfo.address_province = ? ");

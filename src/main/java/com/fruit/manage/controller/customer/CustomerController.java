@@ -6,15 +6,125 @@ import com.fruit.manage.model.BusinessInfo;
 import com.fruit.manage.model.BusinessUser;
 import com.fruit.manage.model.User;
 import com.fruit.manage.util.Constant;
+import com.fruit.manage.util.excelRd.ExcelRd;
+import com.fruit.manage.util.excelRd.ExcelRdException;
+import com.fruit.manage.util.excelRd.ExcelRdRow;
+import com.fruit.manage.util.excelRd.ExcelRdTypeEnum;
 import com.jfinal.aop.Before;
 import com.jfinal.kit.HashKit;
+import com.jfinal.plugin.activerecord.Db;
+import com.jfinal.plugin.activerecord.IAtom;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import org.apache.log4j.Logger;
 
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.sql.SQLException;
+import java.text.DecimalFormat;
 import java.util.*;
 
 public class CustomerController extends BaseController {
     private Logger logger = Logger.getLogger(getClass());
+
+    @Before(Tx.class)
+    public void importProduct() {
+        String filePath = "C:\\Users\\Administrator\\Desktop\\fruit-document\\importData\\product02.xlsx";
+        Iterator<ExcelRdRow> iterator = readExcel2(filePath).iterator();
+        while (iterator.hasNext()) {
+            ExcelRdRow excelRdRow = iterator.next();
+            List<Object> list = excelRdRow.getRow();
+
+        }
+    }
+
+
+    public static Integer getShimpmentType(String values) {
+        if ("物流车".equals(values)) {
+            return 1;
+        } else if ("自提".equals(values)) {
+            return 2;
+        } else if ("市场车".equals(values)) {
+            return  0;
+        }else {
+            return -1;
+        }
+    }
+
+    /**
+     * 批量导入
+     */
+    @Before(Tx.class)
+    public void importBusiness(){
+        String filePath = "C:\\Users\\Administrator\\Desktop\\fruit-document\\importData\\business.xlsx";
+        Iterator<ExcelRdRow> iterator = readExcel(filePath).iterator();
+        int count = 0;
+        Date date = new Date();
+        while (iterator.hasNext()) {
+            ExcelRdRow excelRdRow = iterator.next();
+            List<Object> list = excelRdRow.getRow();
+            count++;
+            if (count > 1) {
+                String businessName = list.get(0) + "";
+                String businessContacts = list.get(1) + "";
+                String phone = list.get(2) + "";
+                String province = list.get(3) + "";
+                String city = list.get(4) + "";
+                String addressDetail = list.get(5) + "";
+                String salesName = list.get(6) + "";
+                String shipmentsTypeValue = list.get(7) + "";
+//                Integer userId = User.dao.getUserIdByName(salesName);
+                String sql = "SELECT id from a_user where nick_name like  ? ";
+                Integer userId= Db.queryInt(sql, "%"+salesName+"%");
+
+                if(phone.length()>11){
+                    System.out.println("phone:"+phone);
+                }
+
+                BusinessUser businessUser =new BusinessUser();
+                businessUser.setAUserSalesId(userId);
+                businessUser.setName(businessContacts);
+                businessUser.setNickName(businessContacts);
+                String pwd = "xiguo" + phone.substring(7, phone.length());
+                pwd = HashKit.md5(pwd);
+                businessUser.setPass(pwd);
+                businessUser.setPhone(phone);
+                businessUser.setCreateTime(date);
+                businessUser.setUpdateTime(date);
+                businessUser.save();
+
+                BusinessInfo businessInfo =new BusinessInfo();
+                businessInfo.setUId(businessUser.getId());
+                businessInfo.setBusinessName(businessName);
+                businessInfo.setBusinessContacts(businessContacts);
+                businessInfo.setPhone(phone);
+                businessInfo.setAddressProvince(province);
+                businessInfo.setAddressCity(city);
+                businessInfo.setAddressDetail(addressDetail);
+                businessInfo.setAddressShop(addressDetail);
+                businessInfo.setShipmentsType(getShimpmentType(shipmentsTypeValue));
+                businessInfo.setCreateTime(date);
+                businessInfo.setUpdateTime(date);
+                businessInfo.save();
+
+
+                BusinessAuth businessAuth =new BusinessAuth();
+                businessAuth.setUId(businessUser.getId());
+                businessAuth.setLegalPersonName(businessContacts);
+                businessAuth.setIdentity("441521198010211230");
+                businessAuth.setBankAccount("6212262201023557228");
+                businessAuth.setBusinessLicense("532501100006302");
+                businessAuth.setAuthType("1");
+                businessAuth.setAudit(2);
+                businessAuth.setImgIdentityFront("http://www.atool.org/placeholder.png?size=300x200&text=%E9%BB%98%E8%AE%A4%E5%9B%BE%E7%89%87&&bg=868686&fg=fff");
+                businessAuth.setImgIdentityReverse("http://www.atool.org/placeholder.png?size=300x200&text=%E9%BB%98%E8%AE%A4%E5%9B%BE%E7%89%87&&bg=868686&fg=fff");
+                businessAuth.setImgLicense("http://www.atool.org/placeholder.png?size=300x200&text=%E9%BB%98%E8%AE%A4%E5%9B%BE%E7%89%87&&bg=868686&fg=fff");
+                businessAuth.setCreateTime(date);
+                businessAuth.setUpdateTime(date);
+                businessAuth.save();
+            }
+        }
+        renderNull();
+    }
 
     @Before(Tx.class)
     public void save() {
@@ -68,6 +178,80 @@ public class CustomerController extends BaseController {
             renderNull();
     }
 
+    public static List<ExcelRdRow> readExcel2(String filePath) {
+        ExcelRd excelRd = new ExcelRd(filePath);
+        excelRd.setStartRow(2);
+        excelRd.setStartCol(0);
+        ExcelRdTypeEnum[] types = {
+                ExcelRdTypeEnum.STRING,
+                ExcelRdTypeEnum.STRING,
+                ExcelRdTypeEnum.STRING,
+                ExcelRdTypeEnum.STRING,
+                ExcelRdTypeEnum.STRING, // 5
+                ExcelRdTypeEnum.DOUBLE,
+                ExcelRdTypeEnum.DOUBLE,
+                ExcelRdTypeEnum.DOUBLE,
+                ExcelRdTypeEnum.STRING,
+                ExcelRdTypeEnum.STRING, // 10
+                ExcelRdTypeEnum.STRING,
+                ExcelRdTypeEnum.STRING,
+                ExcelRdTypeEnum.STRING,
+                ExcelRdTypeEnum.STRING,
+                ExcelRdTypeEnum.INTEGER, // 15
+                ExcelRdTypeEnum.STRING,
+                ExcelRdTypeEnum.STRING,
+                ExcelRdTypeEnum.STRING,
+                ExcelRdTypeEnum.STRING,
+                ExcelRdTypeEnum.STRING, // 20
+                ExcelRdTypeEnum.STRING,
+                ExcelRdTypeEnum.STRING,
+                ExcelRdTypeEnum.STRING
+
+
+        };
+        // 指定每列的类型
+        excelRd.setTypes(types);
+
+        List<ExcelRdRow> rows = null;
+        try {
+            rows = excelRd.analysisXlsx();
+        } catch (ExcelRdException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return rows;
+    }
+
+
+    public static List<ExcelRdRow> readExcel(String filePath) {
+        ExcelRd excelRd = new ExcelRd(filePath);
+        excelRd.setStartRow(1);
+        excelRd.setStartCol(0);
+        ExcelRdTypeEnum[] types = {
+                ExcelRdTypeEnum.STRING,
+                ExcelRdTypeEnum.STRING,
+                ExcelRdTypeEnum.STRING,
+                ExcelRdTypeEnum.STRING,
+                ExcelRdTypeEnum.STRING,
+                ExcelRdTypeEnum.STRING,
+                ExcelRdTypeEnum.STRING,
+                ExcelRdTypeEnum.STRING
+        };
+        // 指定每列的类型
+        excelRd.setTypes(types);
+
+        List<ExcelRdRow> rows = null;
+        try {
+            rows = excelRd.analysisXlsx();
+        } catch (ExcelRdException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return rows;
+    }
+
     /**
      * 获取商户数据
      */
@@ -90,7 +274,8 @@ public class CustomerController extends BaseController {
         String orderBy = getPara("prop");
         // ascending为升序，其他为降序
         boolean isASC = "ascending".equals(getPara("order"));
-        renderJson(BusinessInfo.dao.getData(searchProvince, searchCity, salesName, sales_phone, business_id, business_name, business_phone, create_time, pageNum, pageSize, orderBy, isASC));
+        Integer userId = getSessionAttr(Constant.SESSION_UID);
+        renderJson(BusinessInfo.dao.getData(searchProvince, searchCity, salesName, sales_phone, business_id, business_name, business_phone, create_time, pageNum, pageSize, orderBy, isASC,userId));
     }
 
     /**
