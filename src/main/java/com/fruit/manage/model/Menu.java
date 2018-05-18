@@ -23,7 +23,7 @@ public class Menu extends BaseMenu<Menu> {
     }
 
     /**
-     * 获取菜单列表
+     * 根据id获取菜单列表
      *
      * @param uid
      * @return
@@ -37,5 +37,15 @@ public class Menu extends BaseMenu<Menu> {
                 "AND u.id = ? " +
                 "GROUP BY m.id,m.parent_id";
         return find(sql, uid);
+    }
+
+    /**
+     * 根据id获取菜单列表
+     *
+     * @return 所有菜单
+     */
+    public List<Menu> getAllMenu() {
+        String sql = "SELECT * FROM a_menu";
+        return find(sql);
     }
 }

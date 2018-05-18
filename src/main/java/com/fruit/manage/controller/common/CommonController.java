@@ -100,7 +100,7 @@ public class CommonController extends BaseController {
 
         // 根据父类分组
         List<Menu> menuListByUid = Menu.dao.getMenuListByUid(getSessionAttr(Constant.SESSION_UID));
-        ArrayList<Map> menuList = new ArrayList<>();
+        ArrayList<Object> menuList = new ArrayList<>();
         // ArrayList<ArrayList<Menu>> menuGroup = new ArrayList<>();
         // 一级菜单id ,不能超过12这个下标,比如 menu_id为13 这是会报错的
         ArrayList<Menu>[] menuGroup = new ArrayList[12];
@@ -122,10 +122,8 @@ public class CommonController extends BaseController {
         for (Menu parentMenu : parentGroup) {
             Integer parentId = parentMenu.getId();
             ArrayList<Menu> sonMenu = menuGroup[parentId];
-            HashMap<String, Object> treeMap = new HashMap<>(2);
-            treeMap.put("parentMenu", parentMenu);
-            treeMap.put("sonMenus", sonMenu);
-            menuList.add(treeMap);
+            parentMenu.put("sonMenu",sonMenu);
+            menuList.add(parentMenu);
         }
         renderJson(menuList);
     }

@@ -1,4 +1,4 @@
-package com.fruit.manage.controller;
+package com.fruit.manage.controller.product;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;

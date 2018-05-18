@@ -17,12 +17,12 @@ public abstract class BasePayOrderInfo<M extends BasePayOrderInfo<M>> extends Mo
 		return getInt("id");
 	}
 
-	public void setOrderId(java.lang.String orderId) {
-		set("order_id", orderId);
+	public void setOperationId(java.lang.Integer operationId) {
+		set("operation_id", operationId);
 	}
 
-	public java.lang.String getOrderId() {
-		return getStr("order_id");
+	public java.lang.Integer getOperationId() {
+		return getInt("operation_id");
 	}
 
 	public void setUserId(java.lang.Integer userId) {
@@ -33,12 +33,20 @@ public abstract class BasePayOrderInfo<M extends BasePayOrderInfo<M>> extends Mo
 		return getInt("user_id");
 	}
 
-	public void setOperationId(java.lang.Integer operationId) {
-		set("operation_id", operationId);
+	public void setOrderId(java.lang.String orderId) {
+		set("order_id", orderId);
 	}
 
-	public java.lang.Integer getOperationId() {
-		return getInt("operation_id");
+	public java.lang.String getOrderId() {
+		return getStr("order_id");
+	}
+
+	public void setSaleId(java.lang.Integer saleId) {
+		set("sale_id", saleId);
+	}
+
+	public java.lang.Integer getSaleId() {
+		return getInt("sale_id");
 	}
 
 	public void setOperationType(java.lang.Integer operationType) {
@@ -79,14 +87,6 @@ public abstract class BasePayOrderInfo<M extends BasePayOrderInfo<M>> extends Mo
 
 	public java.lang.String getPayOfEvidence() {
 		return getStr("pay_of_evidence");
-	}
-
-	public void setSaleId(java.lang.Integer saleId) {
-		set("sale_id", saleId);
-	}
-
-	public java.lang.Integer getSaleId() {
-		return getInt("sale_id");
 	}
 
 	public void setPayOfTime(java.util.Date payOfTime) {

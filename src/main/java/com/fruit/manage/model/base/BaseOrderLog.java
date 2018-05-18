@@ -81,20 +81,20 @@ public abstract class BaseOrderLog<M extends BaseOrderLog<M>> extends Model<M> i
 		return getInt("is_statistical");
 	}
 
-	public void setCreateTime(java.util.Date createTime) {
-		set("create_time", createTime);
-	}
-
-	public java.util.Date getCreateTime() {
-		return get("create_time");
-	}
-
 	public void setOrderCreateTime(java.util.Date orderCreateTime) {
 		set("order_create_time", orderCreateTime);
 	}
 
 	public java.util.Date getOrderCreateTime() {
 		return get("order_create_time");
+	}
+
+	public void setCreateTime(java.util.Date createTime) {
+		set("create_time", createTime);
+	}
+
+	public java.util.Date getCreateTime() {
+		return get("create_time");
 	}
 
 }

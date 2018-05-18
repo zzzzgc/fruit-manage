@@ -41,6 +41,14 @@ public abstract class BaseBusinessUser<M extends BaseBusinessUser<M>> extends Mo
 		return getStr("nick_name");
 	}
 
+	public void setMoney(java.math.BigDecimal money) {
+		set("money", money);
+	}
+
+	public java.math.BigDecimal getMoney() {
+		return get("money");
+	}
+
 	public void setPass(java.lang.String pass) {
 		set("pass", pass);
 	}
@@ -103,14 +111,6 @@ public abstract class BaseBusinessUser<M extends BaseBusinessUser<M>> extends Mo
 
 	public java.util.Date getUpdateTime() {
 		return get("update_time");
-	}
-
-	public void setMoney(java.math.BigDecimal money) {
-		set("money", money);
-	}
-
-	public java.math.BigDecimal getMoney() {
-		return get("money");
 	}
 
 }

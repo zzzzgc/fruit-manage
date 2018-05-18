@@ -1,21 +1,23 @@
 package com.fruit.manage.base;
 
-import com.fruit.manage.controller.BannerController;
+import com.fruit.manage.controller.product.BannerController;
 import com.fruit.manage.controller.common.CommonController;
 import com.fruit.manage.controller.IndexController;
 import com.fruit.manage.controller.common.ExcelController;
 import com.fruit.manage.controller.order.PayOrderController;
 import com.fruit.manage.controller.procurement.PlanController;
-import com.fruit.manage.controller.ProductController;
-import com.fruit.manage.controller.ProductMarketController;
-import com.fruit.manage.controller.ProductStandardController;
-import com.fruit.manage.controller.TypeController;
-import com.fruit.manage.controller.TypeGroupController;
+import com.fruit.manage.controller.product.ProductController;
+import com.fruit.manage.controller.product.ProductMarketController;
+import com.fruit.manage.controller.product.ProductStandardController;
+import com.fruit.manage.controller.product.TypeController;
+import com.fruit.manage.controller.product.TypeGroupController;
 import com.fruit.manage.controller.customer.CustomerController;
 import com.fruit.manage.controller.login.LoginController;
 import com.fruit.manage.controller.order.OrderController;
 import com.fruit.manage.controller.procurement.PlanDetailController;
 import com.fruit.manage.controller.procurement.QuotaContrller;
+import com.fruit.manage.controller.system.MenuController;
+import com.fruit.manage.controller.system.PermissionController;
 import com.fruit.manage.controller.user.RolesController;
 import com.fruit.manage.controller.user.UserController;
 import com.fruit.manage.controller.warehouse.inventory.CheckInventoryController;
@@ -24,7 +26,6 @@ import com.fruit.manage.controller.warehouse.out.WarehouseOutContrller;
 import com.fruit.manage.controller.warehouse.out.WarehouseOutDetailContrller;
 import com.fruit.manage.controller.warehouse.put.WarehousePutController;
 import com.fruit.manage.controller.warehouse.put.WarehousePutDetailController;
-import com.fruit.manage.model.CheckInventoryDetail;
 import com.jfinal.config.Routes;
 
 /**
@@ -61,6 +62,8 @@ public class BaseRoutesConfig extends Routes {
 		add("/manage/warehouse/inventory", CheckInventoryController.class);
 		add("/manage/warehouse/inventory/detail", CheckInventoryDetailController.class);
 		add("/manage/payOrder", PayOrderController.class);
+		add("/manage/menu", MenuController.class);
+		add("/manage/permission", PermissionController.class);
 	}
 
 }
