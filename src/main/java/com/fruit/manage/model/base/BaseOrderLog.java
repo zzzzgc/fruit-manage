@@ -89,4 +89,12 @@ public abstract class BaseOrderLog<M extends BaseOrderLog<M>> extends Model<M> i
 		return get("create_time");
 	}
 
+	public void setOrderCreateTime(java.util.Date orderCreateTime) {
+		set("order_create_time", orderCreateTime);
+	}
+
+	public java.util.Date getOrderCreateTime() {
+		return get("order_create_time");
+	}
+
 }

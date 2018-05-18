@@ -70,7 +70,7 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
         return  find(sql,orderId);
     }
 
-    private OrderLog getOrderLog(UserTypeConstant type, Integer uid, String orderId, Integer productId, Integer productStandardId, Integer changeNum) {
+    private OrderLog getOrderLog(UserTypeConstant type, Integer uid, String orderId, Integer productId, Integer productStandardId, Integer changeNum,Date orderCreateTime) {
         OrderLog orderLog = new OrderLog();
         orderLog.setUId(uid);
         orderLog.setUserType(type.getValue());
@@ -78,6 +78,7 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
         orderLog.setProductId(productId);
         orderLog.setProductStandardId(productStandardId);
         orderLog.setChangeNum(changeNum);
+        orderLog.setOrderCreateTime(orderCreateTime);
         orderLog.setCreateTime(new Date());
         return orderLog;
     }
@@ -112,7 +113,7 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
         return findFirst(sql, id);
     }
 
-    private OrderLog getOrderLog(String orderId, Integer productId, Integer productStandardId, Integer changeNum) {
+    private OrderLog getOrderLog(String orderId, Integer productId, Integer productStandardId, Integer changeNum,Date orderCreateTime) {
         OrderLog orderLog = new OrderLog();
         // 未知用户
         orderLog.setUserType(UserTypeConstant.UNKNOWN_USER.getValue());
@@ -120,6 +121,7 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
         orderLog.setProductId(productId);
         orderLog.setProductStandardId(productStandardId);
         orderLog.setChangeNum(changeNum);
+        orderLog.setOrderCreateTime(orderCreateTime);
         orderLog.setCreateTime(new Date());
         return orderLog;
     }
@@ -151,16 +153,20 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
     @Override
     @Before(Tx.class)
     public boolean delete() {
+        String sql = " SELECT o.create_time from b_order o INNER JOIN b_order_detail od on o.order_id=od.order_id where od.id = ? ";
+        Date orderCreateTime=Db.queryDate(sql, super.getOrderId());
         super.delete();
-        return getOrderLog(super.getOrderId(), super.getProductId(), super.getProductStandardId(), ~super.getNum() + 1).save();
+        return getOrderLog(super.getOrderId(), super.getProductId(), super.getProductStandardId(), ~super.getNum() + 1,orderCreateTime).save();
     }
     @Deprecated
     @Override
     @Before(Tx.class)
     public boolean update() {
         OrderDetail orderDetail = OrderDetail.dao.findById(super.getId());
+        String sql = " SELECT o.create_time from b_order o INNER JOIN b_order_detail od on o.order_id=od.order_id where od.id = ? ";
+        Date orderCreateTime=Db.queryDate(sql, super.getOrderId());
         super.update();
-        return getOrderLog(orderDetail.getOrderId(), orderDetail.getProductId(), orderDetail.getProductStandardId(), super.getNum() - orderDetail.getNum()).save();
+        return getOrderLog(orderDetail.getOrderId(), orderDetail.getProductId(), orderDetail.getProductStandardId(), super.getNum() - orderDetail.getNum(),orderCreateTime).save();
     }
 
 
@@ -168,45 +174,45 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
      * 推荐
      */
     @Before(Tx.class)
-    public boolean save(UserTypeConstant type, Integer uid) {
+    public boolean save(UserTypeConstant type, Integer uid,Date orderCreateTime) {
         super.save();
-        return getOrderLog(type, uid, super.getOrderId(), super.getProductId(), super.getProductStandardId(), super.getNum()).save();
+        return getOrderLog(type, uid, super.getOrderId(), super.getProductId(), super.getProductStandardId(), super.getNum(),orderCreateTime).save();
     }
     @Before(Tx.class)
-    public boolean delete(UserTypeConstant type, Integer uid) {
+    public boolean delete(UserTypeConstant type, Integer uid,Date orderCreateTime) {
         super.delete();
-        return getOrderLog(type, uid, super.getOrderId(), super.getProductId(), super.getProductStandardId(), ~super.getNum() + 1).save();
+        return getOrderLog(type, uid, super.getOrderId(), super.getProductId(), super.getProductStandardId(), ~super.getNum() + 1,orderCreateTime).save();
     }
     @Before(Tx.class)
-    public boolean update(UserTypeConstant type, Integer uid) {
+    public boolean update(UserTypeConstant type, Integer uid,Date orderCreateTime) {
         OrderDetail orderDetail = OrderDetail.dao.findById(super.getId());
         super.update();
-        return getOrderLog(type, uid, orderDetail.getOrderId(), orderDetail.getProductId(), orderDetail.getProductStandardId(), super.getNum() - orderDetail.getNum()).save();
+        return getOrderLog(type, uid, orderDetail.getOrderId(), orderDetail.getProductId(), orderDetail.getProductStandardId(), super.getNum() - orderDetail.getNum(),orderCreateTime).save();
     }
 
 
 
     @Before(Tx.class)
-    public boolean save(UserTypeConstant type, Integer uid, String orderId, Integer productId, Integer productStandardId, Integer num) {
+    public boolean save(UserTypeConstant type, Integer uid, String orderId, Integer productId, Integer productStandardId, Integer num,Date orderCreateTime) {
         super.save();
-        return getOrderLog(type, uid, orderId, productId, productStandardId, num).save();
+        return getOrderLog(type, uid, orderId, productId, productStandardId, num,orderCreateTime).save();
     }
     /**
      * 推荐
      */
     @Before(Tx.class)
-    public boolean delete(UserTypeConstant type, Integer uid, String orderId, Integer productId, Integer productStandardId, Integer num) {
+    public boolean delete(UserTypeConstant type, Integer uid, String orderId, Integer productId, Integer productStandardId, Integer num,Date orderCreateTime) {
         super.delete();
-        return getOrderLog(type, uid, orderId, productId, productStandardId, ~num + 1).save();
+        return getOrderLog(type, uid, orderId, productId, productStandardId, ~num + 1,orderCreateTime).save();
     }
     /**
      * 推荐
      */
     @Before(Tx.class)
-    public boolean update(UserTypeConstant type, Integer uid, String orderId, Integer productId, Integer productStandardId, Integer beforeNum, Integer afterNum) {
+    public boolean update(UserTypeConstant type, Integer uid, String orderId, Integer productId, Integer productStandardId, Integer beforeNum, Integer afterNum,Date orderCreateTime) {
         super.setUpdateTime(new Date());
         super.update();
-        return getOrderLog(type, uid, orderId, productId, productStandardId, afterNum - beforeNum).save();
+        return getOrderLog(type, uid, orderId, productId, productStandardId, afterNum - beforeNum,orderCreateTime).save();
     }
 
 

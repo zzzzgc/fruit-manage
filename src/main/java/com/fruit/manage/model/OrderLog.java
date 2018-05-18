@@ -12,10 +12,12 @@ public class OrderLog extends BaseOrderLog<OrderLog> {
 
 	/**
 	 * 根据时间段更新订单日志的统计
-	 * @param createTimes
+	 * @param createTimes order_create_time
 	 */
 	public void updateOrderLog(String[] createTimes) {
-		String sql = "update b_order_log ol set ol.is_statistical=0 where ol.create_time BETWEEN ? and ? ";
+		// ccz 2018-5-18 order_create_time
+//		String sql = "update b_order_log ol set ol.is_statistical=0 where ol.create_time BETWEEN ? and ? ";
+		String sql = "update b_order_log ol set ol.is_statistical=0 where ol.order_create_time BETWEEN ? and ? ";
 		Db.update(sql, createTimes[0], createTimes[1]);
 	}
 }

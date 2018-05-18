@@ -53,7 +53,9 @@ public class ProcurementPlan extends BaseProcurementPlan<ProcurementPlan> {
         sql.append(" as create_time ");
         sql.append("from b_order_log ol ");
         sql.append("where ol.is_statistical=0 ");
-        sql.append("and ol.create_time BETWEEN ? and ? ");
+        // ccz 2018-5-18 order_create_time
+//        sql.append("and ol.create_time BETWEEN ? and ? ");
+        sql.append("and ol.order_create_time BETWEEN ? and ? ");
         List<String> list = new ArrayList<>();
         list.add(createTimes[0]);
         list.add(createTimes[1]);
@@ -61,7 +63,8 @@ public class ProcurementPlan extends BaseProcurementPlan<ProcurementPlan> {
     }
 
     public void updateOrderLog(String[] createTimes) {
-        String sql = "update b_order_log ol set ol.is_statistical=1 where ol.create_time BETWEEN ? and ? ";
+        // ccz 2018-5-18 order_create_time
+        String sql = "update b_order_log ol set ol.is_statistical=1 where ol.order_create_time BETWEEN ? and ? ";
         Db.update(sql, createTimes[0], createTimes[1]);
     }
 
@@ -91,7 +94,9 @@ public class ProcurementPlan extends BaseProcurementPlan<ProcurementPlan> {
                         "ol2.product_standard_id = ol.product_standard_id " +
 
                         //ccz 2018-5-15 添加时间区间
-                        " and ol2.create_time BETWEEN ? AND ? "+
+                        // ccz 2018-5-18 order_create_time
+//                        " and ol2.create_time BETWEEN ? AND ? "+
+                        " and ol2.order_create_time BETWEEN ? AND ? "+
 
                         ") AS purchaseNum, " +
                         "ps.stock AS inventoryNum, " +
@@ -108,7 +113,9 @@ public class ProcurementPlan extends BaseProcurementPlan<ProcurementPlan> {
                         "ol2.product_standard_id = ol.product_standard_id " +
 
                         //ccz 2018-5-15 添加时间区间
-                        " and ol2.create_time BETWEEN ? AND ? "+
+                        // ccz 2018-5-18 order_create_time
+//                        " and ol2.create_time BETWEEN ? AND ? "+
+                        " and ol2.order_create_time BETWEEN ? AND ? "+
 
                         ") AS productStandardNum, " +
                         "(SELECT 0) AS procurementNeedPrice, " +
@@ -131,7 +138,11 @@ public class ProcurementPlan extends BaseProcurementPlan<ProcurementPlan> {
                         "AND pq.product_standard_id = ol.product_standard_id " +
                         "AND ol.product_id = p.id " +
                         "AND ol.product_standard_id = ps.id " +
-                        "AND ol.create_time BETWEEN ? AND ? " +
+
+                        // ccz 2018-5-18 order_create_time
+//                        "AND ol.create_time BETWEEN ? AND ? " +
+                        "AND ol.order_create_time BETWEEN ? AND ? " +
+
                         "GROUP BY " +
                         "ol.product_standard_id " +
                         "HAVING " +
@@ -205,7 +216,11 @@ public class ProcurementPlan extends BaseProcurementPlan<ProcurementPlan> {
         sql.append("where 1=1 ");
         // sql.append("and ol.is_statistical = 0 ");
         if (org.apache.commons.lang3.ArrayUtils.isNotEmpty(createTime) && createTime.length == 2) {
-            sql.append("and ol.create_time BETWEEN ? and ? ");
+
+            // 2018-5-18 ccz order_create_time
+//            sql.append("and ol.create_time BETWEEN ? and ? ");
+            sql.append("and ol.order_create_time BETWEEN ? and ? ");
+
             params.add(createTime[0]);
             params.add(createTime[1]);
         }
