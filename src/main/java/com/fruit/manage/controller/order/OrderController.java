@@ -12,6 +12,7 @@ import com.jfinal.ext.kit.DateKit;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.tx.Tx;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 
@@ -140,7 +141,7 @@ public class OrderController extends BaseController {
             order.save();
             for (OrderDetail orderDetail : orderDetails) {
                 // ccz 2018-5-18 orderCreateTime
-                orderDetail.delete(UserTypeConstant.A_USER, uid,order.getCreateTime());
+                orderDetail.delete(UserTypeConstant.A_USER, uid, order.getCreateTime());
                 orderDetail.setOrderId(orderId);
                 orderDetail.save();
             }
@@ -270,7 +271,7 @@ public class OrderController extends BaseController {
                 orderDetail2.setActualDeliverNum(orderDetail.getActualDeliverNum());
                 Integer userId = getSessionAttr(Constant.SESSION_UID);
                 // ccz 2018-5-18 orderCreateTime
-                orderDetail2.update(UserTypeConstant.B_USER, userId,order.getCreateTime());
+                orderDetail2.update(UserTypeConstant.B_USER, userId, order.getCreateTime());
 
 
                 // 修改订单实际需要支付的总总金额
@@ -286,7 +287,6 @@ public class OrderController extends BaseController {
         } else {
             renderErrorText("订单必须为配送状态!");
         }
-
     }
 
     /**
@@ -298,7 +298,7 @@ public class OrderController extends BaseController {
         Order order = getModel(Order.class, "", true);
         String products = getPara("products");
         Integer businessUserId = getParaToInt("business_user_id");
-        Date orderCycle = DateKit.toDate(getPara("first_day_order_cycle"));
+        Date orderCycle = StringUtils.isNotBlank(getPara("first_day_order_cycle")) ? DateKit.toDate(getPara("first_day_order_cycle")) : new Date();
         List<OrderDetail> orderDetails = JSON.parseArray(products, OrderDetail.class);
         BigDecimal payNeedMoney = new BigDecimal(0);
         BigDecimal payRealityNeedMoney = new BigDecimal(0);
@@ -332,14 +332,14 @@ public class OrderController extends BaseController {
                 payNeedMoney = payNeedMoney.add(totalPay);
                 if (orderDetail.getId() != null) {
                     // ccz 2018-5-18 orderCreateTime
-                    orderDetail.update(UserTypeConstant.A_USER, uid,order.getCreateTime());
+                    orderDetail.update(UserTypeConstant.A_USER, uid, order.getCreateTime());
                 } else {
                     orderDetail.setUId(businessUserId);
                     orderDetail.setOrderId(order.getOrderId());
                     orderDetail.setCreateTime(now);
                     orderDetail.setUpdateTime(now);
                     // ccz 2018-5-18 orderCreateTime
-                    orderDetail.save(UserTypeConstant.A_USER, uid,order.getCreateTime());
+                    orderDetail.save(UserTypeConstant.A_USER, uid, order.getCreateTime());
                     Product.dao.increaseSellNum(orderDetail.getProductId());
                 }
             }
@@ -351,7 +351,7 @@ public class OrderController extends BaseController {
         } else {
             //添加,并校验是否存在相同订单周期的订单
 
-            String orderId = IdUtil.getOrderId(orderCycle,businessUserId);
+            String orderId = IdUtil.getOrderId(orderCycle, businessUserId);
             Order nowOrder = Order.dao.getOrder(orderId);
             // 区分该订单周期的订单是否已经被创建
             if (nowOrder == null) {
@@ -368,7 +368,7 @@ public class OrderController extends BaseController {
                     orderDetail.setCreateTime(orderCycle);
                     orderDetail.setUpdateTime(now);
                     // ccz 2018-5-18 orderCreateTime
-                    orderDetail.save(UserTypeConstant.A_USER, uid,now);
+                    orderDetail.save(UserTypeConstant.A_USER, uid, now);
                 }
 
                 order.setPayNeedMoney(payNeedMoney);
@@ -410,7 +410,7 @@ public class OrderController extends BaseController {
                             nowOrderDetail.setTotalPay(totalPrice);
                             nowOrderDetail.setUpdateTime(now);
                             // ccz 2018-5-18 orderCreateTime
-                            nowOrderDetail.update(UserTypeConstant.A_USER, uid, orderId, nowOrderDetail.getProductId(), nowOrderDetail.getProductStandardId(), nowOrderDetail.getNum(), nowNum,order.getCreateTime());
+                            nowOrderDetail.update(UserTypeConstant.A_USER, uid, orderId, nowOrderDetail.getProductId(), nowOrderDetail.getProductStandardId(), nowOrderDetail.getNum(), nowNum, order.getCreateTime());
                             continue OrderDetailFor;
                         }
                     }
@@ -425,7 +425,7 @@ public class OrderController extends BaseController {
                     orderDetail.setUpdateTime(now);
                     orderDetail.setCreateTime(now);
                     // ccz 2018-5-18 orderCreateTime
-                    orderDetail.save(UserTypeConstant.A_USER, uid,order.getCreateTime());
+                    orderDetail.save(UserTypeConstant.A_USER, uid, order.getCreateTime());
                 }
                 nowOrder.setPayNeedMoney(payNeedMoney);
                 nowOrder.setUpdateTime(now);
@@ -525,7 +525,7 @@ public class OrderController extends BaseController {
         String sql = "SELECT o.create_time from b_order o where o.order_id = ? ";
         Date orderCreateTime = Db.queryDate(sql, orderDetail.getOrderId());
         // ccz 2018-5-18 orderCreateTime
-        orderDetail.delete(UserTypeConstant.A_USER, uid,orderCreateTime);
+        orderDetail.delete(UserTypeConstant.A_USER, uid, orderCreateTime);
         renderNull();
     }
 

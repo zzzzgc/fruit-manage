@@ -122,12 +122,12 @@ public class Product extends BaseProduct<Product> {
 	}
 
 	/**
-	 * 用于获取用户模糊查询商品的商品列表
+	 * 用于获取用户模糊查询商品的商品列表,不可以加载未上架的
 	 * @param queryString
 	 * @return
 	 */
 	public List<Product> getProductNameByQueryString(String queryString) {
-		String sql = "SELECT p.`name` AS product_name,p.brand,p.id AS product_id FROM b_product p  WHERE p.`name` LIKE CONCAT('%',?,'%')";
+		String sql = "SELECT p.`name` AS product_name,p.brand,p.id AS product_id FROM b_product p  WHERE p.`name` LIKE CONCAT('%',?,'%') AND p.`status` = 1 ";
 		return dao.find(sql,queryString);
 	}
 

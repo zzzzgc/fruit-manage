@@ -114,7 +114,8 @@ public class ProductStandard extends BaseProductStandard<ProductStandard> {
                 "FROM\n" +
                 "\tb_product_standard AS ps\n" +
                 "INNER JOIN b_product AS p ON ps.product_id = p.id\n" +
-                "AND p.id = ? ";
+                "AND p.id = ? " +
+                "AND ps.`status` = 1 ";
         return dao.find(sql, productId);
     }
 
