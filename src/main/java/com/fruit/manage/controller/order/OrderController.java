@@ -8,6 +8,7 @@ import com.fruit.manage.util.Constant;
 import com.fruit.manage.util.DateAndStringFormat;
 import com.fruit.manage.util.IdUtil;
 import com.jfinal.aop.Before;
+import com.jfinal.ext.kit.DateKit;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.tx.Tx;
@@ -297,7 +298,7 @@ public class OrderController extends BaseController {
         Order order = getModel(Order.class, "", true);
         String products = getPara("products");
         Integer businessUserId = getParaToInt("business_user_id");
-        Date orderCycle = getParaToDate("first_day_order_cycle",new Date());
+        Date orderCycle = DateKit.toDate(getPara("first_day_order_cycle"));
         List<OrderDetail> orderDetails = JSON.parseArray(products, OrderDetail.class);
         BigDecimal payNeedMoney = new BigDecimal(0);
         BigDecimal payRealityNeedMoney = new BigDecimal(0);
@@ -374,7 +375,7 @@ public class OrderController extends BaseController {
                 order.setPayTotalMoney(new BigDecimal(0));
                 order.setUId(businessUserId);
                 order.setUpdateTime(now);
-                order.setCreateTime(now);
+                order.setCreateTime(orderCycle);
                 order.save();
 
                 BusinessInfo info = BusinessInfo.dao.getBusinessInfoByUId(businessUserId);
@@ -386,7 +387,7 @@ public class OrderController extends BaseController {
                 logisticsInfo.setBuyUserName(info.getBusinessName());
                 logisticsInfo.setDeliveryType(info.getShipmentsType());
                 logisticsInfo.setUpdateTime(new Date());
-                logisticsInfo.setCreateTime(new Date());
+                logisticsInfo.setCreateTime(orderCycle);
                 logisticsInfo.save();
             } else {
                 // 如果有相同订单周期的订单,就叠加商品.这次添加视为补充商品.因为想修改商品应该去编辑才对,而不是添加.
