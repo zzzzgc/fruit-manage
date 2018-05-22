@@ -658,8 +658,13 @@ public class ExcelController extends BaseController {
             c3.setCellStyle(styleText);
             c6.setCellStyle(styleText);
             c9.setCellStyle(styleText);
-            c3.setCellValue("商家名称:" + businessUserName);
-            c6.setCellValue("联系人:" + buyUserName);
+
+            // ccz 2018-5-22 字段商家名称和联系人数据互调
+//            c3.setCellValue("商家名称:" + businessUserName);
+//            c6.setCellValue("联系人:" + buyUserName);
+            c3.setCellValue("商家名称:" + buyUserName);
+            c6.setCellValue("联系人:" + businessUserName);
+
             c9.setCellValue("送货电话:" + buyPhone);
 
             // 3 line
