@@ -550,6 +550,7 @@ public class ExcelController extends BaseController {
                 "o.order_id, " +
                 "o.pay_all_money, " +
                 "o.pay_total_money, " +
+                "o.pay_reality_need_money, " +
                 "bu.`name` AS business_user_name, " +
                 "bu.id AS business_id, " +
                 "linfo.buy_phone, " +
@@ -573,8 +574,8 @@ public class ExcelController extends BaseController {
                 "INNER JOIN a_user AS au ON bu.a_user_sales_id = au.id " +
                 "INNER JOIN b_logistics_info AS linfo ON linfo.order_id = o.order_id " +
                 "WHERE " +
-                // 5 10 15 20 25 30 从已确认到已完成的所有订单都要收款
-                "o.order_status in (" + OrderStatusCode.WAIT_DISTRIBUTION.getStatus() + "," + OrderStatusCode.DISTRIBUTION.getStatus() + "," + OrderStatusCode.TAKE_DISTRIBUTION.getStatus() + "," + OrderStatusCode.WAIT_PAYMENT.getStatus() + "," + OrderStatusCode.IS_OK.getStatus() + ") " +
+                // .5 .10 .15 20 25 30 从已确认到已完成的所有订单都要收款
+                "o.order_status in (" + OrderStatusCode.DISTRIBUTION.getStatus() + "," + OrderStatusCode.TAKE_DISTRIBUTION.getStatus() + "," + OrderStatusCode.WAIT_PAYMENT.getStatus() + "," + OrderStatusCode.IS_OK.getStatus() + ") " +
                 "AND o.create_time BETWEEN ? " +
                 "AND ? ";
         System.out.println(sql);
@@ -584,7 +585,7 @@ public class ExcelController extends BaseController {
         Date now = new Date();
 
         if (orders.size() < 1) {
-            renderText("没有已配货状态或者已配货之后状态的订单,请稍后操作");
+            renderText("没有已配货状态或者已配货之后状态的订单，请稍后操作");
             return;
         }
         for (Order order : orders) {
@@ -593,6 +594,7 @@ public class ExcelController extends BaseController {
             Integer businessId = order.get("business_id");
             BigDecimal pay_all_money = order.get("pay_all_money");
             BigDecimal pay_total_money = order.get("pay_total_money");
+            BigDecimal pay_reality_need_money = order.get("pay_reality_need_money");
             String businessUserName = order.get("business_user_name");
             String businessName = order.get("business_name");
             String buyPhone = order.get("buy_phone");
@@ -724,8 +726,7 @@ public class ExcelController extends BaseController {
             c5.setCellValue("实发数量");
             c6.setCellValue("单价");
             c7.setCellValue("单品总额");
-            c8.setCellValue("订单总额");
-            c9.setCellValue("商品备注");
+            c8.setCellValue("商品备注");
 
             sql = "SELECT " +
                     "od.product_name, " +
@@ -753,7 +754,6 @@ public class ExcelController extends BaseController {
                 c6 = row.createCell(5);
                 c7 = row.createCell(6);
                 c8 = row.createCell(7);
-                c9 = row.createCell(8);
                 c1.setCellStyle(styleTable);
                 c2.setCellStyle(styleTable);
                 c3.setCellStyle(styleTable);
@@ -762,7 +762,6 @@ public class ExcelController extends BaseController {
                 c6.setCellStyle(styleTable);
                 c7.setCellStyle(styleTable);
                 c8.setCellStyle(styleTable);
-                c9.setCellStyle(styleTable);
 
                 c1.setCellValue(orderDetail.get("product_name") + "");
                 c2.setCellValue(orderDetail.get("product_standard_name") + "");
@@ -771,9 +770,10 @@ public class ExcelController extends BaseController {
                 c5.setCellValue(orderDetail.get("actual_send_goods_num") + "");
                 c6.setCellValue(orderDetail.get("sell_price") + "");
                 c7.setCellValue(BigDecimal.valueOf(orderDetail.getActualSendGoodsNum()).multiply(orderDetail.getSellPrice())+"");
-                c8.setCellValue(orderDetail.get("pay_reality_need_money") != null ? orderDetail.get("pay_reality_need_money").toString() : null);
-                c9.setCellValue(orderDetail.get("buy_remark") != null ? orderDetail.get("buy_remark").toString() : null);
+                c8.setCellValue(orderDetail.get("buy_remark") != null ? orderDetail.get("buy_remark").toString() : null);
             }
+
+
 
             row = sheet.createRow(rowCount++);
             row.setHeightInPoints(textHeight);
@@ -790,7 +790,7 @@ public class ExcelController extends BaseController {
             c6.setCellValue("装车费:" + freight_cost);
             c9.setCellValue("运费:" + transshipment_cost);
 
-            sql = "SELECT SUM(o.pay_all_money- o.pay_total_money)  from b_order o where o.pay_status = 0 AND o.u_id = ? ";
+            sql = "SELECT SUM(o.pay_all_money- o.pay_total_money)  from b_order o where o.u_id = ? ";
 
             Record record = Db.findFirst(sql, businessId);
 
@@ -808,19 +808,23 @@ public class ExcelController extends BaseController {
             c6.setCellStyle(styleText);
             c9.setCellStyle(styleText);
             c3.setCellValue("打包费:" + package_cost);
-            c6.setCellValue("本次货款:" + pay_all_money);
-            c9.setCellValue("前次未结:" + allOrderPrice.subtract(pay_all_money).add(pay_total_money));
+            c6.setCellValue("订单总价:" + pay_reality_need_money);
+            c9.setCellValue("本次货款:" + pay_all_money);
 
             row = sheet.createRow(rowCount++);
             row.setHeightInPoints(textHeight);
             _mergedRegionNowRow(sheet, row, 1, 3);
             _mergedRegionNowRow(sheet, row, 4, 6);
+            _mergedRegionNowRow(sheet, row, 7, 9);
             c3 = row.createCell(0);
             c6 = row.createCell(3);
+            c9 = row.createCell(6);
             c3.setCellStyle(styleText);
             c6.setCellStyle(styleText);
-            c3.setCellValue("本次已付:" + pay_total_money);
-            c6.setCellValue("本次应付:" + allOrderPrice);
+            c9.setCellStyle(styleText);
+            c3.setCellValue("前次未结:" + allOrderPrice.subtract(pay_all_money).add(pay_total_money));
+            c6.setCellValue("本次已付:" + pay_total_money);
+            c9.setCellValue("本次应付:" + allOrderPrice);
 
 
         }
@@ -1117,6 +1121,7 @@ public class ExcelController extends BaseController {
                                             renderErrorText("存在相同商品规格名称和不同的id的商品：" + productName + "，规格：" + productStandardName);
                                             return false;
                                         }
+
                                     }
                                     duplicationCheckProductStandardMap.put(productName + productStandardName, productStandardId);
                                 }

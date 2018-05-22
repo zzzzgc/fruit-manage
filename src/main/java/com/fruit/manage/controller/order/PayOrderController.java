@@ -35,7 +35,7 @@ public class PayOrderController extends BaseController {
 
         // 修改订单已支付金额
         Order order = Order.dao.getOrder(payOrderInfo.getOrderId());
-        order.setPayAllMoney(order.getPayAllMoney()==null?payOrderInfo.getPayTheMoney():order.getPayAllMoney().add(payOrderInfo.getPayTheMoney()));
+        order.setPayTotalMoney(order.getPayTotalMoney()==null?payOrderInfo.getPayTheMoney():order.getPayTotalMoney().add(payOrderInfo.getPayTheMoney()));
         order.update();
         renderNull();
     }

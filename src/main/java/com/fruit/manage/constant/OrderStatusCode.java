@@ -15,7 +15,7 @@ public enum OrderStatusCode {
      */
     AFFIRM(5),
     /**
-     * 未配送
+     * 未配送(已配货)
      */
     WAIT_DISTRIBUTION(10),
     /**
