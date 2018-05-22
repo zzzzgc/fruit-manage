@@ -163,7 +163,9 @@ public class ExcelController extends BaseController {
                                 if (productStandard.get("product_standard_id") != null && productStandard.get("product_standard_id").equals(excelRow[3])) {
                                     Integer procurementId = (Integer) excelRow[5];
                                     User user = userMap.get(procurementId);
-                                    String procurementName = user.getName();
+                                    // ccz 2018-5-21 获取用户的名称是获取nickName，而不是name（登录名）
+//                                    String procurementName = user.getName();
+                                    String procurementName = user.getNickName();
 
                                     ProcurementQuota quota = productStandardId.get(productStandard.get("product_standard_id"));
                                     if (quota == null) {

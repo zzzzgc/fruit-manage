@@ -368,7 +368,7 @@ public class OrderController extends BaseController {
                     orderDetail.setCreateTime(orderCycle);
                     orderDetail.setUpdateTime(now);
                     // ccz 2018-5-18 orderCreateTime
-                    orderDetail.save(UserTypeConstant.A_USER, uid, now);
+                    orderDetail.save(UserTypeConstant.A_USER, uid, orderCycle);
                 }
 
                 order.setPayNeedMoney(payNeedMoney);
