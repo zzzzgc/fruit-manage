@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import com.fruit.manage.constant.RoleKeyCode;
 import com.jfinal.plugin.activerecord.Record;
 import org.apache.commons.lang3.StringUtils;
 
@@ -164,6 +165,14 @@ public class User extends BaseUser<User> {
             return true;
         }
         return false;
+    }
+
+    /**
+     * 获取所有指定角色的用户
+     * @return 所有拥有该角色的用户
+     */
+    public List<User> getUsersByRoleId(RoleKeyCode roleKeyCode) {
+        return dao.find("SELECT * FROM a_user au INNER JOIN a_user_role ur ON ur.user_id = au.id WHERE ur.role_id = ?", roleKeyCode.getRoleId());
     }
 
 

@@ -9,7 +9,6 @@ import com.fruit.manage.util.Constant;
 import com.fruit.manage.util.DateAndStringFormat;
 import com.fruit.manage.util.ExcelCommon;
 import com.fruit.manage.util.excel.ExcelStyle;
-import com.fruit.manage.util.excelRd.ExcelRdException;
 import com.fruit.manage.util.excelRd.ExcelRdTypeEnum;
 import com.jfinal.aop.Before;
 import com.jfinal.ext.kit.DateKit;
@@ -131,7 +130,7 @@ public class ExcelController extends BaseController {
             @Override
             public boolean run() throws SQLException {
                 Integer uid = getSessionAttr(Constant.SESSION_UID);
-                String name = User.dao.findById(uid).getName();
+                String name = User.dao.findById(uid).getNickName();
                 String fileName = getPara("fileName");
                 File file = new File(BASE_PATH + File.separator + fileName);
                 try {
@@ -276,8 +275,8 @@ public class ExcelController extends BaseController {
                     "AND o.create_time BETWEEN ? " +
                     "AND ? ");
             // 运行查看所有
-            if (!User.dao.isRole(uid, RoleKeyCode.OPERATOR.getKey())) {
-                if (User.dao.isRole(uid, RoleKeyCode.SALES.getKey())) {
+            if (!User.dao.isRole(uid, RoleKeyCode.OPERATOR.getRoleId())) {
+                if (User.dao.isRole(uid, RoleKeyCode.SALES.getRoleId())) {
                     sql.append("AND bu.a_user_sales_id = ? ");
                     params.add(uid);
                 }
@@ -1651,7 +1650,7 @@ public class ExcelController extends BaseController {
         procurementQuota.setProcurementId(user.getId());
         procurementQuota.setProcurementPhone(user.getPhone());
         procurementQuota.setCreateUserId(user.getId());
-        procurementQuota.setCreateUserName(user.getNickName());
+        procurementQuota.setCreateUserName(User.dao.getUserById(getSessionAttr(Constant.SESSION_UID)).getNickName());
         procurementQuota.setUpdateTime(new Date());
         procurementQuota.setCreateTime(new Date());
 

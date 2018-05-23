@@ -39,13 +39,13 @@ public enum RoleKeyCode {
     WAREHOUSE(8),
     ;
 
-    Integer key;
+    Integer roleId;
 
-    RoleKeyCode(Integer key) {
-        this.key = key;
+    RoleKeyCode(Integer roleId) {
+        this.roleId = roleId;
     }
 
-    public Integer getKey() {
-        return key;
+    public Integer getRoleId() {
+        return roleId;
     }
 }

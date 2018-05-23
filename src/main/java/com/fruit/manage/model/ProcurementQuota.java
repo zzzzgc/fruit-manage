@@ -16,7 +16,7 @@ import java.util.List;
  */
 @SuppressWarnings("serial")
 public class ProcurementQuota extends BaseProcurementQuota<ProcurementQuota> {
-	public static final ProcurementQuota dao = new ProcurementQuota().dao();
+    public static final ProcurementQuota dao = new ProcurementQuota().dao();
 
     public Page<ProcurementQuota> getData(int pageNum, int pageSize, String orderBy, boolean isASC, ProcurementQuota quota, String[] createTime) {
         String select = "SELECT\n" +
@@ -34,20 +34,20 @@ public class ProcurementQuota extends BaseProcurementQuota<ProcurementQuota> {
 
         List<Object> params = new ArrayList<Object>();
 
-        StringBuffer fromAndWhere =  fromAndWhere = new StringBuffer();
+        StringBuffer fromAndWhere = fromAndWhere = new StringBuffer();
         fromAndWhere.append(" FROM b_procurement_quota AS pq WHERE 1 = 1 ");
 
-        if (quota.getProcurementId() !=null ) {
+        if (quota.getProcurementId() != null) {
             fromAndWhere.append(" AND pq.procurement_id = ? ");
             params.add(quota.getProcurementId());
         }
 
-        if (quota.getProductId() !=null ) {
+        if (quota.getProductId() != null) {
             fromAndWhere.append(" AND pq.product_id = ? ");
             params.add(quota.getProductId());
         }
 
-        if (quota.getProductStandardId() !=null ) {
+        if (quota.getProductStandardId() != null) {
             fromAndWhere.append(" AND pq.product_standard_id = ? ");
             params.add(quota.getProductStandardId());
         }
@@ -80,13 +80,24 @@ public class ProcurementQuota extends BaseProcurementQuota<ProcurementQuota> {
 
         orderBy = StrKit.isBlank(orderBy) ? "o.create_time" : orderBy;
         fromAndWhere.append(" order by " + orderBy + " " + (isASC ? "" : "desc "));
-        System.out.println(select+fromAndWhere);
+        System.out.println(select + fromAndWhere);
         System.out.println(params);
-        return paginate(pageNum,pageSize,select,fromAndWhere.toString(),params.toArray());
+        return paginate(pageNum, pageSize, select, fromAndWhere.toString(), params.toArray());
+    }
+
+    /**
+     * 根据商品规格获取该规格的采购配额
+     *
+     * @return
+     */
+    public ProcurementQuota getProcurementQuotaByProductStandardId(Integer productStandardId) {
+        List<ProcurementQuota> procurementQuotas = ProcurementQuota.dao.find("SELECT * from b_procurement_quota pq WHERE pq.product_standard_id = ? ",productStandardId);
+        return procurementQuotas.size() > 0 ? procurementQuotas.get(0) : null;
     }
 
     /**
      * 获取所有商品库信息
+     *
      * @return
      */
     public List<ProcurementQuota> getProcurementQuotaAllInfo() {

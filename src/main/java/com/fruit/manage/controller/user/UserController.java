@@ -1,5 +1,6 @@
 package com.fruit.manage.controller.user;
 
+import com.fruit.manage.constant.RoleKeyCode;
 import org.apache.log4j.Logger;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 
@@ -7,6 +8,8 @@ import com.fruit.manage.base.BaseController;
 import com.fruit.manage.model.Role;
 import com.fruit.manage.model.User;
 import com.jfinal.kit.JsonKit;
+
+import java.util.List;
 
 public class UserController extends BaseController{
 
@@ -52,6 +55,13 @@ public class UserController extends BaseController{
 		User model = getModel(User.class, "", true);
 		String[] roleIds = getParaValues("roleIds");
 		renderResult(User.dao.save(model, roleIds));
+	}
+
+	/**
+	 * 获取所有采购用户
+	 */
+	public void getAllProcurement () {
+		renderJson(User.dao.getUsersByRoleId(RoleKeyCode.PROCUREMENT));
 	}
 	
 }
