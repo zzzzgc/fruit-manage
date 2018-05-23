@@ -124,7 +124,7 @@ public class ProcurementPlan extends BaseProcurementPlan<ProcurementPlan> {
                         " (SELECT group_concat(CONCAT(num,measure_unit,'|',buy_remark) SEPARATOR ';')  as concatStr " +
                         " from b_order_detail od2 " +
 //                        " where od2.product_standard_id in (ol.product_standard_id) " +
-                        " WHERE 1=1 " +
+                        " WHERE 1=1 and od2.order_id  = ol.order_id " +
                         // 以订单创建时间为准 ccz 2018-5-18
                         " and ol.order_create_time BETWEEN ? AND ? " +
                         " and od2.product_standard_id in (ol.product_standard_id) "+
