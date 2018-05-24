@@ -290,6 +290,7 @@ public class ExcelController extends BaseController {
                 renderText("没有订单出货,请稍后操作");
                 return;
             }
+            Integer excelCount = 0;
             for (Order order : orders) {
                 rowCount = 0;
                 String orderId = order.get("order_id");
@@ -331,7 +332,16 @@ public class ExcelController extends BaseController {
                 _mergedRegionNowRow(sheet, row, 1, 9);
                 c9 = row.createCell(0);
                 c9.setCellStyle(styleTitle);
-                c9.setCellValue(DateFormatUtils.format(now, "yyyy-MM-dd") + "广州嘻果出货单" + now.getTime());
+                // ccz 2018-5-24 修改Excel Title
+                excelCount++;
+                String excelTitle = excelCount + "";
+                if (excelCount < 10) {
+                    excelTitle = "00"+excelCount;
+                } else if(excelCount < 100) {
+                    excelTitle = "0"+excelCount;
+                }
+//                c9.setCellValue(DateFormatUtils.format(now, "yyyy-MM-dd") + "广州嘻果出货单" + now.getTime());
+                c9.setCellValue(DateFormatUtils.format(now, "yyyy-MM-dd") + "广州嘻果出货单" + excelTitle);
 
                 // 2 line
                 row = sheet.createRow(rowCount++);
