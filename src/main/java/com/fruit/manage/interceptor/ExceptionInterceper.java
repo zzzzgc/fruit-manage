@@ -23,9 +23,11 @@ public class ExceptionInterceper implements Interceptor {
 
             // 调用通知
             MailMessage mailMessage = new MailMessage();
-            String[] reiveveMessage = new String[2];
-            reiveveMessage[0] = "1098766713@qq.com";
+            String[] reiveveMessage = new String[4];
+            reiveveMessage[0] = "zguocong@52xiguo.com";
             reiveveMessage[1] = "1142287959@qq.com";
+            reiveveMessage[2] = "zguocong@52xiguo.com";
+            reiveveMessage[3] = "1098766713@qq.com";
 
             mailMessage.setSubject("我是异常");
             mailMessage.setReceiveAddress(reiveveMessage);
