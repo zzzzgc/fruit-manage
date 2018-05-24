@@ -1,5 +1,6 @@
 package com.fruit.manage.base;
 
+import com.fruit.manage.interceptor.ExceptionInterceper;
 import com.fruit.manage.model._MappingKit;
 import com.fruit.manage.plugin.shiro.ShiroInterceptor;
 import com.fruit.manage.plugin.shiro.ShiroPlugin;
@@ -111,6 +112,7 @@ public class JFConfig extends JFinalConfig {
 //		me.add(new AllowCrossDomain());
 //		me.add(new UrlShiroInterceptor());
         me.add(new ShiroInterceptor());
+        me.add(new ExceptionInterceper());
 //		me.add(new Tx());
     }
 
