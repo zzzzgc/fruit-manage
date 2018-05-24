@@ -356,7 +356,7 @@ public class ExcelController extends BaseController {
                 c6.setCellStyle(styleText);
                 c9.setCellStyle(styleText);
                 c3.setCellValue("商家名称:" + buyUserName);
-                c6.setCellValue("联系人:" + businessUserName);
+                c6.setCellValue("联系人:" + ("undefined".equals(businessUserName)?"":businessUserName));
                 c9.setCellValue("送货电话:" + buyPhone);
 
                 // 3 line
@@ -599,6 +599,7 @@ public class ExcelController extends BaseController {
             renderText("没有已配货状态或者已配货之后状态的订单，请稍后操作");
             return;
         }
+        Integer excelCount = 0;
         for (Order order : orders) {
             rowCount = 0;
             String orderId = order.get("order_id");
@@ -652,7 +653,16 @@ public class ExcelController extends BaseController {
             _mergedRegionNowRow(sheet, row, 1, 9);
             c9 = row.createCell(0);
             c9.setCellStyle(styleTitle);
-            c9.setCellValue(DateFormatUtils.format(now, "yyyy-MM-dd") + "广州嘻果商家收款单" + now.getTime());
+            // ccz  2018-5-24 修改收款单表单长度
+            excelCount++;
+            String excelTitleSuffix = ""+excelCount;
+            if (excelCount < 10) {
+                excelTitleSuffix = "00"+excelTitleSuffix;
+            } else if (excelCount < 100) {
+                excelTitleSuffix = "0"+excelTitleSuffix;
+            }
+//            c9.setCellValue(DateFormatUtils.format(now, "yyyy-MM-dd") + "广州嘻果商家收款单" + now.getTime());
+            c9.setCellValue(DateFormatUtils.format(now, "yyyy-MM-dd") + "广州嘻果商家收款单" + excelTitleSuffix);
 
             // 2 line
             row = sheet.createRow(rowCount++);
@@ -748,6 +758,7 @@ public class ExcelController extends BaseController {
                     "od.product_name, " +
                     "od.product_standard_name, " +
                     "ps.weight_price, " +
+                    "ps.sub_title, "+
                     "od.num, " +
                     "od.actual_send_goods_num, " +
                     "od.sell_price, " +
@@ -781,7 +792,9 @@ public class ExcelController extends BaseController {
 
                 c1.setCellValue(orderDetail.get("product_name") + "");
                 c2.setCellValue(orderDetail.get("product_standard_name") + "");
-                c3.setCellValue(orderDetail.get("weight_price") + "");
+                // ccz 2018-5-24 修改重量为副标题
+//                c3.setCellValue(orderDetail.get("weight_price") + "");
+                c3.setCellValue(orderDetail.get("sub_title") + "");
                 c4.setCellValue(orderDetail.get("num") + "");
                 c5.setCellValue(orderDetail.get("actual_send_goods_num") + "");
                 c6.setCellValue(orderDetail.get("sell_price") + "");
@@ -816,33 +829,49 @@ public class ExcelController extends BaseController {
             row.setHeightInPoints(textHeight);
             _mergedRegionNowRow(sheet, row, 1, 3);
             _mergedRegionNowRow(sheet, row, 4, 6);
-            _mergedRegionNowRow(sheet, row, 7, 9);
+            _mergedRegionNowRow(sheet, row, 8, 9);
             c3 = row.createCell(0);
             c6 = row.createCell(3);
-            c9 = row.createCell(6);
+            c7 = row.createCell(6);
+            c9 = row.createCell(7);
             c3.setCellStyle(styleText);
             c6.setCellStyle(styleText);
+            c7.setCellStyle(styleText);
             c9.setCellStyle(styleText);
             c3.setCellValue("打包费:" + package_cost);
             c6.setCellValue("订单总价:" + pay_reality_need_money);
-            c9.setCellValue("本次货款:" + pay_all_money);
+            c7.setCellValue("本次货款:");
+            c9.setCellValue("" + pay_all_money);
 
+            row = sheet.createRow(rowCount++);
+            row.setHeightInPoints(textHeight);
+            _mergedRegionNowRow(sheet, row, 1, 3);
+            _mergedRegionNowRow(sheet, row, 4, 6);
+            _mergedRegionNowRow(sheet, row, 8, 9);
+            c3 = row.createCell(0);
+            c6 = row.createCell(3);
+            c7 = row.createCell(6);
+            c9 = row.createCell(7);
+            c3.setCellStyle(styleText);
+            c6.setCellStyle(styleText);
+            c7.setCellStyle(styleText);
+            c9.setCellStyle(styleText);
+            c3.setCellValue("前次未结:" + allOrderPrice.subtract(pay_all_money).add(pay_total_money));
+            c6.setCellValue("本次已付:" + pay_total_money);
+            c7.setCellValue("本次应付:");
+            c9.setCellValue(""+allOrderPrice);
+
+
+            String logisticsInfoSQL = "SELECT li.package_num from b_logistics_info li where li.order_id = ? ";
+            String packageNum = Db.queryStr(logisticsInfoSQL,orderId);
             row = sheet.createRow(rowCount++);
             row.setHeightInPoints(textHeight);
             _mergedRegionNowRow(sheet, row, 1, 3);
             _mergedRegionNowRow(sheet, row, 4, 6);
             _mergedRegionNowRow(sheet, row, 7, 9);
             c3 = row.createCell(0);
-            c6 = row.createCell(3);
-            c9 = row.createCell(6);
             c3.setCellStyle(styleText);
-            c6.setCellStyle(styleText);
-            c9.setCellStyle(styleText);
-            c3.setCellValue("前次未结:" + allOrderPrice.subtract(pay_all_money).add(pay_total_money));
-            c6.setCellValue("本次已付:" + pay_total_money);
-            c9.setCellValue("本次应付:" + allOrderPrice);
-
-
+            c3.setCellValue("共:"+packageNum + "件");
         }
 
         try {
