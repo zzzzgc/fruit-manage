@@ -92,6 +92,8 @@ public class OrderController extends BaseController {
         // 商铺ID
         paramMap.put("businessInfoID", getPara("businessInfo_id"));
 
+        paramMap.put("orderId", getPara("order_id"));
+
         String orderStatus = getPara("order_status");
 
         // ascending为升序，其他为降序

@@ -177,6 +177,10 @@ public class Order extends BaseOrder<Order> {
             params.add(startDate);
             params.add(endDate);
         }
+        if (StrKit.notBlank((String) map.get("orderId"))) {
+            sql.append(" and o.order_id like ? ");
+            params.add("%"+map.get("orderId")+"%");
+        }
         sql.append("GROUP BY o.order_id ");
         orderBy = StrKit.isBlank(orderBy) ? "o.create_time" : orderBy;
         sql.append("order by " + orderBy + " " + (isASC ? "" : "desc "));
