@@ -41,6 +41,14 @@ public abstract class BaseProcurementPlanDetail<M extends BaseProcurementPlanDet
 		return getInt("procurement_id");
 	}
 
+	public void setProcurementPlanId(java.lang.String procurementPlanId) {
+		set("procurement_plan_id", procurementPlanId);
+	}
+
+	public java.lang.String getProcurementPlanId() {
+		return getStr("procurement_plan_id");
+	}
+
 	public void setProductName(java.lang.String productName) {
 		set("product_name", productName);
 	}

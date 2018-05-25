@@ -39,6 +39,8 @@ public class PlanDetailController extends BaseController {
         int pageSize = getParaToInt("pageSize", 10);
         Map map = new HashMap();
         String orderBy = getPara("prop");
+        String procurementPlanId = getPara("procurementPlanId");
+        map.put("procurementPlanId", procurementPlanId);
         // ascending为升序，其他为降序
         boolean isASC = "ascending".equals(getPara("order"));
         Date createTime = getParaToDate("create_time");
@@ -79,6 +81,7 @@ public class PlanDetailController extends BaseController {
         // 获取当前操作用户
         User user = User.dao.findById(uid);
         Date createTime = getParaToDate("createTime");
+        String procurementPlanId = getPara("procurementPlanId");
         String createTimeStr = DateAndStringFormat.getStringDateShort(createTime);
         String[] createTimes = new String[2];
         createTimes[0] = DateAndStringFormat.getNextDay(createTimeStr, "-1") + " 12:00:00";
@@ -89,7 +92,9 @@ public class PlanDetailController extends BaseController {
 //        ProcurementPlanDetail.dao.delPPlanDetail(createTimes);
         try {
             for (ProcurementPlan procurementPlan : planList) {
-                ProcurementPlanDetail procurementPlanDetail2 = ProcurementPlanDetail.dao.getPPlanDetailByPSID(procurementPlan.get("productStandardID"), createTimes, null);
+                // ccz 2018-5-25 获取采购计划详细数据的时间条件转换成采购计划编号
+//                ProcurementPlanDetail procurementPlanDetail2 = ProcurementPlanDetail.dao.getPPlanDetailByPSID(procurementPlan.get("productStandardID"), createTimes, null);
+                ProcurementPlanDetail procurementPlanDetail2 = ProcurementPlanDetail.dao.getPPlanDetailByPSID(procurementPlan.get("productStandardID"), procurementPlanId, null);
                 // 如果采购计划不存在就新增
                 if (procurementPlanDetail2 == null) {
                     Integer productId = procurementPlan.get("productId");
@@ -107,8 +112,11 @@ public class PlanDetailController extends BaseController {
                     procurementPlanDetail.setProcurementTotalPrice(BigDecimal.valueOf(procurementPlan.get("procurementTotalPrice")));
                     procurementPlanDetail.setOrderRemark(procurementPlan.get("orderRemark"));
                     procurementPlanDetail.setProcurementRemark(procurementPlan.get("procurementRemark"));
+                    procurementPlanDetail.setProcurementPlanId(procurementPlanId);
                     procurementPlanDetail.setCreateTime(createTime);
                     procurementPlanDetail.setUpdateTime(new Date());
+                    // ccz 2018-5-2采购计划详细添加采购计划编号
+                    procurementPlanDetail.setProcurementPlanId(procurementPlanId);
                     procurementPlanDetail.save();
                 } else {
                     procurementPlanDetail2.setProductStandardNum(Integer.parseInt(procurementPlan.get("productStandardNum") + ""));
@@ -129,6 +137,7 @@ public class PlanDetailController extends BaseController {
             procurementPlan2.update();
             renderNull();
         } catch (Exception e) {
+            e.printStackTrace();
             renderErrorText("更新失败!");
         }
     }
@@ -161,6 +170,7 @@ public class PlanDetailController extends BaseController {
 //        UploadFile uploadFile=getFile("file");
         try {
             String fileName = getPara("fileName");
+            String procurementPlanId = getPara("procurementPlanId");
             String filePath = CommonController.FILE_PATH + File.separator + fileName;
             ExcelRd excelRd = new ExcelRd(filePath);
             excelRd.setStartRow(1);
@@ -201,7 +211,9 @@ public class PlanDetailController extends BaseController {
                 }
                 if (count > 2) {
                     boolean flag = false;
-                    ProcurementPlanDetail procurementPlanDetail = ProcurementPlanDetail.dao.getPPlanDetailByPSID((Integer) row.get(0), createTimes, null);
+                    // ccz 2018-5-25 获取采购计划详细数据的时间条件转换成采购计划编号
+//                    ProcurementPlanDetail procurementPlanDetail = ProcurementPlanDetail.dao.getPPlanDetailByPSID((Integer) row.get(0), createTimes, null);
+                    ProcurementPlanDetail procurementPlanDetail = ProcurementPlanDetail.dao.getPPlanDetailByPSID((Integer) row.get(0), procurementPlanId, null);
                     if (procurementPlanDetail != null) {
                         List<Integer> userIDs = map.get(row.get(0));
                         if (userIDs != null) {
@@ -255,8 +267,10 @@ public class PlanDetailController extends BaseController {
                     }
                 }
             }
+            // ccz 2018-5-25 获取采购计划详细数据的时间条件转换成采购计划编号
             // 进行删除操作
-            List<ProcurementPlanDetail> procurementPlanDetails = ProcurementPlanDetail.dao.getPSIDAndPSCount(createTimes);
+//            List<ProcurementPlanDetail> procurementPlanDetails = ProcurementPlanDetail.dao.getPSIDAndPSCount(createTimes);
+            List<ProcurementPlanDetail> procurementPlanDetails = ProcurementPlanDetail.dao.getPSIDAndPSCount(procurementPlanId);
             for (int i = 0; i < procurementPlanDetails.size(); i++) {
                 ProcurementPlanDetail procurementPlanDetail = procurementPlanDetails.get(i);
                 Integer psID = procurementPlanDetail.getProductStandardId();
@@ -264,7 +278,8 @@ public class PlanDetailController extends BaseController {
                 List<Integer> list = map.get(psID);
                 // 判断导入的用户是否少了
                 if (list != null && list.size() < psCount) {
-                    List<ProcurementPlanDetail> procurementPlanDetailList = ProcurementPlanDetail.dao.getPPDIDAndProcurementID(createTimes, psID);
+//                    List<ProcurementPlanDetail> procurementPlanDetailList = ProcurementPlanDetail.dao.getPPDIDAndProcurementID(createTimes, psID);
+                    List<ProcurementPlanDetail> procurementPlanDetailList = ProcurementPlanDetail.dao.getPPDIDAndProcurementID(procurementPlanId, psID);
                     for (int j = 0; j < procurementPlanDetailList.size(); j++) {
                         ProcurementPlanDetail procurementPlanDetail2 = procurementPlanDetailList.get(j);
                         Integer procurementId = procurementPlanDetail2.getProcurementId();
@@ -358,6 +373,7 @@ public class PlanDetailController extends BaseController {
         try {
 
             String fileName = getPara("fileName");
+            String procurementPlanId = getPara("procurementPlanId");
             String filePath = CommonController.FILE_PATH + File.separator + fileName;
             Iterator<ExcelRdRow> iterator = PlanDetailController.readExcel(filePath).iterator();
             Integer count = 0;
@@ -374,7 +390,9 @@ public class PlanDetailController extends BaseController {
                     createTimes[0] = DateAndStringFormat.getNextDay(createTimeStr, "-1") + " 12:00:00";
                     createTimes[1] = createTimeStr + " 11:59:59";
                     // 根据时间获取所有的采购计划
-                    List<ProcurementPlanDetail> procurementPlanDetailList = ProcurementPlanDetail.dao.getAllPPlanDetail(createTimes);
+                    // ccz 2018-5-25 修改获取采购计划详细的时间条件为采购计划编号
+//                    List<ProcurementPlanDetail> procurementPlanDetailList = ProcurementPlanDetail.dao.getAllPPlanDetail(createTimes);
+                    List<ProcurementPlanDetail> procurementPlanDetailList = ProcurementPlanDetail.dao.getAllPPlanDetail(procurementPlanId);
                     if (procurementPlanDetailList != null && procurementPlanDetailList.size() > 0) {
                         //循环所有的采购计划数据到Map临时数据
                         for (ProcurementPlanDetail pPlanDetail : procurementPlanDetailList) {
@@ -444,6 +462,7 @@ public class PlanDetailController extends BaseController {
                 Integer tableIndex = 0;
                 Integer rowIndex = 1;
                 try {
+                    String procurementPlanId = getPara("procurementPlanId");
                     String fileName = getPara("fileName");
                     String filePath = CommonController.FILE_PATH + File.separator + fileName;
                     Map<String, ProcurementPlanDetail> mapKeyOne = new HashMap<>();
@@ -473,7 +492,9 @@ public class PlanDetailController extends BaseController {
                                 System.out.println("");
                                 procurementId = User.dao.getUserIdByName(((String) row.get(3)).split(":")[1]);
                                 // 根据时间获取所有的采购计划
-                                List<ProcurementPlanDetail> procurementPlanDetailList = ProcurementPlanDetail.dao.getAllPPlanDetail(createTimes);
+                                // ccz 2018-5-25 修改获取采购计划详细的时间条件为采购计划编号
+//                                List<ProcurementPlanDetail> procurementPlanDetailList = ProcurementPlanDetail.dao.getAllPPlanDetail(createTimes);
+                                List<ProcurementPlanDetail> procurementPlanDetailList = ProcurementPlanDetail.dao.getAllPPlanDetail(procurementPlanId);
                                 if (procurementPlanDetailList != null && procurementPlanDetailList.size() > 0) {
                                     //循环所有的采购计划数据到Map临时数据
                                     for (ProcurementPlanDetail pPlanDetail : procurementPlanDetailList) {
@@ -487,7 +508,9 @@ public class PlanDetailController extends BaseController {
                             if (count > 2) {
                                 if (count == 3 && i == 0) {
                                     // 根据时间删除所有的采购计划
-                                    ProcurementPlanDetail.dao.delAllPPlanDetailByTime(createTimes);
+                                    // ccz 2018-5-25 修改删除采购计划详细由创建时间转换成采购计划编号
+//                                    ProcurementPlanDetail.dao.delAllPPlanDetailByTime(createTimes);
+                                    ProcurementPlanDetail.dao.delAllPlanDetailByPPlanId(procurementPlanId);
                                 }
                                 if (procurementId == null || procurementId.equals(0)) {
                                     continue;
@@ -515,6 +538,8 @@ public class PlanDetailController extends BaseController {
                                     BigDecimal pNum = new BigDecimal(procurementNum);
                                     pPDtailTwo.setProcurementTotalPrice(procurementNeedPrice.multiply(pNum));
                                     pPDtailTwo.setUpdateTime(new Date());
+                                    // ccz  2018-5-28 添加的采购计划编号
+                                    pPDtailTwo.setProcurementPlanId(procurementPlanId);
                                     pPDtailTwo.save();
                                 } else {
                                     ProcurementPlanDetail pPDtailOne = mapKeyOne.get(productStandardId + "");
@@ -532,6 +557,8 @@ public class PlanDetailController extends BaseController {
                                         BigDecimal pNum = new BigDecimal(procurementNum);
                                         pPDtailOne.setProcurementTotalPrice(procurementNeedPrice.multiply(pNum));
                                         pPDtailOne.setUpdateTime(new Date());
+                                        // ccz  2018-5-28 添加的采购计划编号
+                                        pPDtailOne.setProcurementPlanId(procurementPlanId);
                                         pPDtailOne.save();
                                     }
                                 }

@@ -62,7 +62,9 @@ public class PlanController extends BaseController {
             createTimes[0] = DateAndStringFormat.getNextDay(createTimeStr,"-1")+" 12:00:00";
             createTimes[1] = createTimeStr+" 11:59:59";
             // 根据采购生成时间删除采购计划详细
-            ProcurementPlanDetail.dao.delAllPPlanDetailByTime(createTimes);
+            // ccz 2018-5-25 修改删除采购计划详细的方法由时间判断转换成采购计划编号
+//            ProcurementPlanDetail.dao.delAllPPlanDetailByTime(createTimes);
+            ProcurementPlanDetail.dao.delAllPlanDetailByPPlanId(procurementPlan.getId());
             // 根据采购生成时间修改订单日志统计状态为未统计（0）
             OrderLog.dao.updateOrderLog(createTimes);
             renderResult(ProcurementPlan.dao.deleteById(pPlanId));
