@@ -17,6 +17,7 @@ import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.omg.CORBA.INTERNAL;
 
 import java.io.File;
 import java.io.IOException;
@@ -222,34 +223,35 @@ public class WarehouseOutContrller extends BaseController {
 
                             // 获取所有订单详细
                             List<OrderDetail> orderDetails = OrderDetail.dao.getOrderDetails(orderId);
-                            Map<Integer, OrderDetail> orderDetailMap = orderDetails.stream().collect(Collectors.toMap(OrderDetail::getProductStandardId, Function.identity()));
+                            Map<Integer, OrderDetail> orderDetailMap = orderDetails.stream().collect(Collectors.toMap(OrderDetail::getId, Function.identity()));
 
                             // 列表在7行开始,8倒数第3行结束 (+1-2 = -1)
                             for (int j = 7; j < sheet.getLastRowNum() - 1; j++) {
-                                // 0        1         2      3         4     5       6
-                                // 商品名称,规格名称,规格编码,重量（斤,下单数量,实发数量,商品备注
+                                // 0        1         2      3         4     5       6    7
+                                // 订单详细编号  商品名称,规格名称,规格编码,重量（斤,下单数量,实发数量,商品备注
 
                                 try {
                                     Row row = sheet.getRow(j);
 
-                                    // 一共有7列
-                                    String productName = row.getCell(0).getStringCellValue();
-                                    Integer productStandardId = (int) row.getCell(2).getNumericCellValue();
-                                    String productWeight = row.getCell(3).getStringCellValue();
-                                    Integer outNum =  Integer.valueOf(row.getCell(5).toString());
-                                    String outRemark = row.getCell(6).toString();
+                                    // 一共有8列
+                                    Integer productDetailId = Integer.valueOf(row.getCell(0).getStringCellValue());
+                                    String productName = row.getCell(1).getStringCellValue();
+                                    Integer productStandardId = (int) row.getCell(3).getNumericCellValue();
+                                    String productWeight = row.getCell(4).getStringCellValue();
+                                    Integer outNum = (int) row.getCell(6).getNumericCellValue();
+                                    String outRemark = row.getCell(7).toString();
 
                                     ProductStandard productStandard = ProductStandard.dao.findById(productStandardId);
                                     Integer stock = productStandard.getStock();
                                     if (stock < outNum) {
-                                        excelExceptionRender(sheetCount,j,"用户" + userName + "的出货单的商品" + productName + "的规格" + productStandard.getName() + "库存为" + stock + "出货数量为" + outNum);
+                                        excelExceptionRender(sheetCount, j, "用户" + userName + "的出货单的商品" + productName + "的规格" + productStandard.getName() + "库存为" + stock + "出货数量为" + outNum);
                                         return false;
                                     }
                                     Integer uid = getSessionAttr(Constant.SESSION_UID);
 
-                                    OrderDetail orderDetail = orderDetailMap.get(productStandardId);
+                                    OrderDetail orderDetail = orderDetailMap.get(productDetailId);
                                     if (orderDetail == null) {
-                                        excelExceptionRender(sheetCount,j,"orderId为" + orderId + "不存在productStandardId为" + productStandardId);
+                                        excelExceptionRender(sheetCount, j, "orderId为" + orderId + "不存在productStandardId为" + productStandardId);
                                         return false;
                                     }
 
@@ -304,13 +306,13 @@ public class WarehouseOutContrller extends BaseController {
                                     }
                                 } catch (Exception e) {
                                     e.printStackTrace();
-                                    excelExceptionRender(sheetCount,j,e.getMessage());
+                                    excelExceptionRender(sheetCount, j, e.getMessage());
                                     return false;
                                 }
                             }
                         } catch (Exception e) {
                             e.printStackTrace();
-                            excelExceptionRender(sheetCount,null,e.getMessage());
+                            excelExceptionRender(sheetCount, null, e.getMessage());
                             return false;
                         }
                     }
@@ -332,11 +334,11 @@ public class WarehouseOutContrller extends BaseController {
         });
     }
 
-    private void excelExceptionRender(Integer sheetCount,Integer rowCount,String ErrorMsg){
+    private void excelExceptionRender(Integer sheetCount, Integer rowCount, String ErrorMsg) {
         StringBuilder sb = new StringBuilder();
-        sb.append("第"+(sheetCount+1)+"个表");
+        sb.append("第" + (sheetCount + 1) + "个表");
         if (rowCount != null) {
-            sb.append("的第"+(rowCount+1)+"行");
+            sb.append("的第" + (rowCount + 1) + "行");
         }
         sb.append("出现异常").append(ErrorMsg);
         renderErrorText(sb.toString());

@@ -325,7 +325,6 @@ public class ExcelController extends BaseController {
                 XSSFCell c6;
                 XSSFCell c9;
 
-
                 // 1 line
                 XSSFRow row = sheet.createRow(rowCount++);
                 row.setHeightInPoints(textHeight);
@@ -340,7 +339,6 @@ public class ExcelController extends BaseController {
                 } else if(excelCount < 100) {
                     excelTitle = "0"+excelCount;
                 }
-//                c9.setCellValue(DateFormatUtils.format(now, "yyyy-MM-dd") + "广州嘻果出货单" + now.getTime());
                 c9.setCellValue(DateFormatUtils.format(now, "yyyy-MM-dd") + "广州嘻果出货单" + excelTitle);
 
                 // 2 line
@@ -404,6 +402,7 @@ public class ExcelController extends BaseController {
                 XSSFCell c4;
                 XSSFCell c5;
                 XSSFCell c7;
+                XSSFCell c8;
 
                 // data
                 row = sheet.createRow(rowCount++);
@@ -415,6 +414,7 @@ public class ExcelController extends BaseController {
                 c5 = row.createCell(4);
                 c6 = row.createCell(5);
                 c7 = row.createCell(6);
+                c8 = row.createCell(7);
                 c1.setCellStyle(styleTable);
                 c2.setCellStyle(styleTable);
                 c3.setCellStyle(styleTable);
@@ -422,16 +422,19 @@ public class ExcelController extends BaseController {
                 c5.setCellStyle(styleTable);
                 c6.setCellStyle(styleTable);
                 c7.setCellStyle(styleTable);
+                c8.setCellStyle(styleTable);
 
-                c1.setCellValue("商品名称");
-                c2.setCellValue("规格名称");
-                c3.setCellValue("规格编号");
-                c4.setCellValue("重量斤");
-                c5.setCellValue("下单数量");
-                c6.setCellValue("实发数量");
-                c7.setCellValue("商品备注");
+                c1.setCellValue("订单详细编号");
+                c2.setCellValue("商品名称");
+                c3.setCellValue("规格名称");
+                c4.setCellValue("规格编号");
+                c5.setCellValue("重量斤");
+                c6.setCellValue("下单数量");
+                c7.setCellValue("实发数量");
+                c8.setCellValue("商品备注");
 
                 String sql2 = "SELECT " +
+                        "od.id, " +
                         "od.product_name, " +
                         "od.product_standard_name, " +
                         "od.product_standard_id, " +
@@ -445,6 +448,7 @@ public class ExcelController extends BaseController {
                         "INNER JOIN b_order_detail AS od ON o.order_id = od.order_id " +
                         "INNER JOIN b_product_standard AS ps ON od.product_standard_id = ps.id " +
                         "WHERE o.order_id = ? ";
+
                 List<OrderDetail> orderDetails = OrderDetail.dao.find(sql2, orderId);
                 for (OrderDetail orderDetail : orderDetails) {
                     row = sheet.createRow(rowCount++);
@@ -456,6 +460,8 @@ public class ExcelController extends BaseController {
                     c5 = row.createCell(4);
                     c6 = row.createCell(5);
                     c7 = row.createCell(6);
+                    c8 = row.createCell(7);
+
                     c1.setCellStyle(styleTable);
                     c2.setCellStyle(styleTable);
                     c3.setCellStyle(styleTable);
@@ -463,19 +469,20 @@ public class ExcelController extends BaseController {
                     c5.setCellStyle(styleTable);
                     c6.setCellStyle(styleTable);
                     c7.setCellStyle(styleTable);
+                    c8.setCellStyle(styleTable);
 
-                    c3.setCellType(CellType.NUMERIC);
-                    c5.setCellType(CellType.NUMERIC);
+                    c4.setCellType(CellType.NUMERIC);
                     c6.setCellType(CellType.NUMERIC);
+                    c7.setCellType(CellType.NUMERIC);
 
-                    c1.setCellValue(orderDetail.get("product_name") + "");
-                    c2.setCellValue(orderDetail.get("product_standard_name") + "");
-                    c3.setCellValue((Integer) orderDetail.get("product_standard_id"));
-                    c4.setCellValue(orderDetail.get("sub_title").toString());
-                    c5.setCellValue((Integer) orderDetail.get("num"));
-//                    c6.setCellValue(0);
-                    c6.setCellValue(orderDetail.get("actual_send_goods_num") == null ? "" : orderDetail.get("actual_send_goods_num") + "");
-                    c7.setCellValue(orderDetail.get("buy_remark") != null ? orderDetail.get("buy_remark") + "" : null);
+                    c1.setCellValue(orderDetail.get("id") + "");
+                    c2.setCellValue(orderDetail.get("product_name") + "");
+                    c3.setCellValue(orderDetail.get("product_standard_name") + "");
+                    c4.setCellValue((Integer) orderDetail.get("product_standard_id"));
+                    c5.setCellValue(orderDetail.get("sub_title").toString());
+                    c6.setCellValue((Integer) orderDetail.get("num"));
+                    c7.setCellValue(orderDetail.get("actual_send_goods_num") == null ? "" : orderDetail.get("actual_send_goods_num") + "");
+                    c8.setCellValue(orderDetail.get("buy_remark") != null ? orderDetail.get("buy_remark") + "" : null);
                 }
                 // 添加三行空行
 //            sheet.createRow(rowCount++).setRowStyle(styleTable);
@@ -505,7 +512,6 @@ public class ExcelController extends BaseController {
                 c3.setCellValue("点单:");
                 c6.setCellValue("核单:");
                 c9.setCellValue("打泡:");
-
             }
 
             HttpServletResponse response = getResponse();
@@ -625,7 +631,7 @@ public class ExcelController extends BaseController {
             String salesPhone = order.get("sales_phone");
 
             // 创建表
-            XSSFSheet sheet = wb.createSheet(businessName + "_商家收款单");
+            XSSFSheet sheet = wb.createSheet(businessName);
             // 去除网格线
             sheet.setDisplayGridlines(false);
             sheet.setDefaultRowHeight((short) (512));
@@ -843,24 +849,29 @@ public class ExcelController extends BaseController {
             c7.setCellValue("本次货款:");
             c9.setCellValue("" + pay_all_money);
 
-            row = sheet.createRow(rowCount++);
-            row.setHeightInPoints(textHeight);
-            _mergedRegionNowRow(sheet, row, 1, 3);
-            _mergedRegionNowRow(sheet, row, 4, 6);
-            _mergedRegionNowRow(sheet, row, 8, 9);
-            c3 = row.createCell(0);
-            c6 = row.createCell(3);
-            c7 = row.createCell(6);
-            c9 = row.createCell(7);
-            c3.setCellStyle(styleText);
-            c6.setCellStyle(styleText);
-            c7.setCellStyle(styleText);
-            c9.setCellStyle(styleText);
-            c3.setCellValue("前次未结:" + allOrderPrice.subtract(pay_all_money).add(pay_total_money));
-            c6.setCellValue("本次已付:" + pay_total_money);
-            c7.setCellValue("本次应付:");
-            c9.setCellValue(""+allOrderPrice);
+//            row = sheet.createRow(rowCount++);
+//            row.setHeightInPoints(textHeight);
+//            _mergedRegionNowRow(sheet, row, 1, 3);
+//            _mergedRegionNowRow(sheet, row, 4, 6);
+//            _mergedRegionNowRow(sheet, row, 8, 9);
+//            c3 = row.createCell(0);
+//            c6 = row.createCell(3);
+//            c7 = row.createCell(6);
+//            c9 = row.createCell(7);
+//            c3.setCellStyle(styleText);
+//            c6.setCellStyle(styleText);
+//            c7.setCellStyle(styleText);
+//            c9.setCellStyle(styleText);
+//            c3.setCellValue("前次未结:" + allOrderPrice.subtract(pay_all_money).add(pay_total_money));
+//            c6.setCellValue("本次已付:" + pay_total_money);
+//            c7.setCellValue("本次应付:");
+//            c9.setCellValue(""+allOrderPrice);
 
+            row = sheet.createRow(rowCount++);
+            _mergedRegionNowRow(sheet, row, 1, 3);
+            c3 = row.createCell(0);
+            c3.setCellStyle(styleText);
+            c3.setCellValue("本次已付:" + pay_total_money);
 
             String logisticsInfoSQL = "SELECT li.package_num from b_logistics_info li where li.order_id = ? ";
             String packageNum = Db.queryStr(logisticsInfoSQL,orderId);
@@ -961,7 +972,7 @@ public class ExcelController extends BaseController {
         procurementPlanGroup.forEach(
                 (productStandardName, procurementPlanList) -> {
                     try {
-                        XSSFSheet sheet = wb.createSheet(productStandardName + "_采购计划单");
+                        XSSFSheet sheet = wb.createSheet(productStandardName);
                         sheet.setDisplayGridlines(false);
                         sheet.setDefaultRowHeight((short) (512));
 
