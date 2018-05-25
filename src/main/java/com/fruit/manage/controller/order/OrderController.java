@@ -478,6 +478,8 @@ public class OrderController extends BaseController {
                 "then 0 else 1 end = 0 or bu.a_user_sales_id = ? " +
                 ") " +
 
+                //ccz 2018-5-25 添加未有认证的商户不能被下单
+                " and (SELECT ba.id from b_business_auth ba where ba.u_id = bu.id) is not null " +
 //                  "bu.a_user_sales_id = ? " +
                 // 因为User的角色可以多个，所以查询的数据有多条重复的商家，只有给商家编号分组，就能达到去重
                 " group by bu.id ";
