@@ -56,8 +56,8 @@ public class OutWarehouseDetail extends BaseOutWarehouseDetail<OutWarehouseDetai
                 "\towd.id,\n" +
                 "\towd.product_name,\n" +
                 "\towd.product_id,\n" +
-                "\towd.product_standard_name,\n" +
                 "\towd.product_standard_id,\n" +
+                "\towd.product_standard_name,\n" +
                 "\towd.product_weight,\n" +
                 "\towd.out_num,\n" +
                 "\towd.out_price,\n" +
@@ -102,6 +102,7 @@ public class OutWarehouseDetail extends BaseOutWarehouseDetail<OutWarehouseDetai
                 " ow.out_total_price, " +
                 " ow.out_average_price, " +
                 " ow.user_name, " +
+                " ow.order_detail_id, " +
                 " ow.order_num, " +
                 " ow.order_time, " +
                 " ow.out_type, " +

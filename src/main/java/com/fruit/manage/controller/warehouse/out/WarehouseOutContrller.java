@@ -188,24 +188,9 @@ public class WarehouseOutContrller extends BaseController {
 
                     Integer colTotalNum = 7;
 
-                    // 商品数量
-                    Integer productTotalNum = 0;
-
-                    // 商品品类数量
-                    Integer productStandardTotalNum = 0;
-
-                    // 出库总额
-                    BigDecimal allTotalPrice = new BigDecimal(0.00);
-
                     // 获取出库详细的历史数据
                     List<OutWarehouseDetail> oldOutWarehouseDetail = OutWarehouseDetail.dao.getOutWarehouseDetail(outId);
-                    Map<Integer, OutWarehouseDetail> oldOutWarehouseDetailMap = oldOutWarehouseDetail == null ? new HashMap<>(1) : oldOutWarehouseDetail.stream().collect(Collectors.toMap(outWarehouseDetail -> outWarehouseDetail.getProductStandardId() + outWarehouseDetail.getUserId(), Function.identity()));
-
-                    for (OutWarehouseDetail outWarehouseDetail : oldOutWarehouseDetail) {
-                        productTotalNum += outWarehouseDetail.getOutNum();
-                        ++productStandardTotalNum;
-                        allTotalPrice = allTotalPrice.add(outWarehouseDetail.getOutTotalPrice());
-                    }
+                    Map<Integer, OutWarehouseDetail> oldOutWarehouseDetailMap = oldOutWarehouseDetail == null || oldOutWarehouseDetail.size() < 1 ? new HashMap<>(1) : oldOutWarehouseDetail.stream().collect(Collectors.toMap(OutWarehouseDetail::getOrderDetailId, Function.identity()));
 
                     // 不止一张表
                     for (int sheetCount = 0; sheetCount < sheets.getNumberOfSheets(); sheetCount++) {
@@ -234,12 +219,18 @@ public class WarehouseOutContrller extends BaseController {
                                     Row row = sheet.getRow(j);
 
                                     // 一共有8列
-                                    Integer productDetailId = Integer.valueOf(row.getCell(0).getStringCellValue());
-                                    String productName = row.getCell(1).getStringCellValue();
+                                    Integer orderDetailId = Integer.valueOf(row.getCell(0) + "");
+                                    String productName = row.getCell(1) + "";
                                     Integer productStandardId = (int) row.getCell(3).getNumericCellValue();
-                                    String productWeight = row.getCell(4).getStringCellValue();
+                                    String productWeight = row.getCell(4) + "";
                                     Integer outNum = (int) row.getCell(6).getNumericCellValue();
-                                    String outRemark = row.getCell(7).toString();
+                                    String outRemark = row.getCell(7) + "";
+
+                                    OrderDetail orderDetail = orderDetailMap.get(orderDetailId);
+                                    if (orderDetail == null) {
+                                        excelExceptionRender(sheetCount, j, "订单详细Id:" + orderDetailId);
+                                        return false;
+                                    }
 
                                     ProductStandard productStandard = ProductStandard.dao.findById(productStandardId);
                                     Integer stock = productStandard.getStock();
@@ -247,13 +238,8 @@ public class WarehouseOutContrller extends BaseController {
                                         excelExceptionRender(sheetCount, j, "用户" + userName + "的出货单的商品" + productName + "的规格" + productStandard.getName() + "库存为" + stock + "出货数量为" + outNum);
                                         return false;
                                     }
-                                    Integer uid = getSessionAttr(Constant.SESSION_UID);
 
-                                    OrderDetail orderDetail = orderDetailMap.get(productDetailId);
-                                    if (orderDetail == null) {
-                                        excelExceptionRender(sheetCount, j, "orderId为" + orderId + "不存在productStandardId为" + productStandardId);
-                                        return false;
-                                    }
+                                    Integer uid = getSessionAttr(Constant.SESSION_UID);
 
                                     productStandard.setStock(stock - outNum);
                                     // 0入 1出
@@ -262,7 +248,7 @@ public class WarehouseOutContrller extends BaseController {
                                     BigDecimal sellPrice = orderDetail.getSellPrice();
                                     BigDecimal totalPrice = sellPrice.multiply(new BigDecimal(outNum));
 
-                                    OutWarehouseDetail outWarehouseDetail = oldOutWarehouseDetailMap.get(productStandardId + orderDetail.getUId());
+                                    OutWarehouseDetail outWarehouseDetail = oldOutWarehouseDetailMap.get(orderDetailId);
 
                                     if (outWarehouseDetail == null) {
                                         OutWarehouseDetail owd = new OutWarehouseDetail();
@@ -270,7 +256,7 @@ public class WarehouseOutContrller extends BaseController {
                                         owd.setProductName(orderDetail.getProductName());
                                         owd.setProductStandardId(orderDetail.getProductStandardId());
                                         owd.setProductStandardName(orderDetail.getProductStandardName());
-                                        owd.setProductWeight(productWeight);
+                                        owd.setProductWeight(productStandard.getSubTitle());
                                         owd.setOutTotalPrice(totalPrice);
                                         owd.setOutId(outId);
                                         owd.setOutAveragePrice(sellPrice);
@@ -281,29 +267,34 @@ public class WarehouseOutContrller extends BaseController {
                                         owd.setOutRemark(outRemark);
                                         owd.setUserId(orderDetail.getUId());
                                         owd.setUserName(userName);
+                                        owd.setOrderDetailId(orderDetail.getId());
                                         owd.setOrderNum(orderDetail.getNum());
                                         owd.setOrderTime(orderDetail.getCreateTime());
                                         owd.setUpdateTime(new Date());
                                         owd.setCreateTime(new Date());
                                         // TODO 临时
                                         owd.save();
-                                        productTotalNum += outNum;
-                                        ++productStandardTotalNum;
-                                        allTotalPrice = allTotalPrice.add(totalPrice);
+//                                        productTotalNum += outNum;
+//                                        ++productStandardTotalNum;
+//                                        allTotalPrice = allTotalPrice.add(totalPrice);
                                         // 避免重复添加
-                                        oldOutWarehouseDetailMap.put(orderDetail.getProductStandardId(), owd);
+                                        oldOutWarehouseDetailMap.put(orderDetail.getId(), owd);
+                                        // 用来统计计算
+                                        oldOutWarehouseDetail.add(owd);
                                     } else {
                                         // 只需要更新 库户名 出库数量 重量
                                         outWarehouseDetail.setUserName(userName);
-                                        productTotalNum += outNum - outWarehouseDetail.getOutNum();
+//                                        productTotalNum += outNum;
                                         outWarehouseDetail.setOutNum(outNum);
                                         outWarehouseDetail.setProductWeight(productWeight);
                                         outWarehouseDetail.update();
-                                        allTotalPrice = allTotalPrice.add(totalPrice.subtract(outWarehouseDetail.getOutTotalPrice()));
-                                        if (outNum == 0) {
-                                            --productStandardTotalNum;
-                                        }
+//                                        allTotalPrice = allTotalPrice.add(totalPrice.subtract(outWarehouseDetail.getOutTotalPrice()));
+//                                        if (outNum == 0) {
+//                                            --productStandardTotalNum;
+//                                        }
                                     }
+
+
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                     excelExceptionRender(sheetCount, j, e.getMessage());
@@ -316,6 +307,28 @@ public class WarehouseOutContrller extends BaseController {
                             return false;
                         }
                     }
+
+                    // 商品数量
+                    Integer productTotalNum = 0;
+
+                    // 商品品类数量
+                    Integer productStandardTotalNum = 0;
+                    Map<Integer,Integer> productStandardTotalMap = new HashMap<>(10000);
+
+                    // 出库总额
+                    BigDecimal allTotalPrice = new BigDecimal(0.00);
+
+                    for (OutWarehouseDetail outWarehouseDetail : oldOutWarehouseDetail) {
+                        productTotalNum += outWarehouseDetail.getOutNum();
+                        Integer  productStandardId = productStandardTotalMap.get(outWarehouseDetail.getProductStandardId());
+                        if (productStandardId == null) {
+                            productStandardTotalMap.put(outWarehouseDetail.getProductStandardId(),outWarehouseDetail.getProductStandardId());
+                        }
+
+                        allTotalPrice = allTotalPrice.add(outWarehouseDetail.getOutTotalPrice());
+                    }
+
+                    productStandardTotalNum = productStandardTotalMap.size();
 
                     OutWarehouse ow = new OutWarehouse();
                     ow.setId(outId);

@@ -5,10 +5,12 @@ import com.fruit.manage.model.base.BaseOrderDetail;
 import com.jfinal.aop.Before;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.IAtom;
+import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.tx.Tx;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -216,18 +218,19 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
     }
 
 
+    /**
+     * 获取销售毛利
+     *
+     * @param pageNum
+     * @param pageSize
+     * @param orderBy
+     * @param isASC
+     * @return
+     */
+    public Page<OrderDetail> getSalesMarginList(int pageNum, int pageSize, String orderBy, boolean isASC) {
+        StringBuilder sql = new StringBuilder();
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+        ArrayList<Object> params = new ArrayList<>();
+        return paginate(pageNum, pageSize,"select * ",sql.toString(),params.toArray());
+    }
 }

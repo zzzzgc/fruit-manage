@@ -481,7 +481,7 @@ public class ExcelController extends BaseController {
                     c4.setCellValue((Integer) orderDetail.get("product_standard_id"));
                     c5.setCellValue(orderDetail.get("sub_title").toString());
                     c6.setCellValue((Integer) orderDetail.get("num"));
-                    c7.setCellValue(orderDetail.get("actual_send_goods_num") == null ? "" : orderDetail.get("actual_send_goods_num") + "");
+                    c7.setCellValue(Integer.valueOf (orderDetail.get("actual_send_goods_num") == null ? "" : orderDetail.get("actual_send_goods_num") + ""));
                     c8.setCellValue(orderDetail.get("buy_remark") != null ? orderDetail.get("buy_remark") + "" : null);
                 }
                 // 添加三行空行
