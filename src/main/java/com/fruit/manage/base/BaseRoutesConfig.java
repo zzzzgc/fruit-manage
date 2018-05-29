@@ -16,6 +16,7 @@ import com.fruit.manage.controller.login.LoginController;
 import com.fruit.manage.controller.order.OrderController;
 import com.fruit.manage.controller.procurement.PlanDetailController;
 import com.fruit.manage.controller.procurement.QuotaContrller;
+import com.fruit.manage.controller.statement.ProcurementStoreoutController;
 import com.fruit.manage.controller.system.MenuController;
 import com.fruit.manage.controller.system.PermissionController;
 import com.fruit.manage.controller.user.RolesController;
@@ -64,6 +65,7 @@ public class BaseRoutesConfig extends Routes {
 		add("/manage/payOrder", PayOrderController.class);
 		add("/manage/menu", MenuController.class);
 		add("/manage/permission", PermissionController.class);
+		add("/manage/statement/storeout", ProcurementStoreoutController.class);
 	}
 
 }

@@ -175,6 +175,13 @@ public class User extends BaseUser<User> {
         return dao.find("SELECT * FROM a_user au INNER JOIN a_user_role ur ON ur.user_id = au.id WHERE ur.role_id = ?", roleKeyCode.getRoleId());
     }
 
+    /**
+     * 获取所有指定角色的用户
+     * @return 所有拥有该角色的用户
+     */
+    public List<User> getUserNickNameAndUId(RoleKeyCode roleKeyCode) {
+        return dao.find("SELECT au.id,au.nick_name FROM a_user au INNER JOIN a_user_role ur ON ur.user_id = au.id WHERE ur.role_id = ?", roleKeyCode.getRoleId());
+    }
 
     /**
      * 获取所有的用户编号和用户名
