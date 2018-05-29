@@ -349,9 +349,15 @@ public class OrderController extends BaseController {
             // 设置实际支付需要的金额
             order.setPayRealityNeedMoney(payRealityNeedMoney);
             order.setUpdateTime(now);
+            // 统计订单总货款pay_all_price
+            Order oldOrder = Order.dao.findById(order.getId());
+            if (oldOrder.getPayLogisticsMoney() != null) {
+                // 订单总货款pay_all_money = 总订单物流费用+总订单实际支付金额
+                order.setPayAllMoney(oldOrder.getPayLogisticsMoney().add(payRealityNeedMoney));
+            }
             order.update();
         } else {
-            //添加,并校验是否存在相同订单周期的订单
+            //添加,并校验是否存在相同订单周期的订单.这时候物流信息还没出来,不能统计订单总货款 pay_all_price
 
             String orderId = IdUtil.getOrderId(orderCycle, businessUserId);
             Order nowOrder = Order.dao.getOrder(orderId);
