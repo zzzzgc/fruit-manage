@@ -10,4 +10,7 @@ public class test {
         Double a = 66.24;
         System.out.println(a*100);
     }
+
+
+                     ;
 }
