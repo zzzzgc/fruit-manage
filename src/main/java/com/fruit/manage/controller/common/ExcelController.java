@@ -7,6 +7,7 @@ import com.fruit.manage.constant.ShipmentConstant;
 import com.fruit.manage.model.*;
 import com.fruit.manage.util.Constant;
 import com.fruit.manage.util.DateAndStringFormat;
+import com.fruit.manage.util.DateUtils;
 import com.fruit.manage.util.ExcelCommon;
 import com.fruit.manage.util.excel.ExcelStyle;
 import com.fruit.manage.util.excelRd.ExcelRdTypeEnum;
@@ -232,7 +233,6 @@ public class ExcelController extends BaseController {
      * <p>
      * 信息展示默认以三列为一个单元
      */
-    @Before(Tx.class)
     public void getBusinessSendGoodsBilling() {
         Integer uid = getSessionAttr(Constant.SESSION_UID);
         try {
@@ -241,18 +241,18 @@ public class ExcelController extends BaseController {
             // 创建Excel
             XSSFWorkbook wb = new XSSFWorkbook();
 
-            // 根据今天的首日订单周期生成  昨天12:00 - 今天12:00
-            Calendar calendar = Calendar.getInstance();
-            // 昨天
-            calendar.add(Calendar.DAY_OF_MONTH, -1);
             List<Object> params = new ArrayList<Object>();
+//            // 根据今天的首日订单周期生成  昨天12:00 - 今天12:00
+//            Calendar calendar = Calendar.getInstance();
+//            // 昨天
+//            calendar.add(Calendar.DAY_OF_MONTH, -1);
+//
+//            String startDateStr = DateTimeKit.formatDateToStyle("yyyy-MM-dd", calendar.getTime()) + " 12:00:00";
+//            calendar.add(Calendar.DAY_OF_MONTH, 1);
+//            String endDateStr = DateTimeKit.formatDateToStyle("yyyy-MM-dd", calendar.getTime()) + " 12:00:00";
+            Date createTime = getParaToDate("createTime");
 
-            String startDateStr = DateTimeKit.formatDateToStyle("yyyy-MM-dd", calendar.getTime()) + " 12:00:00";
-            calendar.add(Calendar.DAY_OF_MONTH, 1);
-            String endDateStr = DateTimeKit.formatDateToStyle("yyyy-MM-dd", calendar.getTime()) + " 12:00:00";
-
-            params.add(startDateStr);
-            params.add(endDateStr);
+            String[] createTimes = DateUtils.getOrderCycleDateStrings(createTime);
 
             StringBuilder sql = new StringBuilder("SELECT " +
                     "o.order_id, " +
@@ -274,6 +274,10 @@ public class ExcelController extends BaseController {
                     "o.order_status in (" + OrderStatusCode.AFFIRM.getStatus() + "," + OrderStatusCode.WAIT_DISTRIBUTION.getStatus() + "," + OrderStatusCode.DISTRIBUTION.getStatus() + "," + OrderStatusCode.TAKE_DISTRIBUTION.getStatus() + "," + OrderStatusCode.WAIT_PAYMENT.getStatus() + "," + OrderStatusCode.IS_OK.getStatus() + ") " +
                     "AND o.create_time BETWEEN ? " +
                     "AND ? ");
+
+            params.add(createTimes[0]);
+            params.add(createTimes[1]);
+
             // 运行查看所有
             if (!User.dao.isRole(uid, RoleKeyCode.OPERATOR.getRoleId())) {
                 if (User.dao.isRole(uid, RoleKeyCode.SALES.getRoleId())) {
@@ -304,7 +308,7 @@ public class ExcelController extends BaseController {
                 String salesPhone = order.get("sales_phone");
 
                 // 创建表
-                XSSFSheet sheet = wb.createSheet(businessName + "_" + DateKit.toStr(new Date(), "MM月dd日"));
+                XSSFSheet sheet = wb.createSheet(businessName + "_" + DateKit.toStr(createTime, "MM月dd日"));
                 // 去除网格线
                 sheet.setDisplayGridlines(false);
                 sheet.setDefaultRowHeight((short) (512));
@@ -335,11 +339,11 @@ public class ExcelController extends BaseController {
                 excelCount++;
                 String excelTitle = excelCount + "";
                 if (excelCount < 10) {
-                    excelTitle = "00"+excelCount;
-                } else if(excelCount < 100) {
-                    excelTitle = "0"+excelCount;
+                    excelTitle = "00" + excelCount;
+                } else if (excelCount < 100) {
+                    excelTitle = "0" + excelCount;
                 }
-                c9.setCellValue(DateFormatUtils.format(now, "yyyy-MM-dd") + "广州嘻果出货单" + excelTitle);
+                c9.setCellValue(DateFormatUtils.format(createTime, "yyyy-MM-dd") + "广州嘻果出货单" + excelTitle);
 
                 // 2 line
                 row = sheet.createRow(rowCount++);
@@ -354,7 +358,7 @@ public class ExcelController extends BaseController {
                 c6.setCellStyle(styleText);
                 c9.setCellStyle(styleText);
                 c3.setCellValue("商家名称:" + buyUserName);
-                c6.setCellValue("联系人:" + ("undefined".equals(businessUserName)?"":businessUserName));
+                c6.setCellValue("联系人:" + ("undefined".equals(businessUserName) ? "" : businessUserName));
                 c9.setCellValue("送货电话:" + buyPhone);
 
                 // 3 line
@@ -481,7 +485,7 @@ public class ExcelController extends BaseController {
                     c4.setCellValue((Integer) orderDetail.get("product_standard_id"));
                     c5.setCellValue(orderDetail.get("sub_title").toString());
                     c6.setCellValue((Integer) orderDetail.get("num"));
-                    c7.setCellValue(orderDetail.get("actual_send_goods_num") == null ? "": orderDetail.get("actual_send_goods_num")+"");
+                    c7.setCellValue((Integer) (orderDetail.get("actual_send_goods_num") == null ? 0 : orderDetail.get("actual_send_goods_num")));
                     c8.setCellValue(orderDetail.get("buy_remark") != null ? orderDetail.get("buy_remark") + "" : null);
                 }
                 // 添加三行空行
@@ -517,7 +521,7 @@ public class ExcelController extends BaseController {
             HttpServletResponse response = getResponse();
             OutputStream output = response.getOutputStream();
             response.reset();
-            response.setHeader("Content-disposition", "attachment; filename=" + URLEncoder.encode(DateFormatUtils.format(now, "yyyy年MM月dd日") + "商家出货单.xlsx", "UTF-8"));
+            response.setHeader("Content-disposition", "attachment; filename=" + URLEncoder.encode(DateFormatUtils.format(createTime, "yyyy年MM月dd日") + "商家出货单.xlsx", "UTF-8"));
             response.setContentType("application/excel");
             wb.write(output);
             output.flush();
@@ -546,22 +550,25 @@ public class ExcelController extends BaseController {
      * <p>
      * 信息展示默认以三列为一个单元
      */
-    @Before(Tx.class)
     public void getBusinessCollectionBilling() {
         int rowCount;
 
         // 创建Excel
         XSSFWorkbook wb = new XSSFWorkbook();
 
-        // 根据今天的首日订单周期生成  昨天12:00 - 今天12:00
-        Calendar calendar = Calendar.getInstance();
-        // 昨天
-        calendar.add(Calendar.DAY_OF_MONTH, -1);
-        List<Object> params = new ArrayList<Object>();
-        String startDateStr = DateTimeKit.formatDateToStyle("yyyy-MM-dd", calendar.getTime()) + " 12:00:00";
-        // 今天
-        calendar.add(Calendar.DAY_OF_MONTH, 1);
-        String endDateStr = DateTimeKit.formatDateToStyle("yyyy-MM-dd", calendar.getTime()) + " 12:00:00";
+//        // 根据今天的首日订单周期生成  昨天12:00 - 今天12:00
+//        Calendar calendar = Calendar.getInstance();
+//        // 昨天
+//        calendar.add(Calendar.DAY_OF_MONTH, -1);
+//        List<Object> params = new ArrayList<Object>();
+//        String startDateStr = DateTimeKit.formatDateToStyle("yyyy-MM-dd", calendar.getTime()) + " 12:00:00";
+//        // 今天
+//        calendar.add(Calendar.DAY_OF_MONTH, 1);
+//        String endDateStr = DateTimeKit.formatDateToStyle("yyyy-MM-dd", calendar.getTime()) + " 12:00:00";
+        Date createTime = getParaToDate("createTime");
+
+        String[] createTimes = DateUtils.getOrderCycleDateStrings(createTime);
+
 
         String sql = "SELECT " +
                 "o.order_id, " +
@@ -596,9 +603,9 @@ public class ExcelController extends BaseController {
                 "AND o.create_time BETWEEN ? " +
                 "AND ? ";
         System.out.println(sql);
-        System.out.println(startDateStr);
-        System.out.println(endDateStr);
-        List<Order> orders = Order.dao.find(sql, startDateStr, endDateStr);
+        System.out.println(createTimes[0]);
+        System.out.println(createTimes[1]);
+        List<Order> orders = Order.dao.find(sql, createTimes[0], createTimes[1]);
         Date now = new Date();
 
         if (orders.size() < 1) {
@@ -661,13 +668,13 @@ public class ExcelController extends BaseController {
             c9.setCellStyle(styleTitle);
             // ccz  2018-5-24 修改收款单表单长度
             excelCount++;
-            String excelTitleSuffix = ""+excelCount;
+            String excelTitleSuffix = "" + excelCount;
             if (excelCount < 10) {
-                excelTitleSuffix = "00"+excelTitleSuffix;
+                excelTitleSuffix = "00" + excelTitleSuffix;
             } else if (excelCount < 100) {
-                excelTitleSuffix = "0"+excelTitleSuffix;
+                excelTitleSuffix = "0" + excelTitleSuffix;
             }
-            c9.setCellValue(DateFormatUtils.format(now, "yyyy-MM-dd") + "广州嘻果商家收款单" + excelTitleSuffix);
+            c9.setCellValue(DateFormatUtils.format(createTime, "yyyy-MM-dd") + "广州嘻果商家收款单" + excelTitleSuffix);
 
             // 2 line
             row = sheet.createRow(rowCount++);
@@ -763,7 +770,7 @@ public class ExcelController extends BaseController {
                     "od.product_name, " +
                     "od.product_standard_name, " +
                     "ps.weight_price, " +
-                    "ps.sub_title, "+
+                    "ps.sub_title, " +
                     "od.num, " +
                     "od.actual_send_goods_num, " +
                     "od.sell_price, " +
@@ -803,10 +810,9 @@ public class ExcelController extends BaseController {
                 c4.setCellValue(orderDetail.get("num") + "");
                 c5.setCellValue(orderDetail.get("actual_send_goods_num") + "");
                 c6.setCellValue(orderDetail.get("sell_price") + "");
-                c7.setCellValue(BigDecimal.valueOf(orderDetail.getActualSendGoodsNum()).multiply(orderDetail.getSellPrice())+"");
+                c7.setCellValue(BigDecimal.valueOf(orderDetail.getActualSendGoodsNum()).multiply(orderDetail.getSellPrice()) + "");
                 c8.setCellValue(orderDetail.get("buy_remark") != null ? orderDetail.get("buy_remark").toString() : null);
             }
-
 
 
             row = sheet.createRow(rowCount++);
@@ -873,7 +879,7 @@ public class ExcelController extends BaseController {
 //            c3.setCellValue("本次已付:" + pay_total_money);
 
             String logisticsInfoSQL = "SELECT li.package_num from b_logistics_info li where li.order_id = ? ";
-            String packageNum = Db.queryStr(logisticsInfoSQL,orderId);
+            String packageNum = Db.queryStr(logisticsInfoSQL, orderId);
             row = sheet.createRow(rowCount++);
             row.setHeightInPoints(textHeight);
             _mergedRegionNowRow(sheet, row, 1, 3);
@@ -881,14 +887,14 @@ public class ExcelController extends BaseController {
             _mergedRegionNowRow(sheet, row, 7, 9);
             c3 = row.createCell(0);
             c3.setCellStyle(styleText);
-            c3.setCellValue("共:"+packageNum + "件");
+            c3.setCellValue("共:" + packageNum + "件");
         }
 
         try {
             HttpServletResponse response = getResponse();
             OutputStream output = response.getOutputStream();
             response.reset();
-            response.setHeader("Content-disposition", "attachment; filename=" + URLEncoder.encode(DateFormatUtils.format(now, "yyyy年MM月dd日") + "商家收款单.xlsx", "UTF-8"));
+            response.setHeader("Content-disposition", "attachment; filename=" + URLEncoder.encode(DateFormatUtils.format(createTime, "yyyy年MM月dd日") + "商家收款单.xlsx", "UTF-8"));
             response.setContentType("application/excel");
             wb.write(output);
             output.flush();
@@ -915,24 +921,21 @@ public class ExcelController extends BaseController {
 
         Date createTime = getParaToDate("createTime");
 
-        String[] createTimes = new String[2];
-
-        if (createTime != null) {
-            // 使用指定时间导出采购计划
-            String createTimeStr = DateAndStringFormat.getStringDateShort(createTime);
-            createTimes[0] = DateAndStringFormat.getNextDay(createTimeStr, "-1") + " 12:00:00";
-            createTimes[1] = createTimeStr + " 11:59:59";
-        } else {
-            // 使用当前时间导出采购计划
-            Calendar nowCalendar = Calendar.getInstance();
-            if (nowCalendar.get(Calendar.HOUR_OF_DAY) < 12) {
-                nowCalendar.add(Calendar.DAY_OF_MONTH, 1);
-            }
-            createTimes[0] = DateFormatUtils.format(nowCalendar.getTime(), "yyyy-MM-dd") + " 12:00:00";
-            nowCalendar.add(Calendar.DAY_OF_MONTH, 1);
-            createTimes[1] = DateFormatUtils.format(nowCalendar.getTime(), "yyyy-MM-dd") + " 12:00:00";
-            createTime = nowCalendar.getTime();
-        }
+        String[] createTimes = DateUtils.getOrderCycleDateStrings(createTime);
+//        if (createTime != null) {
+//            // 使用指定时间导出采购计划
+//            String createTimeStr = DateAndStringFormat.getStringDateShort(createTime);
+//            createTimes[0] = DateAndStringFormat.getNextDay(createTimeStr, "-1") + " 12:00:00";
+//            createTimes[1] = createTimeStr + " 11:59:59";
+//        } else {
+//            // 使用当前时间导出采购计划(当天首日订单周期的)
+//            Calendar nowCalendar = Calendar.getInstance();
+//            nowCalendar.add(Calendar.DAY_OF_MONTH, -1);
+//            createTimes[0] = DateFormatUtils.format(nowCalendar.getTime(), "yyyy-MM-dd") + " 12:00:00";
+//            nowCalendar.add(Calendar.DAY_OF_MONTH, 1);
+//            createTimes[1] = DateFormatUtils.format(nowCalendar.getTime(), "yyyy-MM-dd") + " 12:00:00";
+//            createTime = nowCalendar.getTime();
+//        }
 
         // 获取要导出数据
         List<ProcurementPlan> planList = ProcurementPlan.dao.getExportDataByPPlanID(createTimes);
@@ -992,7 +995,7 @@ public class ExcelController extends BaseController {
                         XSSFCell nowTime = row.createCell(0);
                         XSSFCell createBy = row.createCell(3);
                         nowTime.setCellStyle(styleText);
-                        nowTime.setCellValue("创建时间: " + DateFormatUtils.format(new Date(), "yyyy-MM-dd hh:ss:mm"));
+                        nowTime.setCellValue("创建时间: " + DateFormatUtils.format(createTime, "yyyy-MM-dd hh:ss:mm"));
                         createBy.setCellStyle(styleText);
                         createBy.setCellValue("采购人:" + productStandardName);
 
