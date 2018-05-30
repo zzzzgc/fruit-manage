@@ -64,20 +64,20 @@ public class BusinessInfo extends BaseBusinessInfo<BusinessInfo> {
         params.add(saleId);
         String noStr = "全部";
         if (StrKit.notBlank(searchProvince) && !searchProvince.equals(noStr)) {
-            sql.append("and binfo.address_province = ? ");
-            params.add(searchProvince);
+            sql.append("and binfo.address_province like ? ");
+            params.add("%"+searchProvince+"%");
         }
         if (StrKit.notBlank(searchCity) && !searchCity.equals(noStr)) {
-            sql.append("and binfo.address_city = ? ");
-            params.add(searchCity);
+            sql.append("and binfo.address_city like ? ");
+            params.add("%"+searchCity+"%");
         }
         if (StrKit.notBlank(salesName)) {
-            sql.append("and auser.`name` LIKE ? ");
+            sql.append("and auser.nick_name LIKE ? ");
             params.add("%"+salesName+"%");
         }
         if (StrKit.notBlank(sales_phone)) {
-            sql.append("and auser.phone = ? ");
-            params.add(sales_phone);
+            sql.append("and auser.phone like ? ");
+            params.add("%"+sales_phone+"%");
         }
         if (StrKit.notBlank(business_name)) {
             sql.append("and binfo.business_name LIKE ? ");
@@ -88,8 +88,8 @@ public class BusinessInfo extends BaseBusinessInfo<BusinessInfo> {
             params.add(business_id);
         }
         if (StrKit.notBlank(business_phone)) {
-            sql.append("and binfo.phone = ? ");
-            params.add(business_phone);
+            sql.append("and binfo.phone like ? ");
+            params.add("%"+business_phone+"%");
         }
         if(ArrayUtils.isNotEmpty(createTime) && createTime.length == 2){
             sql.append("and buser.create_time BETWEEN ? and ? ");
