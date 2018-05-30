@@ -56,6 +56,7 @@ public class WarehousePutController extends BaseController {
             putWarehouse.setPutType(0);
             putWarehouse.setWarehouseAddress("默认地址");
             putWarehouse.setCreateTime(DateAndStringFormat.strToDate(putIntTimeStr,"yyyy-MM-dd HH:mm:ss"));
+            putWarehouse.setOrderCycleDate(DateAndStringFormat.strToDate(putIntTimeStr,"yyyy-MM-dd"));
             putWarehouse.save();
             renderNull();
         } catch (Exception e) {
