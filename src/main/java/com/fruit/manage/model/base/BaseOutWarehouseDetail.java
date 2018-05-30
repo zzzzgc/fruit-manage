@@ -25,14 +25,6 @@ public abstract class BaseOutWarehouseDetail<M extends BaseOutWarehouseDetail<M>
 		return getInt("out_Id");
 	}
 
-	public void setOrderDetailId(java.lang.Integer orderDetailId) {
-		set("order_detail_id", orderDetailId);
-	}
-
-	public java.lang.Integer getOrderDetailId() {
-		return getInt("order_detail_id");
-	}
-
 	public void setProductId(java.lang.Integer productId) {
 		set("product_id", productId);
 	}
@@ -47,6 +39,14 @@ public abstract class BaseOutWarehouseDetail<M extends BaseOutWarehouseDetail<M>
 
 	public java.lang.Integer getProductStandardId() {
 		return getInt("product_standard_id");
+	}
+
+	public void setOrderDetailId(java.lang.Integer orderDetailId) {
+		set("order_detail_id", orderDetailId);
+	}
+
+	public java.lang.Integer getOrderDetailId() {
+		return getInt("order_detail_id");
 	}
 
 	public void setUserId(java.lang.Integer userId) {

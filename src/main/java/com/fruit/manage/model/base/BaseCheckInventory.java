@@ -49,6 +49,14 @@ public abstract class BaseCheckInventory<M extends BaseCheckInventory<M>> extend
 		return getStr("warehouse_name");
 	}
 
+	public void setOrderCycleDate(java.util.Date orderCycleDate) {
+		set("order_cycle_date", orderCycleDate);
+	}
+
+	public java.util.Date getOrderCycleDate() {
+		return get("order_cycle_date");
+	}
+
 	public void setCheckInventoryTime(java.util.Date checkInventoryTime) {
 		set("check_inventory_time", checkInventoryTime);
 	}

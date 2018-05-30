@@ -57,6 +57,14 @@ public abstract class BaseOutWarehouse<M extends BaseOutWarehouse<M>> extends Mo
 		return getStr("warehouse_address");
 	}
 
+	public void setOrderCycleDate(java.util.Date orderCycleDate) {
+		set("order_cycle_date", orderCycleDate);
+	}
+
+	public java.util.Date getOrderCycleDate() {
+		return get("order_cycle_date");
+	}
+
 	public void setOutTime(java.util.Date outTime) {
 		set("out_time", outTime);
 	}

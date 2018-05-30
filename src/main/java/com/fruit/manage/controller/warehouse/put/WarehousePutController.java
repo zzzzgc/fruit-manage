@@ -1,7 +1,9 @@
 package com.fruit.manage.controller.warehouse.put;
 
 import com.fruit.manage.base.BaseController;
+import com.fruit.manage.constant.UserTypeConstant;
 import com.fruit.manage.controller.common.CommonController;
+import com.fruit.manage.model.ProductStandard;
 import com.fruit.manage.model.PutWarehouse;
 import com.fruit.manage.model.PutWarehouseDetail;
 import com.fruit.manage.model.User;
@@ -12,10 +14,13 @@ import com.fruit.manage.util.excel.Excel;
 import com.fruit.manage.util.excel.ExcelException;
 import com.jfinal.aop.Before;
 import com.jfinal.log.Logger;
+import com.jfinal.plugin.activerecord.Db;
+import com.jfinal.plugin.activerecord.IAtom;
 import com.jfinal.plugin.activerecord.tx.Tx;
 
 import java.io.File;
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.util.*;
 
 
@@ -48,15 +53,15 @@ public class WarehousePutController extends BaseController {
         try {
             System.out.println("---------------putInTime----------------");
             String putIntTimeStr = getPara("putInTime");
-            System.out.println("putInTime:"+putIntTimeStr);
+            System.out.println("putInTime:" + putIntTimeStr);
             PutWarehouse putWarehouse = new PutWarehouse();
             putWarehouse.setPutNum(0);
             putWarehouse.setPutTypeNum(0);
             putWarehouse.setPutTotalPrice(new BigDecimal(0));
             putWarehouse.setPutType(0);
             putWarehouse.setWarehouseAddress("默认地址");
-            putWarehouse.setCreateTime(DateAndStringFormat.strToDate(putIntTimeStr,"yyyy-MM-dd HH:mm:ss"));
-            putWarehouse.setOrderCycleDate(DateAndStringFormat.strToDate(putIntTimeStr,"yyyy-MM-dd"));
+            putWarehouse.setCreateTime(DateAndStringFormat.strToDate(putIntTimeStr, "yyyy-MM-dd HH:mm:ss"));
+            putWarehouse.setOrderCycleDate(DateAndStringFormat.strToDate(putIntTimeStr, "yyyy-MM-dd"));
             putWarehouse.save();
             renderNull();
         } catch (Exception e) {
@@ -69,16 +74,40 @@ public class WarehousePutController extends BaseController {
      */
     @Before(Tx.class)
     public void delWarehouse() {
-        try {
-            Integer putId = getParaToInt("putId");
-            // 根据入库单编号先删除关联的入库详细信息
-            PutWarehouseDetail.dao.delWarehousePutDetailByWPId(putId);
-            // 根据入库单编号删除入库信息
-            PutWarehouse.dao.deleteById(putId);
-            renderNull();
-        } catch (Exception e) {
-            renderErrorText("删除失败!");
-        }
+        Db.tx(new IAtom() {
+            @Override
+            public boolean run() throws SQLException {
+                Integer putId = getParaToInt("putId");
+                List<PutWarehouseDetail> putWarehouseDetailList = PutWarehouseDetail.dao.getAllInfoByPutId(putId);
+                if (putWarehouseDetailList != null && putWarehouseDetailList.size() > 0) {
+                    for (int i = 0; i < putWarehouseDetailList.size(); i++) {
+                        // 获取入库详细
+                        PutWarehouseDetail putWarehouseDetail = putWarehouseDetailList.get(i);
+                        // 获取规格编号
+                        Integer productStandardId = putWarehouseDetail.getProductStandardId();
+                        // 根据规格编号获取规格信息
+                        ProductStandard productStandard = ProductStandard.dao.getProductStandardById(productStandardId);
+
+                        // 判断库存是否是否足够被减去库存
+                        if (productStandard.getStock() >= putWarehouseDetail.getPutNum()) {
+                            Integer beforeNum = productStandard.getStock();
+                            Integer afterNum = productStandard.getStock() - putWarehouseDetail.getPutNum();
+                            productStandard.setStock(afterNum);
+                            productStandard.update(UserTypeConstant.A_USER, getSessionAttr(Constant.SESSION_UID), afterNum, beforeNum, "1", productStandard.getName(), productStandard.getProductId(), null);
+                        } else {
+                            renderErrorText("规格编号为"+productStandardId +"执行删库之后库存不够！");
+                            return false;
+                        }
+                    }
+                }
+                // 根据入库单编号先删除关联的入库详细信息
+                PutWarehouseDetail.dao.delWarehousePutDetailByWPId(putId);
+                // 根据入库单编号删除入库信息
+                PutWarehouse.dao.deleteById(putId);
+                renderNull();
+                return true;
+            }
+        });
     }
 
     /**
