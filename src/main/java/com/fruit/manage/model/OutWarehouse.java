@@ -47,6 +47,7 @@ public class OutWarehouse extends BaseOutWarehouse<OutWarehouse> {
 				"\tow.out_type,\n" +
 				"\tow.warehouse_address,\n" +
 				"\tow.out_time,\n" +
+				"\tow.order_cycle_date,\n" +
 				"\tow.create_time,\n" +
 				"\tow.update_time ";
 

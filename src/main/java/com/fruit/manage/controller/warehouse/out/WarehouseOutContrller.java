@@ -65,6 +65,7 @@ public class WarehouseOutContrller extends BaseController {
         Date createTime = DateKit.toDate(CreateTimeStr);
         OutWarehouse outWarehouse = new OutWarehouse();
         outWarehouse.setOutTime(createTime);
+        outWarehouse.setOrderCycleDate(createTime);
         outWarehouse.setOutType(outType);
         outWarehouse.setUpdateTime(new Date());
         outWarehouse.setCreateTime(new Date());
@@ -78,9 +79,7 @@ public class WarehouseOutContrller extends BaseController {
      */
     public void delete() {
         Integer id = getParaToInt("id");
-        OutWarehouse outWarehouse = new OutWarehouse();
-        outWarehouse.setId(id);
-        boolean delete = outWarehouse.delete();
+        OutWarehouse.dao.deleteById(id);
         renderNull();
     }
 

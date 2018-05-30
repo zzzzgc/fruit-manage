@@ -6,6 +6,7 @@ import com.fruit.manage.constant.*;
 import com.fruit.manage.model.*;
 import com.fruit.manage.util.Constant;
 import com.fruit.manage.util.DateAndStringFormat;
+import com.fruit.manage.util.DateUtils;
 import com.fruit.manage.util.IdUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.ext.kit.DateKit;
@@ -349,6 +350,7 @@ public class OrderController extends BaseController {
             // 设置实际支付需要的金额
             order.setPayRealityNeedMoney(payRealityNeedMoney);
             order.setUpdateTime(now);
+            order.setOrderCycleDate(DateUtils.getOrderCycleDate(now));
             // 统计订单总货款pay_all_price
             Order oldOrder = Order.dao.findById(order.getId());
             if (oldOrder.getPayLogisticsMoney() != null) {
@@ -382,6 +384,7 @@ public class OrderController extends BaseController {
                 order.setPayNeedMoney(payNeedMoney);
                 order.setPayTotalMoney(new BigDecimal(0));
                 order.setUId(businessUserId);
+                order.setOrderCycleDate(DateUtils.getOrderCycleDate(orderCycle));
                 order.setUpdateTime(now);
                 order.setCreateTime(orderCycle);
                 order.save();
@@ -394,7 +397,7 @@ public class OrderController extends BaseController {
                 logisticsInfo.setBuyPhone(info.getPhone());
                 logisticsInfo.setBuyUserName(info.getBusinessName());
                 logisticsInfo.setDeliveryType(info.getShipmentsType());
-                logisticsInfo.setUpdateTime(new Date());
+                logisticsInfo.setUpdateTime(now);
                 logisticsInfo.setCreateTime(orderCycle);
                 logisticsInfo.save();
             } else {
