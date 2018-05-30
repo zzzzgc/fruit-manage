@@ -667,7 +667,6 @@ public class ExcelController extends BaseController {
             } else if (excelCount < 100) {
                 excelTitleSuffix = "0"+excelTitleSuffix;
             }
-//            c9.setCellValue(DateFormatUtils.format(now, "yyyy-MM-dd") + "广州嘻果商家收款单" + now.getTime());
             c9.setCellValue(DateFormatUtils.format(now, "yyyy-MM-dd") + "广州嘻果商家收款单" + excelTitleSuffix);
 
             // 2 line
@@ -867,11 +866,11 @@ public class ExcelController extends BaseController {
 //            c7.setCellValue("本次应付:");
 //            c9.setCellValue(""+allOrderPrice);
 
-            row = sheet.createRow(rowCount++);
-            _mergedRegionNowRow(sheet, row, 1, 3);
-            c3 = row.createCell(0);
-            c3.setCellStyle(styleText);
-            c3.setCellValue("本次已付:" + pay_total_money);
+//            row = sheet.createRow(rowCount++);
+//            _mergedRegionNowRow(sheet, row, 1, 3);
+//            c3 = row.createCell(0);
+//            c3.setCellStyle(styleText);
+//            c3.setCellValue("本次已付:" + pay_total_money);
 
             String logisticsInfoSQL = "SELECT li.package_num from b_logistics_info li where li.order_id = ? ";
             String packageNum = Db.queryStr(logisticsInfoSQL,orderId);

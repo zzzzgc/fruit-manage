@@ -7,6 +7,7 @@ import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.IAtom;
 import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.tx.Tx;
+import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
@@ -64,15 +65,16 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
 
     /**
      * 根据订单编号获取订单详情单个表操作
+     *
      * @param orderId 订单ID
      * @return 订单详情集合
      */
-    public List<OrderDetail> getOrderDetailSingleTable(String orderId){
+    public List<OrderDetail> getOrderDetailSingleTable(String orderId) {
         String sql = "select od.id,od.product_standard_id,od.actual_send_goods_num from b_order_detail od where od.order_id = ? ";
-        return  find(sql,orderId);
+        return find(sql, orderId);
     }
 
-    private OrderLog getOrderLog(UserTypeConstant type, Integer uid, String orderId, Integer productId, Integer productStandardId, Integer changeNum,Date orderCreateTime) {
+    private OrderLog getOrderLog(UserTypeConstant type, Integer uid, String orderId, Integer productId, Integer productStandardId, Integer changeNum, Date orderCreateTime) {
         OrderLog orderLog = new OrderLog();
         orderLog.setUId(uid);
         orderLog.setUserType(type.getValue());
@@ -87,26 +89,31 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
 
     /**
      * 根据订单编号获取总额=（子订单=售价*下单量）的和
+     *
      * @param orderId
      * @return
      */
-    public BigDecimal getOrderTotalCost(String orderId){
-        String sql="select sum(od.total_pay) from b_order_detail od where od.order_id= ? ";
-        return Db.queryBigDecimal(sql,orderId);
+    public BigDecimal getOrderTotalCost(String orderId) {
+        String sql = "select sum(od.total_pay) from b_order_detail od where od.order_id= ? ";
+        return Db.queryBigDecimal(sql, orderId);
     }
 
     /**
      * 根据订单编号获取实际需要支付的订单总金额 = (子订单=售价*实际发货数量)的和
+     *
      * @param orderId
      * @return
      */
-    public BigDecimal getOrderPayRealityNeedMoneyByOrderID(String orderId){
-        String sql="select o.pay_reality_need_money from b_order  o where o.order_id = ?";
-        return Db.queryBigDecimal(sql,orderId);
+    public BigDecimal getOrderPayRealityNeedMoneyByOrderID(String orderId) {
+//         2018-05-28 zgc 应收金额应该是pay_all_money(总货款=订单总金额+物流费用) 而不是 pay_reality_need_money(订单总金额)
+//        String sql = "select o.pay_reality_need_money from b_order  o where o.order_id = ?";
+        String sql = "select o.pay_all_money from b_order  o where o.order_id = ?";
+        return Db.queryBigDecimal(sql, orderId);
     }
 
     /**
      * 根据订单详细编号获取订单详细
+     *
      * @param id 订单详细编号
      * @return
      */
@@ -115,7 +122,7 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
         return findFirst(sql, id);
     }
 
-    private OrderLog getOrderLog(String orderId, Integer productId, Integer productStandardId, Integer changeNum,Date orderCreateTime) {
+    private OrderLog getOrderLog(String orderId, Integer productId, Integer productStandardId, Integer changeNum, Date orderCreateTime) {
         OrderLog orderLog = new OrderLog();
         // 未知用户
         orderLog.setUserType(UserTypeConstant.UNKNOWN_USER.getValue());
@@ -133,11 +140,13 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
         super.save();
         return orderLog.save();
     }
+
     @Before(Tx.class)
     public boolean delete(OrderLog orderLog) {
         super.delete();
         return orderLog.save();
     }
+
     @Before(Tx.class)
     public boolean update(OrderLog orderLog) {
         super.update();
@@ -151,24 +160,26 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
         // 删除并添加删除的 x + orderId的订单的时候需要使用不计入日志的方法
         return super.save();
     }
+
     @Deprecated
     @Override
     @Before(Tx.class)
     public boolean delete() {
         String sql = " SELECT o.create_time from b_order o INNER JOIN b_order_detail od on o.order_id=od.order_id where od.id = ? ";
-        Date orderCreateTime=Db.queryDate(sql, super.getOrderId());
+        Date orderCreateTime = Db.queryDate(sql, super.getOrderId());
         super.delete();
-        return getOrderLog(super.getOrderId(), super.getProductId(), super.getProductStandardId(), ~super.getNum() + 1,orderCreateTime).save();
+        return getOrderLog(super.getOrderId(), super.getProductId(), super.getProductStandardId(), ~super.getNum() + 1, orderCreateTime).save();
     }
+
     @Deprecated
     @Override
     @Before(Tx.class)
     public boolean update() {
         OrderDetail orderDetail = OrderDetail.dao.findById(super.getId());
         String sql = " SELECT o.create_time from b_order o INNER JOIN b_order_detail od on o.order_id=od.order_id where od.id = ? ";
-        Date orderCreateTime=Db.queryDate(sql, super.getOrderId());
+        Date orderCreateTime = Db.queryDate(sql, super.getOrderId());
         super.update();
-        return getOrderLog(orderDetail.getOrderId(), orderDetail.getProductId(), orderDetail.getProductStandardId(), super.getNum() - orderDetail.getNum(),orderCreateTime).save();
+        return getOrderLog(orderDetail.getOrderId(), orderDetail.getProductId(), orderDetail.getProductStandardId(), super.getNum() - orderDetail.getNum(), orderCreateTime).save();
     }
 
 
@@ -176,45 +187,48 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
      * 推荐
      */
     @Before(Tx.class)
-    public boolean save(UserTypeConstant type, Integer uid,Date orderCreateTime) {
+    public boolean save(UserTypeConstant type, Integer uid, Date orderCreateTime) {
         super.save();
-        return getOrderLog(type, uid, super.getOrderId(), super.getProductId(), super.getProductStandardId(), super.getNum(),orderCreateTime).save();
+        return getOrderLog(type, uid, super.getOrderId(), super.getProductId(), super.getProductStandardId(), super.getNum(), orderCreateTime).save();
     }
+
     @Before(Tx.class)
-    public boolean delete(UserTypeConstant type, Integer uid,Date orderCreateTime) {
+    public boolean delete(UserTypeConstant type, Integer uid, Date orderCreateTime) {
         super.delete();
-        return getOrderLog(type, uid, super.getOrderId(), super.getProductId(), super.getProductStandardId(), ~super.getNum() + 1,orderCreateTime).save();
+        return getOrderLog(type, uid, super.getOrderId(), super.getProductId(), super.getProductStandardId(), ~super.getNum() + 1, orderCreateTime).save();
     }
+
     @Before(Tx.class)
-    public boolean update(UserTypeConstant type, Integer uid,Date orderCreateTime) {
+    public boolean update(UserTypeConstant type, Integer uid, Date orderCreateTime) {
         OrderDetail orderDetail = OrderDetail.dao.findById(super.getId());
         super.update();
-        return getOrderLog(type, uid, orderDetail.getOrderId(), orderDetail.getProductId(), orderDetail.getProductStandardId(), super.getNum() - orderDetail.getNum(),orderCreateTime).save();
+        return getOrderLog(type, uid, orderDetail.getOrderId(), orderDetail.getProductId(), orderDetail.getProductStandardId(), super.getNum() - orderDetail.getNum(), orderCreateTime).save();
     }
 
 
-
     @Before(Tx.class)
-    public boolean save(UserTypeConstant type, Integer uid, String orderId, Integer productId, Integer productStandardId, Integer num,Date orderCreateTime) {
+    public boolean save(UserTypeConstant type, Integer uid, String orderId, Integer productId, Integer productStandardId, Integer num, Date orderCreateTime) {
         super.save();
-        return getOrderLog(type, uid, orderId, productId, productStandardId, num,orderCreateTime).save();
+        return getOrderLog(type, uid, orderId, productId, productStandardId, num, orderCreateTime).save();
     }
+
     /**
      * 推荐
      */
     @Before(Tx.class)
-    public boolean delete(UserTypeConstant type, Integer uid, String orderId, Integer productId, Integer productStandardId, Integer num,Date orderCreateTime) {
+    public boolean delete(UserTypeConstant type, Integer uid, String orderId, Integer productId, Integer productStandardId, Integer num, Date orderCreateTime) {
         super.delete();
-        return getOrderLog(type, uid, orderId, productId, productStandardId, ~num + 1,orderCreateTime).save();
+        return getOrderLog(type, uid, orderId, productId, productStandardId, ~num + 1, orderCreateTime).save();
     }
+
     /**
      * 推荐
      */
     @Before(Tx.class)
-    public boolean update(UserTypeConstant type, Integer uid, String orderId, Integer productId, Integer productStandardId, Integer beforeNum, Integer afterNum,Date orderCreateTime) {
+    public boolean update(UserTypeConstant type, Integer uid, String orderId, Integer productId, Integer productStandardId, Integer beforeNum, Integer afterNum, Date orderCreateTime) {
         super.setUpdateTime(new Date());
         super.update();
-        return getOrderLog(type, uid, orderId, productId, productStandardId, afterNum - beforeNum,orderCreateTime).save();
+        return getOrderLog(type, uid, orderId, productId, productStandardId, afterNum - beforeNum, orderCreateTime).save();
     }
 
 
@@ -223,14 +237,162 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
      *
      * @param pageNum
      * @param pageSize
-     * @param orderBy
+     * @param groupStr
      * @param isASC
+     * @param nick_name
+     * @param business_name
+     * @param order_cycle_date
      * @return
      */
-    public Page<OrderDetail> getSalesMarginList(int pageNum, int pageSize, String orderBy, boolean isASC) {
-        StringBuilder sql = new StringBuilder();
-
+    public Page<OrderDetail> getSalesMarginList(int pageNum, int pageSize, String groupStr, boolean isASC, String nick_name, String business_name, String order_cycle_date) {
+        String selectSql = "SELECT  " +
+                "  o.order_id,  " +
+                "  au.nick_name,  " +
+                "  bi.business_name,  " +
+                "  o.pay_all_money,  " +
+                "  SUM(  " +
+                "    (  " +
+                "      od.sell_price - ifnull(cid.inventory_price, pwd.put_average_price)  " +
+                "    ) * od.actual_send_goods_num  " +
+                "  ) AS total_gross_margin,  " +
+                "  SUM(  " +
+                "    (  " +
+                "      od.sell_price - ifnull(cid.inventory_price, pwd.put_average_price)  " +
+                "    ) * od.actual_send_goods_num  " +
+                "  ) / o.pay_all_money * 100 AS gross_margin";
+        StringBuffer sql = new StringBuffer();
+        sql.append("FROM  " +
+                "  b_order AS o  " +
+                "INNER JOIN b_order_detail AS od ON o.order_id = od.order_id  " +
+                "INNER JOIN b_business_user AS bu ON o.u_id = bu.id  " +
+                "INNER JOIN a_user AS au ON bu.a_user_sales_id = au.id  " +
+                "INNER JOIN b_business_info AS bi ON bi.u_id = bu.id  " +
+                "LEFT JOIN b_check_inventory AS ci ON ci.create_time LIKE CONCAT(  " +
+                "  CASE  " +
+                "  WHEN timediff(  " +
+                "    TIME(o.create_time),  " +
+                "    str_to_date('12:00:00', '%H:%i:%s')  " +
+                "  ) < 0 THEN  " +
+                "    DATE(o.create_time)  " +
+                "  ELSE  " +
+                "    date_add(  " +
+                "      DATE(o.create_time),  " +
+                "      INTERVAL 1 DAY  " +
+                "    )  " +
+                "  END,  " +
+                "  '%'  " +
+                ")  " +
+                "LEFT JOIN b_check_inventory_detail cid ON cid.check_inventory_id = ci.id AND cid.product_standard_id = od.product_standard_id  " +
+                "LEFT JOIN b_put_warehouse as pw ON pw.create_time LIKE CONCAT(  " +
+                "  CASE  " +
+                "  WHEN timediff(  " +
+                "    TIME(o.create_time),  " +
+                "    str_to_date('12:00:00', '%H:%i:%s')  " +
+                "  ) < 0 THEN  " +
+                "    DATE(o.create_time)  " +
+                "  ELSE  " +
+                "    date_add(  " +
+                "      DATE(o.create_time),  " +
+                "      INTERVAL 1 DAY  " +
+                "    )  " +
+                "  END,  " +
+                "  '%'  " +
+                ")  " +
+                "LEFT JOIN b_put_warehouse_detail pwd ON pwd.put_id = pw.id AND pwd.product_standard_id = od.product_standard_id  " +
+                "WHERE 1 = 1   ");
         ArrayList<Object> params = new ArrayList<>();
-        return paginate(pageNum, pageSize,"select * ",sql.toString(),params.toArray());
+        if (StringUtils.isNotBlank(nick_name)) {
+            sql.append("AND au.nick_name = ? ");
+            params.add(nick_name);
+        }
+
+        if (StringUtils.isNotBlank(business_name)) {
+            sql.append("AND bi.business_name = ? ");
+            params.add(business_name);
+        }
+
+        sql.append("GROUP BY o.order_id ORDER BY o.order_id desc");
+
+        return paginate(pageNum, pageSize, selectSql, sql.toString(), params.toArray());
+    }
+
+    /**
+     * 导出销售毛利数据用的
+     *
+     * @param nick_name
+     * @param business_name
+     * @param order_cycle_date
+     * @return
+     */
+    public List<OrderDetail> getSalesMarginList(String nick_name, String business_name, String order_cycle_date) {
+        String selectSql = "SELECT  " +
+                "  o.order_id,  " +
+                "  au.nick_name,  " +
+                "  bi.business_name,  " +
+                "  o.pay_all_money,  " +
+                "  SUM(  " +
+                "    (  " +
+                "      od.sell_price - ifnull(cid.inventory_price, pwd.put_average_price)  " +
+                "    ) * od.actual_send_goods_num  " +
+                "  ) AS total_gross_margin,  " +
+                "  SUM(  " +
+                "    (  " +
+                "      od.sell_price - ifnull(cid.inventory_price, pwd.put_average_price)  " +
+                "    ) * od.actual_send_goods_num  " +
+                "  ) / o.pay_all_money * 100 AS gross_margin ";
+        StringBuffer sql = new StringBuffer();
+        sql.append("FROM  " +
+                "  b_order AS o  " +
+                "INNER JOIN b_order_detail AS od ON o.order_id = od.order_id  " +
+                "INNER JOIN b_business_user AS bu ON o.u_id = bu.id  " +
+                "INNER JOIN a_user AS au ON bu.a_user_sales_id = au.id  " +
+                "INNER JOIN b_business_info AS bi ON bi.u_id = bu.id  " +
+                "LEFT JOIN b_check_inventory AS ci ON ci.create_time LIKE CONCAT(  " +
+                "  CASE  " +
+                "  WHEN timediff(  " +
+                "    TIME(o.create_time),  " +
+                "    str_to_date('12:00:00', '%H:%i:%s')  " +
+                "  ) < 0 THEN  " +
+                "    DATE(o.create_time)  " +
+                "  ELSE  " +
+                "    date_add(  " +
+                "      DATE(o.create_time),  " +
+                "      INTERVAL 1 DAY  " +
+                "    )  " +
+                "  END,  " +
+                "  '%'  " +
+                ")  " +
+                "LEFT JOIN b_check_inventory_detail cid ON cid.check_inventory_id = ci.id AND cid.product_standard_id = od.product_standard_id  " +
+                "LEFT JOIN b_put_warehouse as pw ON pw.create_time LIKE CONCAT(  " +
+                "  CASE  " +
+                "  WHEN timediff(  " +
+                "    TIME(o.create_time),  " +
+                "    str_to_date('12:00:00', '%H:%i:%s')  " +
+                "  ) < 0 THEN  " +
+                "    DATE(o.create_time)  " +
+                "  ELSE  " +
+                "    date_add(  " +
+                "      DATE(o.create_time),  " +
+                "      INTERVAL 1 DAY  " +
+                "    )  " +
+                "  END,  " +
+                "  '%'  " +
+                ")  " +
+                "LEFT JOIN b_put_warehouse_detail pwd ON pwd.put_id = pw.id AND pwd.product_standard_id = od.product_standard_id  " +
+                "WHERE 1 = 1   ");
+        ArrayList<Object> params = new ArrayList<>();
+        if (StringUtils.isNotBlank(nick_name)) {
+            sql.append("AND au.nick_name = ? ");
+            params.add(nick_name);
+        }
+
+        if (StringUtils.isNotBlank(business_name)) {
+            sql.append("AND bi.business_name = ? ");
+            params.add(business_name);
+        }
+
+        sql.append("GROUP BY o.order_id ORDER BY o.order_id desc");
+
+        return find(selectSql + sql.toString(),params.toArray());
     }
 }

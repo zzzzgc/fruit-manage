@@ -69,11 +69,11 @@ public class ProcurementStoreoutController extends BaseController {
 
                 strings[5] = procurementPlanDetail.getInventoryNum() + "";
                 strings[6] = procurementPlanDetail.get("storeoutNum")+"";
-                strings[7] = null;
+                strings[7] = "";
                 try {
                     BigDecimal storeoutNum = new BigDecimal(procurementPlanDetail.get("storeoutNum")+"");
                     BigDecimal orderDetailTotalNum =new BigDecimal(procurementPlanDetail.get("orderDetailTotalNum")+"");
-                    strings[7] = ((storeoutNum).divide(orderDetailTotalNum)).multiply(new BigDecimal(100)) + "%";
+                    strings[7] = ((storeoutNum).divide(orderDetailTotalNum,2,2)).multiply(new BigDecimal(100)) + "%";
                 } catch (Exception e) {
                     e.printStackTrace();
                     strings[7] = "";
@@ -84,7 +84,11 @@ public class ProcurementStoreoutController extends BaseController {
                 strings[10] = procurementPlanDetail.getSellPrice() + "";
                 strings[11] = (procurementPlanDetail.getProductStandardNum() - procurementPlanDetail.getProcurementNum() - procurementPlanDetail.getInventoryNum()) > 0 ? procurementPlanDetail.getProductStandardNum() - procurementPlanDetail.getProcurementNum() - procurementPlanDetail.getInventoryNum() + "": "不缺货" ;
                 strings[12] = (procurementPlanDetail.getProductStandardNum() - procurementPlanDetail.getProcurementNum() - procurementPlanDetail.getInventoryNum()) > 0 ? new BigDecimal((procurementPlanDetail.getProductStandardNum() - procurementPlanDetail.getProcurementNum() - procurementPlanDetail.getInventoryNum())).multiply(procurementPlanDetail.getProcurementNeedPrice()) + "" : "0";
-                strings[13] = (procurementPlanDetail.getProductStandardNum() - procurementPlanDetail.getProcurementNum() - procurementPlanDetail.getInventoryNum()) > 0 ? (new BigDecimal((procurementPlanDetail.getProductStandardNum() - procurementPlanDetail.getProcurementNum() - procurementPlanDetail.getInventoryNum())).multiply(procurementPlanDetail.getProcurementNeedPrice()).divide(procurementPlanDetail.getProcurementTotalPrice())).multiply(new BigDecimal(100)) + "%" : "0";
+                if (procurementPlanDetail.getProcurementTotalPrice()!=null  && procurementPlanDetail.getProcurementTotalPrice().intValue()>0){
+                    strings[13] = (procurementPlanDetail.getProductStandardNum() - procurementPlanDetail.getProcurementNum() - procurementPlanDetail.getInventoryNum()) > 0 ? (new BigDecimal((procurementPlanDetail.getProductStandardNum() - procurementPlanDetail.getProcurementNum() - procurementPlanDetail.getInventoryNum())).multiply(procurementPlanDetail.getProcurementNeedPrice()).divide(procurementPlanDetail.getProcurementTotalPrice(),2,2)).multiply(new BigDecimal(100)) + "%" : "0";
+                }else {
+                    strings[13] = "100%";
+                }
                 strings[14] = procurementPlanDetail.get("create_time")+"";
                 lists.add(strings);
             }
