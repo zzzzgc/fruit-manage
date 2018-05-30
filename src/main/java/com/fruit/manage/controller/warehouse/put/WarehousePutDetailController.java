@@ -343,7 +343,7 @@ public class WarehousePutDetailController extends BaseController {
             ProductStandard productStandard = ProductStandard.dao.getProductStandardById(putWarehouseDetail.getProductStandardId());
             putWarehouseDetail.setProductStandardName(productStandard.getName());
             User user = User.dao.getUserById(putWarehouseDetail.getProcurementId());
-            putWarehouseDetail.setProcurementName(user.getName());
+            putWarehouseDetail.setProcurementName(user.getNickName());
             putWarehouseDetail.setProductName(product.getName());
             putWarehouseDetail.setProcurementTotalPrice(procurementTotalPrice);
             // 计算入库单价

@@ -317,4 +317,70 @@ public class ProcurementPlanDetail extends BaseProcurementPlanDetail<Procurement
 		System.out.println("---------------采购缺货 end-------------");
 		return paginate(pageNum,pageSize,sql,sb.toString(), list.toArray());
 	}
+
+	/**
+	 * 获取采购缺货
+	 * @param procurementId
+	 * @param productName
+	 * @param productStandardName
+	 * @param createTimes
+	 * @return
+	 */
+	public List<ProcurementPlanDetail> getProcuementStoreout(String procurementId,String productName,String productStandardName,String [] createTimes) {
+		List list = new ArrayList();
+		String sql = "SELECT ppd.product_name,ppd.product_standard_name,ppd.product_standard_id,ppd.product_standard_num,ppd.procurement_num,\n" +
+				"\t\t\tppd.procurement_need_price,ppd.sell_price,pd.create_time,ppd.inventory_num,\n" +
+				" (select count(1) from b_order_detail od where (od.actual_send_goods_num <= 0 or od.actual_send_goods_num is NULL) and ppd.product_standard_id = od.product_standard_id) as storeoutNum, " +
+				" (select count(1) from b_order_detail od where ppd.product_standard_id = od.product_standard_id) as orderDetailTotalNum, " +
+
+				"\t(\n" +
+				"\t\tIFNULL((\n" +
+				"\t\tSELECT cid.inventory_price from b_check_inventory ci\n" +
+				"\t\t\tINNER JOIN b_check_inventory_detail cid on ci.id = cid.check_inventory_id\n" +
+				"\t\t\twhere 1=1 and cid.product_standard_id = 13\n" +
+				"\t\t\tand DATE_FORMAT(ci.create_time,'%Y-%m-%d') = DATE_FORMAT('2018-5-12','%Y-%m-%d')\n" +
+				"\t\t),(\n" +
+				"\t\tSELECT pwd.put_average_price from b_put_warehouse pw\n" +
+				"\t\t\tINNER JOIN b_put_warehouse_detail pwd on pw.id = pwd.put_id\n" +
+				"\t\t\twhere 1=1 and pwd.product_standard_id = 124\n" +
+				"\t\t\tand DATE_FORMAT(pw.create_time,'%Y-%m-%d') = DATE_FORMAT('2018-05-24','%Y-%m-%d') \n" +
+				"\t\t))\n" +
+				"\t) AS costPrice,"+
+
+				" (SELECT u.nick_name from a_user u where u.id = ppd.procurement_id) as procurement_name, "+
+				" ppd.procurement_total_price ";
+
+		StringBuilder sb = new StringBuilder();
+		sb.append("\tfrom b_procurement_plan_detail ppd\n");
+		sb.append("\tINNER join b_procurement_plan pd on ppd.procurement_id \n");
+		sb.append("\twhere 1=1 \n");
+		if (StrKit.notBlank(procurementId)) {
+			sb.append("\tand ppd.procurement_id = ?\n");
+			list.add(procurementId);
+		}
+		if (StrKit.notBlank(productName)) {
+			sb.append("\tand ppd.product_name like ?\n");
+			list.add("%" + productName + "%");
+		}
+		if (StrKit.notBlank(productStandardName)) {
+			sb.append("\tand ppd.product_standard_name like ?\n");
+			list.add("%" + productStandardName + "%");
+		}
+		if(createTimes!=null && !"".equals(createTimes) && StrKit.notBlank(createTimes[0]) && StrKit.notBlank(createTimes[1]) && createTimes.length == 2){
+			sb.append("\tand pd.create_time between ? and ?\n");
+			list.add(createTimes[0]);
+			list.add(createTimes[1]);
+		}
+		System.out.println("----------采购缺货 start--------------");
+		System.out.println(sql);
+		System.out.println(sb.toString());
+		if (list != null) {
+			for (int i = 0; i < list.size(); i++) {
+				System.out.println(list.get(i));
+			}
+		}
+		System.out.println(list.toArray());
+		System.out.println("---------------采购缺货 end-------------");
+		return find(sql+sb.toString(), list.toArray());
+	}
 }

@@ -129,6 +129,14 @@ public abstract class BaseOrder<M extends BaseOrder<M>> extends Model<M> impleme
 		return getInt("refund_status");
 	}
 
+	public void setOrderCycleDate(java.util.Date orderCycleDate) {
+		set("order_cycle_date", orderCycleDate);
+	}
+
+	public java.util.Date getOrderCycleDate() {
+		return get("order_cycle_date");
+	}
+
 	public void setRefundTime(java.util.Date refundTime) {
 		set("refund_time", refundTime);
 	}

@@ -57,6 +57,14 @@ public abstract class BaseProcurementPlan<M extends BaseProcurementPlan<M>> exte
 		return getInt("order_total");
 	}
 
+	public void setOrderCycleDate(java.util.Date orderCycleDate) {
+		set("order_cycle_date", orderCycleDate);
+	}
+
+	public java.util.Date getOrderCycleDate() {
+		return get("order_cycle_date");
+	}
+
 	public void setCreateTime(java.util.Date createTime) {
 		set("create_time", createTime);
 	}

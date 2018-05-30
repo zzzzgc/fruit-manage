@@ -1,6 +1,7 @@
 package com.fruit.manage.controller.procurement;
 
 import com.fruit.manage.base.BaseController;
+import com.fruit.manage.constant.RoleKeyCode;
 import com.fruit.manage.controller.common.CommonController;
 import com.fruit.manage.model.*;
 import com.fruit.manage.util.Constant;
@@ -154,7 +155,9 @@ public class PlanDetailController extends BaseController {
      * 获取所有的采购人员
      */
     public void getAllProcurementUser() {
-        renderJson(User.dao.getAllUser());
+        // 获取所有的采购人员
+        List<User> userList =User.dao.getUserNickNameAndUId(RoleKeyCode.PROCUREMENT);
+        renderJson(userList);
     }
 
     /**

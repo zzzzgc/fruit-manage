@@ -55,12 +55,13 @@ public class ProcurementStoreoutController extends BaseController {
         String productName = getPara("product_name");
         String productStandardName = getPara("product_standard_name");
         String[] createTimes2 = getParaValues("format_create_time");
-        Page<ProcurementPlanDetail> procurementPlanDetailPage = ProcurementPlanDetail.dao.getProcuementStoreout(pageNum, pageSize, orderBy, isASC, procurementId, productName, productStandardName, createTimes2);
-        if (procurementPlanDetailPage.getList() != null && procurementPlanDetailPage.getList() .size() >0) {
+//        Page<ProcurementPlanDetail> procurementPlanDetailPage = ProcurementPlanDetail.dao.getProcuementStoreout(pageNum, pageSize, orderBy, isASC, procurementId, productName, productStandardName, createTimes2);
+        List<ProcurementPlanDetail> procurementPlanDetailPage = ProcurementPlanDetail.dao.getProcuementStoreout(procurementId, productName, productStandardName, createTimes2);
+        if (procurementPlanDetailPage != null && procurementPlanDetailPage.size() >0) {
             List<String[]> lists = new ArrayList<>();
-            for (int i = 0; i < procurementPlanDetailPage.getList().size(); i++) {
+            for (int i = 0; i < procurementPlanDetailPage.size(); i++) {
                 String[] strings = new String[15];
-                ProcurementPlanDetail procurementPlanDetail = procurementPlanDetailPage.getList().get(i);
+                ProcurementPlanDetail procurementPlanDetail = procurementPlanDetailPage.get(i);
                 strings[0] = procurementPlanDetail.getProductName();
                 strings[1] = procurementPlanDetail.getProductStandardName();
                 strings[2] = procurementPlanDetail.getProductStandardId() + "";
