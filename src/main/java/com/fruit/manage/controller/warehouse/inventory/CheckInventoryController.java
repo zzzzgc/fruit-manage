@@ -47,6 +47,7 @@ public class CheckInventoryController extends BaseController {
         CheckInventory checkInventory =new CheckInventory();
         checkInventory.setId(IdUtil.getCheckInventoryId(currentTime));
         checkInventory.setCreateTime(currentTime);
+        checkInventory.setOrderCycleDate(currentTime);
         checkInventory.save();
         renderNull();
     }

@@ -107,6 +107,8 @@ public class PlanController extends BaseController {
                     procurementPlan.setId(IdUtil.getProrementPlanId());
                     procurementPlan.setProcurementId(getSessionAttr(Constant.SESSION_UID));
                     procurementPlan.setCreateTime(DateAndStringFormat.strToDate(nowDateStr));
+                    // ccz 2018-5-30 添加订单周期时间
+                    procurementPlan.setOrderCycleDate(new Date());
                     procurementPlan.save();
                     // 此段日期已经有人有人下单，新添加
                     list.add(1);
