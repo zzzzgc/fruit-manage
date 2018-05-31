@@ -30,7 +30,7 @@ public class BusinessInfo extends BaseBusinessInfo<BusinessInfo> {
 		return findFirst(sql,id);
 	}
 
-    public Page<BusinessInfo> getData(String searchProvince,String searchCity,String salesName,String sales_phone,String business_id,String business_name,String business_phone,String[] createTime,int pageNum, int pageSize, String orderBy, boolean isASC,Integer saleId) {
+    public Page<BusinessInfo> getData(String searchProvince,String searchCity,String salesName,String sales_phone,String business_id,String uid,String business_phone,String[] createTime,int pageNum, int pageSize, String orderBy, boolean isASC,Integer saleId) {
         ArrayList<Object> params = new ArrayList<Object>();
         StringBuffer sql = new StringBuffer();
         String select = "SELECT " +
@@ -42,7 +42,7 @@ public class BusinessInfo extends BaseBusinessInfo<BusinessInfo> {
                   "binfo.address_city, " +
                   "binfo.address_shop, " +
                   "binfo.address_detail, " +
-                  "auser.`name` AS sales_name, " +
+                  "auser.nick_name AS sales_name, " +
                   "auser.phone AS sales_phone, " +
                   "bauth.audit, " +
                   "buser.create_time ";
@@ -50,7 +50,7 @@ public class BusinessInfo extends BaseBusinessInfo<BusinessInfo> {
                   "a_user auser " +
                 "JOIN b_business_user buser ON buser.a_user_sales_id = auser.id " +
                 "JOIN b_business_info binfo ON binfo.u_id = buser.id " +
-                "JOIN b_business_auth bauth ON bauth.u_id = buser.id " +
+                "LEFT JOIN b_business_auth bauth ON bauth.u_id = buser.id " +
                 "WHERE " +
                   "1 = 1 ");
         // 添加了销售可以看到各自的客户
@@ -79,9 +79,9 @@ public class BusinessInfo extends BaseBusinessInfo<BusinessInfo> {
             sql.append("and auser.phone like ? ");
             params.add("%"+sales_phone+"%");
         }
-        if (StrKit.notBlank(business_name)) {
-            sql.append("and binfo.business_name LIKE ? ");
-            params.add("%"+business_name+"%");
+        if (StrKit.notBlank(uid)) {
+            sql.append("and binfo.u_id LIKE ? ");
+            params.add("%"+uid+"%");
         }
         if (StrKit.notBlank(business_id)) {
             sql.append("and binfo.id = ? ");
