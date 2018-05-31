@@ -1128,6 +1128,7 @@ public class ExcelController extends BaseController {
 
                     Map<String, Integer> duplicationCheckProductMap = new HashMap<>();
                     Map<String, Integer> duplicationCheckProductStandardMap = new HashMap<>();
+                    Map<Integer, Object[]> duplicationCheckProductStandardMapbyAll = new HashMap<>();
 
                     // 异常检测,容错提升
                     for (Object[] row : excel) {
@@ -1158,6 +1159,8 @@ public class ExcelController extends BaseController {
                             // 不为空
                             String[] idInfo = productIdInfo.split("-");
                             if (idInfo.length == 2) {
+                                // 开始核对
+
                                 productId = Integer.parseInt(idInfo[0]);
                                 productStandardId = Integer.parseInt(idInfo[1]);
 
@@ -1174,7 +1177,7 @@ public class ExcelController extends BaseController {
                                 }
 
 
-                                // 1.規格名相同,psId不同
+                                // 2.規格名相同,psId不同
                                 Integer psId = duplicationCheckProductStandardMap.get(productName + productStandardName);
                                 if (productStandardId != null) {
                                     if (psId != null) {
@@ -1186,6 +1189,23 @@ public class ExcelController extends BaseController {
                                     }
                                     duplicationCheckProductStandardMap.put(productName + productStandardName, productStandardId);
                                 }
+
+                                // 3.psId相同,内容不相同
+                                Object[] duplicationCheckRow = duplicationCheckProductStandardMapbyAll.get(productStandardId);
+                                if (duplicationCheckRow != null) {
+                                    for (int i = 0; i < duplicationCheckRow.length; i++) {
+                                        if (!row[i].equals(duplicationCheckRow[i])) {
+                                            String rowStr = Arrays.stream(row).filter(obj -> obj != null).map(Object::toString).reduce("", String::concat);
+                                            String newRowStr = Arrays.stream(duplicationCheckRow).filter(obj -> obj != null).map(Object::toString).reduce("", String::concat);
+                                            renderErrorText("存在相同商品规格编号和不同的信息的商品：" + productName + "，规格：" + productStandardName +
+//                                                    "，---------------上一行row:"+rowStr + "," +
+//                                                    "---------------下一行" +newRowStr +
+                                                    "|--->差异值：" + row[i] + "和" + duplicationCheckRow[i]);
+                                            return false;
+                                        }
+                                    }
+                                }
+                                duplicationCheckProductStandardMapbyAll.put(productStandardId,row);
                             }
                         }
                     }
