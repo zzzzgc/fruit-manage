@@ -577,6 +577,8 @@ public class OrderController extends BaseController {
                 logisticsInfoUpdate.setTransshipmentCost(transshipmnetCost);
                 logisticsInfoUpdate.setPackageCost(packageCost);
                 logisticsInfoUpdate.setAbstract(logisticsInfo.getAbstract());
+                logisticsInfoUpdate.setDeliveryInfo(logisticsInfo.getDeliveryInfo());
+                logisticsInfoUpdate.setLicensePlateNumber(logisticsInfo.getLicensePlateNumber());
 
                 logisticsInfoUpdate.setPackageNum(logisticsInfo.getPackageNum());
                 logisticsInfoUpdate.setSendGoodsTotalCost(sendGoodsTotalCost);
