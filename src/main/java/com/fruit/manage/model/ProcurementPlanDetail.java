@@ -383,4 +383,22 @@ public class ProcurementPlanDetail extends BaseProcurementPlanDetail<Procurement
 		System.out.println("---------------采购缺货 end-------------");
 		return find(sql+sb.toString(), list.toArray());
 	}
+
+	/**
+	 * 根据时间和商品规格编号和采购人编号获取采购计划详细信息
+	 * @param createTime
+	 * @param productStandardId
+	 * @param procurementId
+	 * @return
+	 */
+	public ProcurementPlanDetail getProcurementPlanDetail(String createTime,Integer productStandardId,Integer procurementId) {
+		String sql = "SELECT ppd.id,ppd.procurement_need_price,ppd.procurement_total_price,ppd.procurement_id,ppd.product_standard_id\n" +
+				"\tfrom b_procurement_plan pp\n" +
+				"\tINNER JOIN b_procurement_plan_detail ppd on pp.id = ppd.procurement_plan_id\n" +
+				"\twhere 1=1\n" +
+				"\tand DATE_FORMAT(pp.create_time,'%Y-%m-%d')  = ? \n" +
+				"\tand ppd.product_standard_id = ? \n" +
+				"\tand ppd.procurement_id = ?";
+		return findFirst(sql,createTime,productStandardId,procurementId);
+	}
 }

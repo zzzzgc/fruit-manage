@@ -955,7 +955,7 @@ public class ExcelController extends BaseController {
         procurementPlanGroup.put("采购汇总", planList);
 
 
-        String[] headers = {"商品名", "规格名", "规格编码", "重量(斤)", "报价", "下单量", "库存量", "采购量", "采购单价", "下单备注"};
+        String[] headers = {"商品名", "规格名", "规格编码", "重量(斤)", "报价", "下单量", "库存量", "采购量", "采购单价", "下单备注","采购人"};
 
         XSSFWorkbook wb = new XSSFWorkbook();
 
@@ -1048,6 +1048,10 @@ public class ExcelController extends BaseController {
                             c8.setCellValue("");
                             c9.setCellValue("");
                             c10.setCellValue(procurementPlan.get("orderRemark") == null ? "" : procurementPlan.get("orderRemark") + "");
+
+                            XSSFCell c11 = row.createCell(cellCount++);
+                            c11.setCellStyle(styleTable);
+                            c11.setCellValue(procurementPlan.get("procurement_name")+"");
                         }
                     } catch (Exception e) {
                         e.printStackTrace();

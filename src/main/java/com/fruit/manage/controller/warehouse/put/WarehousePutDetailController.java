@@ -111,6 +111,7 @@ public class WarehousePutDetailController extends BaseController {
                     String endTime = null;
 //        Iterator<ExcelRdRow> iterator = WarehousePutDetailController.readExcel(filePath).iterator();
                     List<List<ExcelRdRow>> listExcelRdRows = readExcelMultiTable(filePath);
+                    String createTimeStr=null;
                     for (int i = 0; i < listExcelRdRows.size(); i++) {
                         Iterator<ExcelRdRow> iterator = listExcelRdRows.get(i).iterator();
                         Integer count = 0;
@@ -122,7 +123,7 @@ public class WarehousePutDetailController extends BaseController {
                             ExcelRdRow excelRdRow = iterator.next();
                             List<Object> list = excelRdRow.getRow();
                             if (count == 1 && i == 0) {
-                                String createTimeStr = ((String) list.get(0)).split(" ")[0].substring(5);
+                                createTimeStr = ((String) list.get(0)).split(" ")[0].substring(5);
                                 startTime = createTimeStr + " 00:00:00";
                                 endTime = createTimeStr + " 23:59:59";
                             }
@@ -131,19 +132,26 @@ public class WarehousePutDetailController extends BaseController {
                                 // ccz 2018-04-25 startTime endTime 暂时无用
 //                    String procurementName = User.dao.getNickNameById(Integer.parseInt(list.get(8)+""));
                                 String procurementName = list.get(8) + "";
-                                Integer procurementId = User.dao.getUserIdByName(list.get(8) + "");
+                                Integer procurementId = User.dao.getUserIdByName(procurementName + "");
 //                    PutWarehouseDetail putWarehouseDetail = PutWarehouseDetail.dao.getPutDetailByPSIDAndProcurementId(Integer.parseInt((list.get(2)) + ""), Integer.parseInt((list.get(8)) + ""), startTime, endTime, putId);
                                 PutWarehouseDetail putWarehouseDetail = PutWarehouseDetail.dao.getPutDetailByPSIDAndProcurementId(Integer.parseInt((list.get(2)) + ""), procurementId, startTime, endTime, putId);
+                                Integer productStandardId = Integer.parseInt(list.get(2) + "");
+                                ProcurementPlanDetail procurementPlanDetail = ProcurementPlanDetail.dao.getProcurementPlanDetail(createTimeStr, productStandardId, procurementId);
+                                if (procurementPlanDetail == null) {
+                                    excelRenderErrorInfo(tableIndex,rowIndex,"不存在该采购记录信息，无法获取采购价格!");
+                                    return false;
+                                }
+                                Integer putInNum = Integer.parseInt(list.get(7) + "");
+                                BigDecimal boothCost = new BigDecimal(list.get(6) + "");
 
                                 if (putWarehouseDetail == null) {
                                     putWarehouseDetail = new PutWarehouseDetail();
                                     // 计算总价和入库单价
-                                    BigDecimal procurementPrice = new BigDecimal(list.get(4) + "");
-                                    BigDecimal putNum = new BigDecimal(Integer.parseInt(list.get(7) + ""));
+                                    BigDecimal procurementPrice = procurementPlanDetail.getProcurementNeedPrice();
+                                    BigDecimal putNum = new BigDecimal(putInNum);
                                     BigDecimal procurementTotalPrice = procurementPrice.multiply(putNum);
-                                    BigDecimal boothCost = new BigDecimal(list.get(6) + "");
                                     putAllCount = putAllCount.add(putNum);
-                                    putAllTypeCount.put(Integer.parseInt(list.get(2) + ""), "countNeed");
+                                    putAllTypeCount.put(productStandardId, "countNeed");
                                     // 弃用
                                     putAllTotalCost = putAllTotalCost.add(procurementTotalPrice.add(boothCost));
                                     if (BigDecimal.ZERO.compareTo(putNum) == 0) {
@@ -153,17 +161,17 @@ public class WarehousePutDetailController extends BaseController {
                                     BigDecimal averagePrice = (procurementTotalPrice.add(boothCost)).divide(putNum, 2, BigDecimal.ROUND_HALF_DOWN);
 
                                     // 根据商品规格编号获取商品编号
-                                    Integer productId = ProductStandard.dao.getProductIdByPSId(Integer.parseInt(list.get(2) + ""));
+                                    Integer productId = ProductStandard.dao.getProductIdByPSId(productStandardId);
                                     putWarehouseDetail.setProductId(productId);
                                     //给入库详细信息赋值
                                     putWarehouseDetail.setProductName(list.get(0) + "");
                                     putWarehouseDetail.setProductStandardName(list.get(1) + "");
-                                    putWarehouseDetail.setProductStandardId(Integer.parseInt(list.get(2) + ""));
+                                    putWarehouseDetail.setProductStandardId(productStandardId);
                                     putWarehouseDetail.setProductWeight(list.get(3)==null?"":(list.get(3)+""));
                                     putWarehouseDetail.setProcurementPrice(procurementPrice);
                                     putWarehouseDetail.setProcurementTotalPrice(procurementTotalPrice);
                                     putWarehouseDetail.setBoothCost(boothCost);
-                                    putWarehouseDetail.setPutNum(Integer.parseInt(list.get(7) + ""));
+                                    putWarehouseDetail.setPutNum(putInNum);
                                     putWarehouseDetail.setProcurementId(procurementId);
                                     putWarehouseDetail.setPutAveragePrice(averagePrice);
                                     putWarehouseDetail.setPutId(putId);
@@ -183,8 +191,7 @@ public class WarehousePutDetailController extends BaseController {
                                     putWarehouse.update();
                                 } else {
                                     // 执行修改操作
-                                    BigDecimal boothCost = new BigDecimal(list.get(6) + "");
-                                    BigDecimal putNumUpdate = new BigDecimal(Integer.parseInt(list.get(7) + ""));
+                                    BigDecimal putNumUpdate = new BigDecimal(putInNum);
                                     if (putNumUpdate!=null && putNumUpdate.intValue() <=0) {
                                         continue;
                                     }
