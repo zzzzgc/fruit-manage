@@ -250,7 +250,7 @@ public class ExcelController extends BaseController {
 //            String startDateStr = DateTimeKit.formatDateToStyle("yyyy-MM-dd", calendar.getTime()) + " 12:00:00";
 //            calendar.add(Calendar.DAY_OF_MONTH, 1);
 //            String endDateStr = DateTimeKit.formatDateToStyle("yyyy-MM-dd", calendar.getTime()) + " 12:00:00";
-            Date createTime = getParaToDate("createTime");
+            final Date createTime = getParaToDate("createTime") == null? new Date():getParaToDate("createTime");
 
             String[] createTimes = DateUtils.getOrderCycleDateStrings(createTime);
 
@@ -565,10 +565,9 @@ public class ExcelController extends BaseController {
 //        // 今天
 //        calendar.add(Calendar.DAY_OF_MONTH, 1);
 //        String endDateStr = DateTimeKit.formatDateToStyle("yyyy-MM-dd", calendar.getTime()) + " 12:00:00";
-        Date createTime = getParaToDate("createTime");
+        final Date createTime = getParaToDate("createTime") == null? new Date():getParaToDate("createTime");
 
         String[] createTimes = DateUtils.getOrderCycleDateStrings(createTime);
-
 
         String sql = "SELECT " +
                 "o.order_id, " +
@@ -919,7 +918,7 @@ public class ExcelController extends BaseController {
 
         User user = User.dao.findById(uid);
 
-        Date createTime = getParaToDate("createTime");
+        final Date createTime = getParaToDate("createTime") == null? new Date():getParaToDate("createTime");
 
         String[] createTimes = DateUtils.getOrderCycleDateStrings(createTime);
 //        if (createTime != null) {
