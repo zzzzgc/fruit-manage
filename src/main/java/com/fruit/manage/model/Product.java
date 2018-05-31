@@ -69,7 +69,7 @@ public class Product extends BaseProduct<Product> {
 	}
 
 	public Product getById(int productId) {
-		return findFirst("select id,name,fruit_type,country,province,sort,brand,measure_unit,status,fresh_time,fruit_des,store_way from b_product where id=?", productId);
+		return findFirst("select id,name,fruit_type,country,province,sort,brand,total_sell_num,measure_unit,status,fresh_time,fruit_des,store_way from b_product where id=?", productId);
 	}
 
 	public boolean changeStatus(Integer[] ids, int status) {
