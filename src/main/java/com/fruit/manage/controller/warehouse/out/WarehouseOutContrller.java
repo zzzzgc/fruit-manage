@@ -7,9 +7,11 @@ import com.fruit.manage.model.*;
 import com.fruit.manage.util.Constant;
 import com.fruit.manage.util.ExcelCommon;
 import com.fruit.manage.util.excel.ExcelException;
+import com.jfinal.aop.Before;
 import com.jfinal.ext.kit.DateKit;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.IAtom;
+import com.jfinal.plugin.activerecord.tx.Tx;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.log4j.Logger;
@@ -60,9 +62,8 @@ public class WarehouseOutContrller extends BaseController {
      * 添加出库表
      */
     public void save() {
-        String CreateTimeStr = getPara("create_Time");
+        Date createTime = getParaToDate("create_Time");
         Integer outType = getParaToInt("out_type");
-        Date createTime = DateKit.toDate(CreateTimeStr);
         OutWarehouse outWarehouse = new OutWarehouse();
         outWarehouse.setOutTime(createTime);
         outWarehouse.setOrderCycleDate(createTime);
@@ -75,11 +76,16 @@ public class WarehouseOutContrller extends BaseController {
     }
 
     /**
-     * 刪除
+     * 刪除出库单,并删除子订单
      */
+    @Before(Tx.class)
     public void delete() {
         Integer id = getParaToInt("id");
         OutWarehouse.dao.deleteById(id);
+        List<OutWarehouseDetail> outWarehouseDetail = OutWarehouseDetail.dao.getOutWarehouseDetail(id);
+        for (OutWarehouseDetail warehouseDetail : outWarehouseDetail) {
+            updateProductStandardStore(warehouseDetail.getProductStandardId(), warehouseDetail.getOutNum(), warehouseDetail.getProductStandardName(), warehouseDetail.getProductId(), warehouseDetail.getProductName());
+        }
         renderNull();
     }
 
@@ -177,7 +183,6 @@ public class WarehouseOutContrller extends BaseController {
         Db.tx(new IAtom() {
             @Override
             public boolean run() throws SQLException {
-
                 try {
                     String fileName = getPara("fileName");
                     Integer outId = getParaToInt("out_id");
@@ -292,8 +297,6 @@ public class WarehouseOutContrller extends BaseController {
 //                                            --productStandardTotalNum;
 //                                        }
                                     }
-
-
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                     excelExceptionRender(sheetCount, j, e.getMessage());

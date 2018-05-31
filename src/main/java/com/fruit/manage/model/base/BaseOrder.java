@@ -113,14 +113,6 @@ public abstract class BaseOrder<M extends BaseOrder<M>> extends Model<M> impleme
 		return getInt("order_status");
 	}
 
-	public void setPayTime(java.util.Date payTime) {
-		set("pay_time", payTime);
-	}
-
-	public java.util.Date getPayTime() {
-		return get("pay_time");
-	}
-
 	public void setRefundStatus(java.lang.Integer refundStatus) {
 		set("refund_status", refundStatus);
 	}
@@ -135,6 +127,14 @@ public abstract class BaseOrder<M extends BaseOrder<M>> extends Model<M> impleme
 
 	public java.util.Date getOrderCycleDate() {
 		return get("order_cycle_date");
+	}
+
+	public void setPayTime(java.util.Date payTime) {
+		set("pay_time", payTime);
+	}
+
+	public java.util.Date getPayTime() {
+		return get("pay_time");
 	}
 
 	public void setRefundTime(java.util.Date refundTime) {
