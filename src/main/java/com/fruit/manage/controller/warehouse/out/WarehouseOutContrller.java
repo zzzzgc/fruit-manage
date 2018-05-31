@@ -183,7 +183,6 @@ public class WarehouseOutContrller extends BaseController {
         Db.tx(new IAtom() {
             @Override
             public boolean run() throws SQLException {
-
                 try {
                     String fileName = getPara("fileName");
                     Integer outId = getParaToInt("out_id");
@@ -298,8 +297,6 @@ public class WarehouseOutContrller extends BaseController {
 //                                            --productStandardTotalNum;
 //                                        }
                                     }
-
-
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                     excelExceptionRender(sheetCount, j, e.getMessage());
