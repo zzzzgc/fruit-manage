@@ -185,6 +185,9 @@ public class WarehousePutDetailController extends BaseController {
                                     // 执行修改操作
                                     BigDecimal boothCost = new BigDecimal(list.get(6) + "");
                                     BigDecimal putNumUpdate = new BigDecimal(Integer.parseInt(list.get(7) + ""));
+                                    if (putNumUpdate!=null && putNumUpdate.intValue() <=0) {
+                                        continue;
+                                    }
                                     BigDecimal procurementTotalPrice = putNumUpdate.multiply(putWarehouseDetail.getProcurementPrice());
                                     // PutNum相差的值
                                     Integer differPutNum = putWarehouseDetail.getPutNum() - putNumUpdate.intValue();

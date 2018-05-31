@@ -6,6 +6,7 @@ import com.fruit.manage.controller.common.CommonController;
 import com.fruit.manage.model.*;
 import com.fruit.manage.util.Constant;
 import com.fruit.manage.util.DateAndStringFormat;
+import com.fruit.manage.util.DateUtils;
 import com.fruit.manage.util.IdUtil;
 import com.fruit.manage.util.excelRd.ExcelRd;
 import com.fruit.manage.util.excelRd.ExcelRdException;
@@ -44,6 +45,8 @@ public class PlanDetailController extends BaseController {
         map.put("procurementPlanId", procurementPlanId);
         // ascending为升序，其他为降序
         boolean isASC = "ascending".equals(getPara("order"));
+
+        // It(createTimes) is never used!
         Date createTime = getParaToDate("create_time");
         String createTimeStr = DateAndStringFormat.getStringDateShort(createTime);
         String[] createTimes = new String[2];
@@ -81,12 +84,20 @@ public class PlanDetailController extends BaseController {
         Integer uid = getSessionAttr(Constant.SESSION_UID);
         // 获取当前操作用户
         User user = User.dao.findById(uid);
-        Date createTime = getParaToDate("createTime");
+        
+
         String procurementPlanId = getPara("procurementPlanId");
-        String createTimeStr = DateAndStringFormat.getStringDateShort(createTime);
-        String[] createTimes = new String[2];
-        createTimes[0] = DateAndStringFormat.getNextDay(createTimeStr, "-1") + " 12:00:00";
-        createTimes[1] = createTimeStr + " 11:59:59";
+        
+        
+        Date createTime = getParaToDate("createTime");
+        // ccz 2018-5-31 orderCreateTime 封装成通用方法
+        String[] createTimes = DateUtils.getOrderCycleDateStrings(createTime);
+//        String createTimeStr = DateAndStringFormat.getStringDateShort(createTime);
+//        String[] createTimes = new String[2];
+//        createTimes[0] = DateAndStringFormat.getNextDay(createTimeStr, "-1") + " 12:00:00";
+//        createTimes[1] = createTimeStr + " 11:59:59";
+        
+        
         // 获取要导出数据
         List<ProcurementPlan> planList = ProcurementPlan.dao.getExportDataByPPlanID(createTimes);
         // 先执行删除操作

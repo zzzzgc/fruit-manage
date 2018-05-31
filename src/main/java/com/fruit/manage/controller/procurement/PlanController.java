@@ -6,10 +6,7 @@ import com.fruit.manage.model.OrderLog;
 import com.fruit.manage.model.ProcurementPlan;
 import com.fruit.manage.model.ProcurementPlanDetail;
 import com.fruit.manage.model.User;
-import com.fruit.manage.util.Constant;
-import com.fruit.manage.util.DateAndStringFormat;
-import com.fruit.manage.util.ExcelCommon;
-import com.fruit.manage.util.IdUtil;
+import com.fruit.manage.util.*;
 import com.fruit.manage.util.excel.ExcelException;
 import com.jfinal.aop.Before;
 import com.jfinal.ext.kit.DateKit;
@@ -57,10 +54,13 @@ public class PlanController extends BaseController {
         String pPlanId = getPara("pPlanId");
         ProcurementPlan procurementPlan = ProcurementPlan.dao.getPPlanById(pPlanId);
         if (procurementPlan != null && procurementPlan.getCreateTime() != null) {
-            String createTimeStr= DateAndStringFormat.getStringDateShort(procurementPlan.getCreateTime());
-            String[] createTimes = new String[2];
-            createTimes[0] = DateAndStringFormat.getNextDay(createTimeStr,"-1")+" 12:00:00";
-            createTimes[1] = createTimeStr+" 11:59:59";
+            // ccz 2018-5-31 orderCreateTime封装成通用方法
+            String[] createTimes = DateUtils.getOrderCycleDateStrings(procurementPlan.getCreateTime());
+//            String createTimeStr= DateAndStringFormat.getStringDateShort(procurementPlan.getCreateTime());
+//            String[] createTimes = new String[2];
+//            createTimes[0] = DateAndStringFormat.getNextDay(createTimeStr,"-1")+" 12:00:00";
+//            createTimes[1] = createTimeStr+" 11:59:59";
+
             // 根据采购生成时间删除采购计划详细
             // ccz 2018-5-25 修改删除采购计划详细的方法由时间判断转换成采购计划编号
 //            ProcurementPlanDetail.dao.delAllPPlanDetailByTime(createTimes);
@@ -68,7 +68,7 @@ public class PlanController extends BaseController {
             // 根据采购生成时间修改订单日志统计状态为未统计（0）
             OrderLog.dao.updateOrderLog(createTimes);
             renderResult(ProcurementPlan.dao.deleteById(pPlanId));
-        }else {
+        } else {
             renderErrorText("删除失败！");
         }
     }
@@ -77,18 +77,23 @@ public class PlanController extends BaseController {
      * 添加采购计划
      */
     public void addPlan() {
-        String[] create_time = new String[2];
-        String nowDateStr = DateAndStringFormat.getStringDateShort(new Date());
-        if (Integer.parseInt(DateAndStringFormat.getHour()) >= 12) {
-            //当前时间大于12小时的情况（包括12小时）
-            create_time[0] = DateAndStringFormat.getStringDateShort(new Date()) + " 12:00:00";
-            create_time[1] = DateAndStringFormat.getNextDay(DateAndStringFormat.getStringDateShort(new Date()), "1") + " 11:59:59";
-            nowDateStr = DateAndStringFormat.getNextDay(DateAndStringFormat.getStringDateShort(new Date()), "1");
-        } else {
-            //当前时间小于12小时的情况（不包括12小时）
-            create_time[0] = DateAndStringFormat.getNextDay(DateAndStringFormat.getStringDateShort(new Date()), "-1") + " 12:00:00";
-            create_time[1] = DateAndStringFormat.getStringDateShort(new Date()) + " 11:59:59";
-        }
+        Date nowDateStr2 = DateUtils.getOrderCycleDate(new Date());
+        String[] create_time = DateUtils.getOrderCycleDateStrings(nowDateStr2);
+        String nowDateStr = DateAndStringFormat.getStringDateShort(nowDateStr2);
+
+        // ccz 2018-5-31 orderCreateTime 封装成通用方法
+//        String[] create_time = new String[2];
+//        if (Integer.parseInt(DateAndStringFormat.getHour()) >= 12) {
+//            //当前时间大于12小时的情况（包括12小时）
+//            create_time[0] = DateAndStringFormat.getStringDateShort(new Date()) + " 12:00:00";
+//            create_time[1] = DateAndStringFormat.getNextDay(DateAndStringFormat.getStringDateShort(new Date()), "1") + " 11:59:59";
+//            nowDateStr = DateAndStringFormat.getNextDay(DateAndStringFormat.getStringDateShort(new Date()), "1");
+//        } else {
+//            //当前时间小于12小时的情况（不包括12小时）
+//            create_time[0] = DateAndStringFormat.getNextDay(DateAndStringFormat.getStringDateShort(new Date()), "-1") + " 12:00:00";
+//            create_time[1] = DateAndStringFormat.getStringDateShort(new Date()) + " 11:59:59";
+//        }
+
         ProcurementPlan procurementPlan = ProcurementPlan.dao.getPPlan(create_time);
         List<Integer> list = new ArrayList<>();
         if (procurementPlan.getProductStandardNum() != null && procurementPlan.getProductStandardNum() != 0) {
@@ -134,23 +139,27 @@ public class PlanController extends BaseController {
 
         try {
             Date createTime = getParaToDate("createTime");
-        String createTimeStr = DateAndStringFormat.getStringDateShort(createTime);
-        String[] create_time = new String[2];
-        create_time[0] = DateAndStringFormat.getNextDay(createTimeStr, "-1") + " 12:00:00";
-        create_time[1] = createTimeStr + " 11:59:59";
-        ProcurementPlan procurementPlan = ProcurementPlan.dao.getPPlan(create_time);
-        ProcurementPlan procurementPlan2 = ProcurementPlan.dao.getPPlanCreateTime(createTimeStr);
-        if (procurementPlan != null && procurementPlan2 != null) {
-            procurementPlan2.setNum(procurementPlan.getNum() == null ? 0 : procurementPlan.getNum());
-            procurementPlan2.setOrderTotal(procurementPlan.getOrderTotal());
-            procurementPlan2.setProductStandardNum(procurementPlan.getProductStandardNum());
-            procurementPlan2.setWaitStatisticsOrderTotal(procurementPlan.getWaitStatisticsOrderTotal()==null ? 0 : procurementPlan.getWaitStatisticsOrderTotal());
-            procurementPlan2.setProcurementId(getSessionAttr(Constant.SESSION_UID));
-            procurementPlan2.update();
-        }
-        // 订单日志修改为1（被统计过）
-        // ProcurementPlan.dao.updateOrderLog(create_time);
-        renderNull();
+
+            String createTimeStr = DateAndStringFormat.getStringDateShort(createTime);
+            String[] create_time = DateUtils.getOrderCycleDateStrings(createTime);
+            // ccz 2018-5-31 orderCreateTime封装成通用方法
+//            String[] create_time = new String[2];
+//            create_time[0] = DateAndStringFormat.getNextDay(createTimeStr, "-1") + " 12:00:00";
+//            create_time[1] = createTimeStr + " 11:59:59";
+
+            ProcurementPlan procurementPlan = ProcurementPlan.dao.getPPlan(create_time);
+            ProcurementPlan procurementPlan2 = ProcurementPlan.dao.getPPlanCreateTime(createTimeStr);
+            if (procurementPlan != null && procurementPlan2 != null) {
+                procurementPlan2.setNum(procurementPlan.getNum() == null ? 0 : procurementPlan.getNum());
+                procurementPlan2.setOrderTotal(procurementPlan.getOrderTotal());
+                procurementPlan2.setProductStandardNum(procurementPlan.getProductStandardNum());
+                procurementPlan2.setWaitStatisticsOrderTotal(procurementPlan.getWaitStatisticsOrderTotal() == null ? 0 : procurementPlan.getWaitStatisticsOrderTotal());
+                procurementPlan2.setProcurementId(getSessionAttr(Constant.SESSION_UID));
+                procurementPlan2.update();
+            }
+            // 订单日志修改为1（被统计过）
+            // ProcurementPlan.dao.updateOrderLog(create_time);
+            renderNull();
         } catch (Exception e) {
             renderErrorText("更新采购计划失败！");
         }
@@ -280,12 +289,13 @@ public class PlanController extends BaseController {
 
     /**
      * 将存放在sourceFilePath目录下的源文件，打包成fileName名称的zip文件，并存放到zipFilePath路径下
+     *
      * @param sourceFilePath :待压缩的文件路径
-     * @param zipFilePath :压缩后存放路径
-     * @param fileName :压缩后文件的名称
+     * @param zipFilePath    :压缩后存放路径
+     * @param fileName       :压缩后文件的名称
      * @return
      */
-    public static boolean fileToZip(String sourceFilePath,String zipFilePath,String fileName){
+    public static boolean fileToZip(String sourceFilePath, String zipFilePath, String fileName) {
         boolean flag = false;
         File sourceFile = new File(sourceFilePath);
         FileInputStream fis = null;
@@ -293,31 +303,31 @@ public class PlanController extends BaseController {
         FileOutputStream fos = null;
         ZipOutputStream zos = null;
 
-        if(sourceFile.exists() == false){
-            System.out.println("待压缩的文件目录："+sourceFilePath+"不存在.");
-        }else{
+        if (sourceFile.exists() == false) {
+            System.out.println("待压缩的文件目录：" + sourceFilePath + "不存在.");
+        } else {
             try {
-                File zipFile = new File(zipFilePath + "/" + fileName +".zip");
-                if(zipFile.exists()){
-                    System.out.println(zipFilePath + "目录下存在名字为:" + fileName +".zip" +"打包文件.");
-                }else{
+                File zipFile = new File(zipFilePath + "/" + fileName + ".zip");
+                if (zipFile.exists()) {
+                    System.out.println(zipFilePath + "目录下存在名字为:" + fileName + ".zip" + "打包文件.");
+                } else {
                     File[] sourceFiles = sourceFile.listFiles();
-                    if(null == sourceFiles || sourceFiles.length<1){
+                    if (null == sourceFiles || sourceFiles.length < 1) {
                         System.out.println("待压缩的文件目录：" + sourceFilePath + "里面不存在文件，无需压缩.");
-                    }else{
+                    } else {
                         fos = new FileOutputStream(zipFile);
                         zos = new ZipOutputStream(new BufferedOutputStream(fos));
-                        byte[] bufs = new byte[1024*10];
-                        for(int i=0;i<sourceFiles.length;i++){
+                        byte[] bufs = new byte[1024 * 10];
+                        for (int i = 0; i < sourceFiles.length; i++) {
                             //创建ZIP实体，并添加进压缩包
                             ZipEntry zipEntry = new ZipEntry(sourceFiles[i].getName());
                             zos.putNextEntry(zipEntry);
                             //读取待压缩的文件并写进压缩包里
                             fis = new FileInputStream(sourceFiles[i]);
-                            bis = new BufferedInputStream(fis, 1024*10);
+                            bis = new BufferedInputStream(fis, 1024 * 10);
                             int read = 0;
-                            while((read=bis.read(bufs, 0, 1024*10)) != -1){
-                                zos.write(bufs,0,read);
+                            while ((read = bis.read(bufs, 0, 1024 * 10)) != -1) {
+                                zos.write(bufs, 0, read);
                             }
                         }
                         flag = true;
@@ -329,11 +339,11 @@ public class PlanController extends BaseController {
             } catch (IOException e) {
                 e.printStackTrace();
                 throw new RuntimeException(e);
-            } finally{
+            } finally {
                 //关闭流
                 try {
-                    if(null != bis) bis.close();
-                    if(null != zos) zos.close();
+                    if (null != bis) bis.close();
+                    if (null != zos) zos.close();
                 } catch (IOException e) {
                     e.printStackTrace();
                     throw new RuntimeException(e);
