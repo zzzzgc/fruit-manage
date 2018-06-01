@@ -33,36 +33,20 @@ public abstract class BaseLogisticsInfo<M extends BaseLogisticsInfo<M>> extends 
 		return getStr("order_id");
 	}
 
-	public void setSendGoodsTotalCost(java.math.BigDecimal sendGoodsTotalCost) {
-		set("send_goods_total_cost", sendGoodsTotalCost);
-	}
-
-	public java.math.BigDecimal getSendGoodsTotalCost() {
-		return get("send_goods_total_cost");
-	}
-
-	public void setPackageCost(java.math.BigDecimal packageCost) {
-		set("package_cost", packageCost);
-	}
-
-	public java.math.BigDecimal getPackageCost() {
-		return get("package_cost");
-	}
-
-	public void setTricycleCost(java.math.BigDecimal tricycleCost) {
-		set("tricycle_cost", tricycleCost);
-	}
-
-	public java.math.BigDecimal getTricycleCost() {
-		return get("tricycle_cost");
-	}
-
 	public void setFreightCost(java.math.BigDecimal freightCost) {
 		set("freight_cost", freightCost);
 	}
 
 	public java.math.BigDecimal getFreightCost() {
 		return get("freight_cost");
+	}
+
+	public void setEmbarkationCost(java.math.BigDecimal embarkationCost) {
+		set("embarkation_cost", embarkationCost);
+	}
+
+	public java.math.BigDecimal getEmbarkationCost() {
+		return get("embarkation_cost");
 	}
 
 	public void setTransshipmentCost(java.math.BigDecimal transshipmentCost) {
@@ -73,12 +57,44 @@ public abstract class BaseLogisticsInfo<M extends BaseLogisticsInfo<M>> extends 
 		return get("transshipment_cost");
 	}
 
+	public void setTricycleCost(java.math.BigDecimal tricycleCost) {
+		set("tricycle_cost", tricycleCost);
+	}
+
+	public java.math.BigDecimal getTricycleCost() {
+		return get("tricycle_cost");
+	}
+
+	public void setPackageCost(java.math.BigDecimal packageCost) {
+		set("package_cost", packageCost);
+	}
+
+	public java.math.BigDecimal getPackageCost() {
+		return get("package_cost");
+	}
+
 	public void setPackageNum(java.lang.Integer packageNum) {
 		set("package_num", packageNum);
 	}
 
 	public java.lang.Integer getPackageNum() {
 		return getInt("package_num");
+	}
+
+	public void setAbstract(java.lang.String _abstract) {
+		set("abstract", _abstract);
+	}
+
+	public java.lang.String getAbstract() {
+		return getStr("abstract");
+	}
+
+	public void setSendGoodsTotalCost(java.math.BigDecimal sendGoodsTotalCost) {
+		set("send_goods_total_cost", sendGoodsTotalCost);
+	}
+
+	public java.math.BigDecimal getSendGoodsTotalCost() {
+		return get("send_goods_total_cost");
 	}
 
 	public void setRealityTakeNum(java.lang.Integer realityTakeNum) {

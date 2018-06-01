@@ -134,7 +134,7 @@ public class OrderController extends BaseController {
             order.setOrderStatus(nextStatus);
             order.update();
         } else {
-            // 删除 TODO 叠加删除的订单
+            // 删除
             order.setOrderStatus(OrderStatusCode.DELETED.getStatus());
             order.delete();
             LogisticsInfo.dao.delLogisticsInfoByOrderID(orderId);
@@ -146,7 +146,10 @@ public class OrderController extends BaseController {
                 // ccz 2018-5-18 orderCreateTime
                 orderDetail.delete(UserTypeConstant.A_USER, uid, order.getCreateTime());
                 orderDetail.setOrderId(orderId);
+                // 避免写入订单日志被算成一笔订单,所以这里不调用带有订单统计的save
                 orderDetail.save();
+                // 商家购买数量去除一个,但是由于周订单每周清除一次,所以会导致不准确.这里就不删除了
+//                Product.dao.updateSellNum(orderDetail.getProductId(),-1);
             }
         }
         renderNull();
@@ -343,7 +346,6 @@ public class OrderController extends BaseController {
                     orderDetail.setUpdateTime(now);
                     // ccz 2018-5-18 orderCreateTime
                     orderDetail.save(UserTypeConstant.A_USER, uid, order.getCreateTime());
-                    Product.dao.increaseSellNum(orderDetail.getProductId());
                 }
             }
             order.setPayNeedMoney(payNeedMoney);
@@ -557,20 +559,31 @@ public class OrderController extends BaseController {
             LogisticsInfo logisticsInfoUpdate = LogisticsInfo.dao.getLogisticsDetailInfoByOrderID(orderId);
             if (logisticsInfo != null && logisticsInfoUpdate != null) {
 
-                //发货总费用(send_goods_total_cost)：打包费用（package_cost）+三路车费用（tricycle_cost）+发货和装车费用（freight_cost）+ 中转费用和短途费用（transshipment_cost）
-                BigDecimal packageCost = logisticsInfo.getPackageCost() == null ? new BigDecimal(0) : logisticsInfo.getPackageCost();
-                BigDecimal tricycleCost = logisticsInfo.getTricycleCost() == null ? new BigDecimal(0) : logisticsInfo.getTricycleCost();
+                //发货总费用(send_goods_total_cost)：
+                // 运费（freight_cost） +
+                // 装车费（embarkationCost） +
+                // 中转费/短途费（transshipment_cost）+
+                // 三轮车费用（tricycle_cost）+
+                // 打包费（package_cost
                 BigDecimal freightCost = logisticsInfo.getFreightCost() == null ? new BigDecimal(0) : logisticsInfo.getFreightCost();
+                BigDecimal embarkationCost = logisticsInfo.getEmbarkationCost() == null ? new BigDecimal(0) : logisticsInfo.getEmbarkationCost();
                 BigDecimal transshipmnetCost = logisticsInfo.getTransshipmentCost() == null ? new BigDecimal(0) : logisticsInfo.getTransshipmentCost();
+                BigDecimal tricycleCost = logisticsInfo.getTricycleCost() == null ? new BigDecimal(0) : logisticsInfo.getTricycleCost();
+                BigDecimal packageCost = logisticsInfo.getPackageCost() == null ? new BigDecimal(0) : logisticsInfo.getPackageCost();
                 // 计算发货总费用
-                BigDecimal sendGoodsTotalCost = packageCost.add(tricycleCost).add(freightCost).add(transshipmnetCost);
+                BigDecimal sendGoodsTotalCost = freightCost.add(embarkationCost).add(transshipmnetCost).add(tricycleCost).add(packageCost);
                 // 设置发货总费用
-                logisticsInfoUpdate.setSendGoodsTotalCost(sendGoodsTotalCost);
-                logisticsInfoUpdate.setPackageCost(packageCost);
-                logisticsInfoUpdate.setTricycleCost(tricycleCost);
                 logisticsInfoUpdate.setFreightCost(freightCost);
+                logisticsInfoUpdate.setEmbarkationCost(embarkationCost);
+                logisticsInfoUpdate.setTricycleCost(tricycleCost);
                 logisticsInfoUpdate.setTransshipmentCost(transshipmnetCost);
+                logisticsInfoUpdate.setPackageCost(packageCost);
+                logisticsInfoUpdate.setAbstract(logisticsInfo.getAbstract());
+                logisticsInfoUpdate.setDeliveryInfo(logisticsInfo.getDeliveryInfo());
+                logisticsInfoUpdate.setLicensePlateNumber(logisticsInfo.getLicensePlateNumber());
+
                 logisticsInfoUpdate.setPackageNum(logisticsInfo.getPackageNum());
+                logisticsInfoUpdate.setSendGoodsTotalCost(sendGoodsTotalCost);
                 // 获取并设置实际发货总数量
                 logisticsInfoUpdate.setRealitySendNum(LogisticsInfo.dao.getActualSendGoodsNum(orderId));
                 logisticsInfoUpdate.setDeliveryInfo(logisticsInfo.getDeliveryInfo());
