@@ -189,6 +189,8 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
     @Before(Tx.class)
     public boolean save(UserTypeConstant type, Integer uid, Date orderCreateTime) {
         super.save();
+        // 新增商家购买数量
+        Product.dao.updateSellNum(super.getProductId(),1);
         return getOrderLog(type, uid, super.getOrderId(), super.getProductId(), super.getProductStandardId(), super.getNum(), orderCreateTime).save();
     }
 

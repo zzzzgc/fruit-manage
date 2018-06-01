@@ -69,7 +69,7 @@ public class Product extends BaseProduct<Product> {
 	}
 
 	public Product getById(int productId) {
-		return findFirst("select id,name,fruit_type,country,province,sort,brand,total_sell_num,measure_unit,status,fresh_time,fruit_des,store_way from b_product where id=?", productId);
+		return findFirst("select id,name,fruit_type,country,province,sort,brand,total_sell_num,week_sell_num,measure_unit,status,fresh_time,fruit_des,store_way from b_product where id=?", productId);
 	}
 
 	public boolean changeStatus(Integer[] ids, int status) {
@@ -147,9 +147,19 @@ public class Product extends BaseProduct<Product> {
 
 	/**
 	 * 增加该商品的购买量
+	 *
 	 * @return
 	 */
 	public boolean increaseSellNum(Integer productId) {
-		return Db.update("UPDATE b_product SET total_sell_num = total_sell_num + 1,week_sell_num = week_sell_num  + 1 WHERE id = ? ",productId) == 1;
+		return Db.update("UPDATE b_product SET total_sell_num = total_sell_num + 1,week_sell_num = week_sell_num  + 1 WHERE id = ? ", productId) == 1;
+	}
+
+	/**
+	 * 修改该商品的购买量
+	 *
+	 * @return
+	 */
+	public boolean updateSellNum(Integer productId, Integer changeNum) {
+		return Db.update("UPDATE b_product SET total_sell_num = total_sell_num + ?,week_sell_num = week_sell_num  + ? WHERE id = ? ", changeNum, changeNum, productId) == 1;
 	}
 }

@@ -134,7 +134,7 @@ public class OrderController extends BaseController {
             order.setOrderStatus(nextStatus);
             order.update();
         } else {
-            // 删除 TODO 叠加删除的订单
+            // 删除
             order.setOrderStatus(OrderStatusCode.DELETED.getStatus());
             order.delete();
             LogisticsInfo.dao.delLogisticsInfoByOrderID(orderId);
@@ -146,7 +146,10 @@ public class OrderController extends BaseController {
                 // ccz 2018-5-18 orderCreateTime
                 orderDetail.delete(UserTypeConstant.A_USER, uid, order.getCreateTime());
                 orderDetail.setOrderId(orderId);
+                // 避免写入订单日志被算成一笔订单,所以这里不调用带有订单统计的save
                 orderDetail.save();
+                // 商家购买数量去除一个,但是由于周订单每周清除一次,所以会导致不准确.这里就不删除了
+//                Product.dao.updateSellNum(orderDetail.getProductId(),-1);
             }
         }
         renderNull();
@@ -343,7 +346,6 @@ public class OrderController extends BaseController {
                     orderDetail.setUpdateTime(now);
                     // ccz 2018-5-18 orderCreateTime
                     orderDetail.save(UserTypeConstant.A_USER, uid, order.getCreateTime());
-                    Product.dao.increaseSellNum(orderDetail.getProductId());
                 }
             }
             order.setPayNeedMoney(payNeedMoney);
