@@ -273,7 +273,8 @@ public class ExcelController extends BaseController {
                     "WHERE " +
                     "o.order_status in (" + OrderStatusCode.AFFIRM.getStatus() + "," + OrderStatusCode.WAIT_DISTRIBUTION.getStatus() + "," + OrderStatusCode.DISTRIBUTION.getStatus() + "," + OrderStatusCode.TAKE_DISTRIBUTION.getStatus() + "," + OrderStatusCode.WAIT_PAYMENT.getStatus() + "," + OrderStatusCode.IS_OK.getStatus() + ") " +
                     "AND o.create_time BETWEEN ? " +
-                    "AND ? ");
+                    "AND ? " +
+                    "order by o.order_id");
 
             params.add(createTimes[0]);
             params.add(createTimes[1]);
@@ -314,7 +315,7 @@ public class ExcelController extends BaseController {
                 sheet.setDefaultRowHeight((short) (512));
 
                 // 标题样式
-                XSSFCellStyle styleTitle = ExcelStyle.getStyleTitle(wb, 1);
+                XSSFCellStyle styleTitle = ExcelStyle.getStyleTitle(wb, 2);
 
                 // 文本样式
                 XSSFCellStyle styleText = ExcelStyle.getStyleText(wb, 3);
@@ -605,7 +606,8 @@ public class ExcelController extends BaseController {
                 // .5 .10 .15 20 25 30 从已确认到已完成的所有订单都要收款
                 "o.order_status in (" + OrderStatusCode.DISTRIBUTION.getStatus() + "," + OrderStatusCode.TAKE_DISTRIBUTION.getStatus() + "," + OrderStatusCode.WAIT_PAYMENT.getStatus() + "," + OrderStatusCode.IS_OK.getStatus() + ") " +
                 "AND o.create_time BETWEEN ? " +
-                "AND ? ";
+                "AND ? " +
+                "order by o.order_id";
         System.out.println(sql);
         System.out.println(createTimes[0]);
         System.out.println(createTimes[1]);
@@ -648,7 +650,7 @@ public class ExcelController extends BaseController {
             String salesPhone = order.get("sales_phone");
 
             // 创建表
-            XSSFSheet sheet = wb.createSheet(businessName);
+            XSSFSheet sheet = wb.createSheet(businessName + "_" + DateKit.toStr(createTime, "MM月dd日"));
             // 去除网格线
             sheet.setDisplayGridlines(false);
             sheet.setDefaultRowHeight((short) (512));
