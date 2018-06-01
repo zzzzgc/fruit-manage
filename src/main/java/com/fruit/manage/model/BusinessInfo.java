@@ -30,7 +30,7 @@ public class BusinessInfo extends BaseBusinessInfo<BusinessInfo> {
 		return findFirst(sql,id);
 	}
 
-    public Page<BusinessInfo> getData(String searchProvince,String searchCity,String salesName,String sales_phone,String business_id,String uid,String business_phone,String[] createTime,int pageNum, int pageSize, String orderBy, boolean isASC,Integer saleId) {
+    public Page<BusinessInfo> getData(String searchProvince,String searchCity,String salesName,String sales_phone,String business_id,String uid,String business_phone,String[] createTime,int pageNum, int pageSize, String orderBy, boolean isASC,Integer saleId,String business_name) {
         ArrayList<Object> params = new ArrayList<Object>();
         StringBuffer sql = new StringBuffer();
         String select = "SELECT " +
@@ -82,6 +82,10 @@ public class BusinessInfo extends BaseBusinessInfo<BusinessInfo> {
         if (StrKit.notBlank(uid)) {
             sql.append("and binfo.u_id LIKE ? ");
             params.add("%"+uid+"%");
+        }
+        if (StrKit.notBlank(business_name)) {
+            sql.append("and binfo.business_name LIKE ? ");
+            params.add("%"+business_name+"%");
         }
         if (StrKit.notBlank(business_id)) {
             sql.append("and binfo.id = ? ");

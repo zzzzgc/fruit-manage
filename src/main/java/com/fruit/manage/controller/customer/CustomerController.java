@@ -266,6 +266,7 @@ public class CustomerController extends BaseController {
         String searchCity = getPara("search_city");
         String salesName = getPara("sales_name");
         String business_id = getPara("business_id");
+        String business_name = getPara("business_name");
         String uid = getPara("uid");
         String business_phone = getPara("business_phone");
         String sales_phone = getPara("sales_phone");
@@ -275,7 +276,7 @@ public class CustomerController extends BaseController {
         // ascending为升序，其他为降序
         boolean isASC = "ascending".equals(getPara("order"));
         Integer userId = getSessionAttr(Constant.SESSION_UID);
-        renderJson(BusinessInfo.dao.getData(searchProvince, searchCity, salesName, sales_phone, business_id, uid, business_phone, create_time, pageNum, pageSize, orderBy, isASC,userId));
+        renderJson(BusinessInfo.dao.getData(searchProvince, searchCity, salesName, sales_phone, business_id, uid, business_phone, create_time, pageNum, pageSize, orderBy, isASC,userId,business_name));
     }
 
     /**
