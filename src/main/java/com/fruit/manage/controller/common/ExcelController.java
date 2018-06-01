@@ -1113,7 +1113,7 @@ public class ExcelController extends BaseController {
                             cell.setCellStyle(styleTable);
                             cell.setCellValue(header);
                         }
-
+                        BigDecimal totalMoney = new BigDecimal(0);
                         for (ProcurementPlan procurementPlan : procurementPlanList) {
                             cellCount = 0;
                             row = sheet.createRow(rowCount++);
@@ -1158,7 +1158,14 @@ public class ExcelController extends BaseController {
                             XSSFCell c11 = row.createCell(cellCount++);
                             c11.setCellStyle(styleTable);
                             c11.setCellValue(procurementPlan.get("procurement_name")+"");
+                            BigDecimal psTotalMoney = new BigDecimal(procurementPlan.get("purchaseNum") + "").multiply(new BigDecimal(procurementPlan.get("sellPrice") + ""));
+                            totalMoney=totalMoney.add(psTotalMoney);
                         }
+                        row = sheet.createRow(rowCount++);
+                        _mergedRegionNowRow(sheet, row, 1, 3);
+                        XSSFCell totalMoneyCell = row.createCell(0);
+                        totalMoneyCell.setCellStyle(styleText);
+                        totalMoneyCell.setCellValue("金额："+totalMoney.doubleValue());
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
