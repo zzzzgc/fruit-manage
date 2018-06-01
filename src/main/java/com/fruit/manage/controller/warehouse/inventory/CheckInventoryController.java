@@ -14,7 +14,10 @@ import com.fruit.manage.util.excel.ExcelException;
 import com.jfinal.aop.Before;
 import com.jfinal.log.Logger;
 import com.jfinal.plugin.activerecord.tx.Tx;
+import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException;
+import org.apache.xmlbeans.impl.piccolo.util.DuplicateKeyException;
 
+import java.sql.SQLException;
 import java.util.*;
 
 /**
@@ -43,13 +46,18 @@ public class CheckInventoryController extends BaseController {
      * 添加盘点单
      */
     public void addCheckInventory(){
-        Date currentTime = new Date();
-        CheckInventory checkInventory =new CheckInventory();
-        checkInventory.setId(IdUtil.getCheckInventoryId(currentTime));
-        checkInventory.setCreateTime(currentTime);
-        checkInventory.setOrderCycleDate(currentTime);
-        checkInventory.save();
-        renderNull();
+        try {
+            Date currentTime = new Date();
+            CheckInventory checkInventory =new CheckInventory();
+            checkInventory.setId(IdUtil.getCheckInventoryIdByDate(currentTime));
+            checkInventory.setCreateTime(currentTime);
+            checkInventory.setOrderCycleDate(currentTime);
+            checkInventory.save();
+            renderNull();
+        } catch (Exception e) {
+            e.printStackTrace();
+            renderErrorText("一天只能创建一张盘点单！");
+        }
     }
 
     /**

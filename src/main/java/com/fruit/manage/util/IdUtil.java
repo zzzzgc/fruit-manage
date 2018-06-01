@@ -69,6 +69,10 @@ public class IdUtil {
         return "ci-"+DateAndStringFormat.getStringDateLong(date);
     }
 
+    public static String getCheckInventoryIdByDate(Date date) {
+        return "ci-"+DateAndStringFormat.getStringDateShort(date);
+    }
+
     /**
      * 获取盘点单详细的编号
      * @param date

@@ -17,6 +17,7 @@ import com.fruit.manage.controller.order.OrderController;
 import com.fruit.manage.controller.procurement.PlanDetailController;
 import com.fruit.manage.controller.procurement.QuotaContrller;
 import com.fruit.manage.controller.statement.ProcurementStoreoutController;
+import com.fruit.manage.controller.statement.ProductSaleRankListController;
 import com.fruit.manage.controller.statement.SalesMarginController;
 import com.fruit.manage.controller.system.MenuController;
 import com.fruit.manage.controller.system.PermissionController;
@@ -68,6 +69,7 @@ public class BaseRoutesConfig extends Routes {
 		add("/manage/permission", PermissionController.class);
 		add("/manage/statement/salesMargin", SalesMarginController.class);
 		add("/manage/statement/storeout", ProcurementStoreoutController.class);
+		add("/manage/statement/pSRankList", ProductSaleRankListController.class);
 	}
 
 }
