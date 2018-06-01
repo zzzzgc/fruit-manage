@@ -581,11 +581,16 @@ public class ExcelController extends BaseController {
                 "linfo.buy_user_name, " +
                 "linfo.delivery_type, " +
 
-                "linfo.tricycle_cost, " +
                 "linfo.freight_cost, " +
+                "linfo.embarkation_cost, " +
                 "linfo.transshipment_cost, " +
+                "linfo.tricycle_cost, " +
                 "linfo.package_cost, " +
                 "linfo.send_goods_total_cost, " +
+
+                "linfo.package_num, " +
+                "linfo.abstract, " +
+                "linfo.license_plate_number, " +
 
                 "info.business_name, " +
                 "au.nick_name AS sales_name, " +
@@ -626,11 +631,17 @@ public class ExcelController extends BaseController {
             String buyUserName = order.get("buy_user_name");
             Integer deliveryType = order.get("delivery_type");
 
-            BigDecimal tricycle_cost = order.get("tricycle_cost");
             BigDecimal freight_cost = order.get("freight_cost");
+            BigDecimal embarkation_cost = order.get("embarkation_cost");
             BigDecimal transshipment_cost = order.get("transshipment_cost");
+            BigDecimal tricycle_cost = order.get("tricycle_cost");
             BigDecimal package_cost = order.get("package_cost");
             BigDecimal send_goods_total_cost = order.get("send_goods_total_cost");
+
+            Integer package_num = order.get("package_num");
+            String abstractInfo = order.get("abstract");
+            String delivery_info = order.get("delivery_info");
+            String license_plate_number = order.get("license_plate_number");
 
 
             String salesName = order.get("sales_name");
@@ -806,28 +817,60 @@ public class ExcelController extends BaseController {
                 // ccz 2018-5-24 修改重量为副标题
 //                c3.setCellValue(orderDetail.get("weight_price") + "");
                 c3.setCellValue(orderDetail.get("sub_title") + "");
-                c4.setCellValue(orderDetail.get("num") + "");
-                c5.setCellValue(orderDetail.get("actual_send_goods_num") + "");
-                c6.setCellValue(orderDetail.get("sell_price") + "");
-                c7.setCellValue(BigDecimal.valueOf(orderDetail.getActualSendGoodsNum()).multiply(orderDetail.getSellPrice()) + "");
+                c4.setCellValue(Integer.valueOf(orderDetail.get("num")+""));
+                c5.setCellValue(Integer.valueOf(orderDetail.get("actual_send_goods_num")+""));
+                c6.setCellValue(Double.parseDouble(orderDetail.get("sell_price")+""));
+                c7.setCellValue(BigDecimal.valueOf(orderDetail.getActualSendGoodsNum()).multiply(orderDetail.getSellPrice()).doubleValue());
                 c8.setCellValue(orderDetail.get("buy_remark") != null ? orderDetail.get("buy_remark").toString() : null);
             }
 
 
             row = sheet.createRow(rowCount++);
             row.setHeightInPoints(textHeight);
-            _mergedRegionNowRow(sheet, row, 1, 3);
-            _mergedRegionNowRow(sheet, row, 4, 6);
-            _mergedRegionNowRow(sheet, row, 7, 9);
-            c3 = row.createCell(0);
-            c6 = row.createCell(3);
-            c9 = row.createCell(6);
-            c3.setCellStyle(styleText);
+            c6 = row.createCell(5);
+            c7 = row.createCell(6);
             c6.setCellStyle(styleText);
-            c9.setCellStyle(styleText);
-            c3.setCellValue("三轮车费:" + tricycle_cost);
-            c6.setCellValue("装车费:" + freight_cost);
-            c9.setCellValue("运费:" + transshipment_cost);
+            c7.setCellStyle(styleText);
+            c6.setCellValue("运费+装车费");
+            c7.setCellValue(freight_cost.add(embarkation_cost).doubleValue());
+
+            row = sheet.createRow(rowCount++);
+            row.setHeightInPoints(textHeight);
+            c6 = row.createCell(5);
+            c7 = row.createCell(6);
+            c6.setCellStyle(styleText);
+            c7.setCellStyle(styleText);
+            c6.setCellValue("中转费(短途运费)");
+            c7.setCellValue(transshipment_cost.doubleValue());
+
+            row = sheet.createRow(rowCount++);
+            row.setHeightInPoints(textHeight);
+            c6 = row.createCell(5);
+            c7 = row.createCell(6);
+            c6.setCellStyle(styleText);
+            c7.setCellStyle(styleText);
+            c6.setCellValue("三轮车费");
+            c7.setCellValue(tricycle_cost.doubleValue());
+
+
+            row = sheet.createRow(rowCount++);
+            row.setHeightInPoints(textHeight);
+            c6 = row.createCell(5);
+            c7 = row.createCell(6);
+            c6.setCellStyle(styleText);
+            c7.setCellStyle(styleText);
+            c6.setCellValue("打包费");
+            c7.setCellValue(package_cost.doubleValue());
+
+
+            row = sheet.createRow(rowCount++);
+            row.setHeightInPoints(textHeight);
+            c6 = row.createCell(5);
+            c7 = row.createCell(6);
+            c6.setCellStyle(styleText);
+            c7.setCellStyle(styleText);
+            c6.setCellValue("合计");
+            c7.setCellValue(pay_all_money.doubleValue());
 
             sql = "SELECT SUM(o.pay_all_money- o.pay_total_money)  from b_order o where o.u_id = ? ";
 
@@ -837,21 +880,85 @@ public class ExcelController extends BaseController {
 
             row = sheet.createRow(rowCount++);
             row.setHeightInPoints(textHeight);
-            _mergedRegionNowRow(sheet, row, 1, 3);
-            _mergedRegionNowRow(sheet, row, 4, 6);
-            _mergedRegionNowRow(sheet, row, 8, 9);
-            c3 = row.createCell(0);
-            c6 = row.createCell(3);
+            c6 = row.createCell(5);
             c7 = row.createCell(6);
-            c9 = row.createCell(7);
-            c3.setCellStyle(styleText);
             c6.setCellStyle(styleText);
             c7.setCellStyle(styleText);
-            c9.setCellStyle(styleText);
-            c3.setCellValue("打包费:" + package_cost);
-            c6.setCellValue("订单总价:" + pay_reality_need_money);
-            c7.setCellValue("本次货款:");
-            c9.setCellValue("" + pay_all_money);
+            c6.setCellValue("上次未结");
+            c7.setCellValue(allOrderPrice.subtract(pay_all_money).add(pay_total_money).doubleValue());
+
+            row = sheet.createRow(rowCount++);
+            row.setHeightInPoints(textHeight);
+            c6 = row.createCell(5);
+            c7 = row.createCell(6);
+            c6.setCellStyle(styleText);
+            c7.setCellStyle(styleText);
+            c6.setCellValue("本次已付");
+            c7.setCellValue(pay_total_money.doubleValue());
+
+
+            row = sheet.createRow(rowCount++);
+            row.setHeightInPoints(textHeight);
+            c6 = row.createCell(5);
+            c7 = row.createCell(6);
+            c6.setCellStyle(styleText);
+            c7.setCellStyle(styleText);
+            c6.setCellValue("本次应付");
+            c7.setCellValue(allOrderPrice.doubleValue());
+
+            row = sheet.createRow(rowCount++);
+            row.setHeightInPoints(textHeight);
+            _mergedRegionNowRow(sheet, row, 1, 2);
+            _mergedRegionNowRow(sheet, row, 3, 4);
+            _mergedRegionNowRow(sheet, row, 5, 6);
+            _mergedRegionNowRow(sheet, row, 7, 8);
+            c2 = row.createCell(0);
+            c4 = row.createCell(2);
+            c6 = row.createCell(4);
+            c8 = row.createCell(6);
+            c2.setCellStyle(styleText);
+            c4.setCellStyle(styleText);
+            c6.setCellStyle(styleText);
+            c8.setCellStyle(styleText);
+            c2.setCellValue("共打包" + package_num + "件");
+            c4.setCellValue("摘要:" + (abstractInfo == null?"":abstractInfo));
+            c6.setCellValue("接货信息:" + (delivery_info == null?"":delivery_info));
+            c8.setCellValue("车牌:" + (license_plate_number == null?"":license_plate_number));
+
+
+//            row = sheet.createRow(rowCount++);
+//            row.setHeightInPoints(textHeight);
+//            _mergedRegionNowRow(sheet, row, 1, 3);
+//            _mergedRegionNowRow(sheet, row, 4, 6);
+//            _mergedRegionNowRow(sheet, row, 7, 9);
+//            c3 = row.createCell(0);
+//            c6 = row.createCell(3);
+//            c9 = row.createCell(6);
+//            c3.setCellStyle(styleText);
+//            c6.setCellStyle(styleText);
+//            c9.setCellStyle(styleText);
+//            c3.setCellValue("三轮车费:" + tricycle_cost);
+//            c6.setCellValue("装车费:" + freight_cost);
+//            c9.setCellValue("运费:" + transshipment_cost);
+//
+//
+//            row = sheet.createRow(rowCount++);
+//            row.setHeightInPoints(textHeight);
+//            _mergedRegionNowRow(sheet, row, 1, 3);
+//            _mergedRegionNowRow(sheet, row, 4, 6);
+//            _mergedRegionNowRow(sheet, row, 8, 9);
+//            c3 = row.createCell(0);
+//            c6 = row.createCell(3);
+//            c7 = row.createCell(6);
+//            c9 = row.createCell(7);
+//            c3.setCellStyle(styleText);
+//            c6.setCellStyle(styleText);
+//            c7.setCellStyle(styleText);
+//            c9.setCellStyle(styleText);
+//            c3.setCellValue("打包费:" + package_cost);
+//            c6.setCellValue("订单总价:" + pay_reality_need_money);
+//            c7.setCellValue("本次货款:");
+//            c9.setCellValue("" + pay_all_money);
 
 //            row = sheet.createRow(rowCount++);
 //            row.setHeightInPoints(textHeight);
@@ -876,17 +983,17 @@ public class ExcelController extends BaseController {
 //            c3 = row.createCell(0);
 //            c3.setCellStyle(styleText);
 //            c3.setCellValue("本次已付:" + pay_total_money);
-
-            String logisticsInfoSQL = "SELECT li.package_num from b_logistics_info li where li.order_id = ? ";
-            String packageNum = Db.queryStr(logisticsInfoSQL, orderId);
-            row = sheet.createRow(rowCount++);
-            row.setHeightInPoints(textHeight);
-            _mergedRegionNowRow(sheet, row, 1, 3);
-            _mergedRegionNowRow(sheet, row, 4, 6);
-            _mergedRegionNowRow(sheet, row, 7, 9);
-            c3 = row.createCell(0);
-            c3.setCellStyle(styleText);
-            c3.setCellValue("共:" + packageNum + "件");
+//
+//            String logisticsInfoSQL = "SELECT li.package_num from b_logistics_info li where li.order_id = ? ";
+//            String packageNum = Db.queryStr(logisticsInfoSQL, orderId);
+//            row = sheet.createRow(rowCount++);
+//            row.setHeightInPoints(textHeight);
+//            _mergedRegionNowRow(sheet, row, 1, 3);
+//            _mergedRegionNowRow(sheet, row, 4, 6);
+//            _mergedRegionNowRow(sheet, row, 7, 9);
+//            c3 = row.createCell(0);
+//            c3.setCellStyle(styleText);
+//            c3.setCellValue("共:" + packageNum + "件");
         }
 
         try {
