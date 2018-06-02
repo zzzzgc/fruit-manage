@@ -49,7 +49,7 @@ public class BusinessInfo extends BaseBusinessInfo<BusinessInfo> {
         sql.append("FROM " +
                   "a_user auser " +
                 "JOIN b_business_user buser ON buser.a_user_sales_id = auser.id " +
-                "JOIN b_business_info binfo ON binfo.u_id = buser.id " +
+                "LEFT JOIN b_business_info binfo ON binfo.u_id = buser.id " +
                 "LEFT JOIN b_business_auth bauth ON bauth.u_id = buser.id " +
                 "WHERE " +
                   "1 = 1 ");
@@ -92,7 +92,7 @@ public class BusinessInfo extends BaseBusinessInfo<BusinessInfo> {
             params.add(business_id);
         }
         if (StrKit.notBlank(business_phone)) {
-            sql.append("and binfo.phone like ? ");
+            sql.append("and buser.phone like ? ");
             params.add("%"+business_phone+"%");
         }
         if(ArrayUtils.isNotEmpty(createTime) && createTime.length == 2){

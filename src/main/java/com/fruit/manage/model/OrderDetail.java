@@ -349,39 +349,11 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
                 "INNER JOIN b_business_user AS bu ON o.u_id = bu.id  " +
                 "INNER JOIN a_user AS au ON bu.a_user_sales_id = au.id  " +
                 "INNER JOIN b_business_info AS bi ON bi.u_id = bu.id  " +
-                "LEFT JOIN b_check_inventory AS ci ON ci.create_time LIKE CONCAT(  " +
-                "  CASE  " +
-                "  WHEN timediff(  " +
-                "    TIME(o.create_time),  " +
-                "    str_to_date('12:00:00', '%H:%i:%s')  " +
-                "  ) < 0 THEN  " +
-                "    DATE(o.create_time)  " +
-                "  ELSE  " +
-                "    date_add(  " +
-                "      DATE(o.create_time),  " +
-                "      INTERVAL 1 DAY  " +
-                "    )  " +
-                "  END,  " +
-                "  '%'  " +
-                ")  " +
+                "LEFT JOIN b_check_inventory AS ci ON ci.order_cycle_date  = o.order_cycle_date   " +
                 "LEFT JOIN b_check_inventory_detail cid ON cid.check_inventory_id = ci.id AND cid.product_standard_id = od.product_standard_id  " +
-                "LEFT JOIN b_put_warehouse as pw ON pw.create_time LIKE CONCAT(  " +
-                "  CASE  " +
-                "  WHEN timediff(  " +
-                "    TIME(o.create_time),  " +
-                "    str_to_date('12:00:00', '%H:%i:%s')  " +
-                "  ) < 0 THEN  " +
-                "    DATE(o.create_time)  " +
-                "  ELSE  " +
-                "    date_add(  " +
-                "      DATE(o.create_time),  " +
-                "      INTERVAL 1 DAY  " +
-                "    )  " +
-                "  END,  " +
-                "  '%'  " +
-                ")  " +
+                "LEFT JOIN b_put_warehouse as pw ON pw.order_cycle_date = o.order_cycle_date  " +
                 "LEFT JOIN b_put_warehouse_detail pwd ON pwd.put_id = pw.id AND pwd.product_standard_id = od.product_standard_id  " +
-                "WHERE 1 = 1   ");
+                "WHERE 1 = 1 ");
         ArrayList<Object> params = new ArrayList<>();
         if (StringUtils.isNotBlank(nick_name)) {
             sql.append("AND au.nick_name = ? ");
@@ -392,8 +364,7 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
             sql.append("AND bi.business_name = ? ");
             params.add(business_name);
         }
-
-        sql.append("GROUP BY o.order_id ORDER BY o.order_id desc");
+        sql.append("AND ifnull(cid.inventory_price, pwd.put_average_price) GROUP BY o.order_id ORDER BY o.order_id DESC");
 
         return find(selectSql + sql.toString(),params.toArray());
     }
