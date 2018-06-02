@@ -3,12 +3,16 @@ package com.fruit.manage.controller.statement;
 import com.fruit.manage.base.BaseController;
 import com.fruit.manage.controller.common.CommonController;
 import com.fruit.manage.util.ExcelCommon;
+import com.fruit.manage.util.excel.Excel;
 import com.fruit.manage.util.excel.ExcelException;
+import com.fruit.manage.util.excel.ExcelRow;
+import com.jfinal.kit.StrKit;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import org.terracotta.statistics.Time;
 
 import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +45,6 @@ public class ArrearsStatisticsController extends BaseController {
         sqlExceptSelect.append(_getSqlExceptSelect());
 
 
-
 //        String nick_name = getPara("nick_name");
 
         renderJson(Db.paginate(pageNum, pageSize, select, sqlExceptSelect.toString()));
@@ -53,6 +56,8 @@ public class ArrearsStatisticsController extends BaseController {
     public void exportExcel() {
         String select = _getSelect();
 
+
+        File file = null;
         StringBuilder sqlExceptSelect = new StringBuilder();
         sqlExceptSelect.append(_getSqlExceptSelect());
         List<Record> records = Db.find(select + sqlExceptSelect);
@@ -73,7 +78,9 @@ public class ArrearsStatisticsController extends BaseController {
                 "订单欠款",
                 "总欠款",
         };
-
+        Object[] end = new Object[1];
+        List<BigDecimal> bigDecimals = new ArrayList<>();
+        BigDecimal totalCount = new BigDecimal(0);
         records.stream().forEach(
                 record -> {
                     Object[] column = {
@@ -83,23 +90,61 @@ public class ArrearsStatisticsController extends BaseController {
                             record.getBigDecimal("arrearage"),
                             record.getBigDecimal("arrearage_total"),
                     };
+                    bigDecimals.add(record.getBigDecimal("arrearage_total"));
                     tableData.add(column);
                 }
         );
-        File file = null;
+        for (BigDecimal bigDecimal : bigDecimals) {
+            totalCount = totalCount.add(bigDecimal);
+        }
         String fileName = Time.time() + "客户欠款统计报表.xlsx";
 
+        if (!new File(CommonController.FILE_PATH).exists() || !new File(CommonController.FILE_PATH).isDirectory()) {
+            new File(CommonController.FILE_PATH).mkdirs();
+        }
+        String savePath = CommonController.FILE_PATH + File.separator + fileName;
+
+        Excel excel = new Excel();
+        excel.setTitle("客户欠款统计报表");
+        if (!StrKit.notBlank(savePath)) {
+            renderErrorText("保存路径不能为空");
+        } else {
+            excel.setSavePath(savePath);
+        }
+        excel.setCreateBy("");
+        if (StrKit.notBlank(headers)) {
+            excel.setHeader(headers);
+        }
+        for (Object[] dataRow : tableData) {
+            ExcelRow row = excel.createRow();
+            for (Object dataCell : dataRow) {
+                row.addCell(dataCell);
+            }
+        }
+        ExcelRow row = excel.createRow();
+        row.addCell("总共总欠款：" + totalCount.doubleValue(),false);
         try {
-            String excelFileUrl = ExcelCommon.createExcelModul(CommonController.FILE_PATH, fileName, "客户欠款统计报表", "", headers, tableData);
+            String excelFileUrl = excel.CreateXlsx();
             file = new File(excelFileUrl);
             if (!file.exists()) {
                 throw new RuntimeException("BASE_PATH:" + CommonController.FILE_PATH + ",fileName:" + fileName + "  文件不存在 ");
             }
-        } catch (ExcelException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         renderFile(file);
-    }
+
+    //        try {
+//            String excelFileUrl = ExcelCommon.createExcelModul(CommonController.FILE_PATH, fileName, "客户欠款统计报表", "", headers, tableData);
+//            file = new File(excelFileUrl);
+//            if (!file.exists()) {
+//                throw new RuntimeException("BASE_PATH:" + CommonController.FILE_PATH + ",fileName:" + fileName + "  文件不存在 ");
+//            }
+//        } catch (ExcelException e) {
+//            e.printStackTrace();
+//        }
+
+}
 
     private String _getSqlExceptSelect() {
         return "FROM  " +
@@ -140,7 +185,7 @@ public class ArrearsStatisticsController extends BaseController {
     /**
      * 获取汇总信息
      */
-    public void getTotalInfo () {
+    public void getTotalInfo() {
 
     }
 
