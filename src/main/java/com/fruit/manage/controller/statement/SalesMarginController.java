@@ -66,7 +66,6 @@ public class SalesMarginController extends BaseController {
         List<Object> params = new ArrayList<>();
         String sqlExceptSelect = _getSqlExceptSelect(params,nick_name,business_name,order_cycle_date);
         List<Record> salesMarginList = Db.find(select + sqlExceptSelect, params.toArray());
-//        List<OrderDetail> salesMarginList = OrderDetail.dao.getSalesMarginList(nick_name, business_name, order_cycle_date);
         ArrayList<Object[]> tableData = new ArrayList<>();
         salesMarginList.stream().forEach(
                 record -> {
@@ -107,7 +106,6 @@ public class SalesMarginController extends BaseController {
         List<Object> params = new ArrayList<>();
         String sqlExceptSelect = _getSqlExceptSelect(params,nick_name,business_name,order_cycle_date);
         List<Record> salesMarginList = Db.find(select + sqlExceptSelect, params.toArray());
-//        List<OrderDetail> salesMarginList = OrderDetail.dao.getSalesMarginList(nick_name, business_name, order_cycle_date);
 
         BigDecimal total_gross_margin =new BigDecimal(0);
         BigDecimal gross_margin  =new BigDecimal(0);
