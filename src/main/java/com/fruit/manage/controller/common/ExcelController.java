@@ -267,7 +267,7 @@ public class ExcelController extends BaseController {
                     "INNER JOIN a_user AS au ON bu.a_user_sales_id = au.id " +
                     "LEFT JOIN b_logistics_info AS linfo ON linfo.order_id = o.order_id " +
                     "WHERE " +
-                    "o.order_status in (" + OrderStatusCode.AFFIRM.getStatus() + "，" + OrderStatusCode.WAIT_DISTRIBUTION.getStatus() + "，" + OrderStatusCode.DISTRIBUTION.getStatus() + "，" + OrderStatusCode.TAKE_DISTRIBUTION.getStatus() + "，" + OrderStatusCode.WAIT_PAYMENT.getStatus() + "，" + OrderStatusCode.IS_OK.getStatus() + ") " +
+                    "o.order_status in (" + OrderStatusCode.AFFIRM.getStatus() + "," + OrderStatusCode.WAIT_DISTRIBUTION.getStatus() + "," + OrderStatusCode.DISTRIBUTION.getStatus() + "," + OrderStatusCode.TAKE_DISTRIBUTION.getStatus() + "," + OrderStatusCode.WAIT_PAYMENT.getStatus() + "," + OrderStatusCode.IS_OK.getStatus() + ") " +
                     "AND o.create_time BETWEEN ? " +
                     "AND ? " +
                     "order by o.order_id");
@@ -600,7 +600,7 @@ public class ExcelController extends BaseController {
                 "INNER JOIN b_logistics_info AS linfo ON linfo.order_id = o.order_id " +
                 "WHERE " +
                 // .5 .10 .15 20 25 30 从已确认到已完成的所有订单都要收款
-                "o.order_status in (" + OrderStatusCode.DISTRIBUTION.getStatus() + "，" + OrderStatusCode.TAKE_DISTRIBUTION.getStatus() + "，" + OrderStatusCode.WAIT_PAYMENT.getStatus() + "，" + OrderStatusCode.IS_OK.getStatus() + ") " +
+                "o.order_status in (" + OrderStatusCode.DISTRIBUTION.getStatus() + "," + OrderStatusCode.TAKE_DISTRIBUTION.getStatus() + "," + OrderStatusCode.WAIT_PAYMENT.getStatus() + "," + OrderStatusCode.IS_OK.getStatus() + ") " +
                 "AND o.create_time BETWEEN ? " +
                 "AND ? " +
                 "order by o.order_id";
@@ -825,8 +825,9 @@ public class ExcelController extends BaseController {
 
             row = sheet.createRow(rowCount++);
             row.setHeightInPoints(textHeight);
-            c6 = row.createCell(5);
+            c6 = row.createCell(4);
             c7 = row.createCell(6);
+            _mergedRegionNowRow(sheet, row, 5, 6);
             c6.setCellStyle(styleText);
             c7.setCellStyle(styleText);
             c6.setCellValue("运费+装车费");
@@ -834,8 +835,9 @@ public class ExcelController extends BaseController {
 
             row = sheet.createRow(rowCount++);
             row.setHeightInPoints(textHeight);
-            c6 = row.createCell(5);
+            c6 = row.createCell(4);
             c7 = row.createCell(6);
+            _mergedRegionNowRow(sheet, row, 5, 6);
             c6.setCellStyle(styleText);
             c7.setCellStyle(styleText);
             c6.setCellValue("中转费(短途运费)");
