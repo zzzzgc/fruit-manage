@@ -115,7 +115,7 @@ public class ExcelController extends BaseController {
 
             file = new File(filePath);
             if (!file.exists()) {
-                throw new RuntimeException("BASE_PATH:" + BASE_PATH + ",fileName:" + fileName + "  文件不存在");
+                throw new RuntimeException("BASE_PATH:" + BASE_PATH + "，fileName:" + fileName + "  文件不存在");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -209,7 +209,7 @@ public class ExcelController extends BaseController {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                renderErrorText("导入失败,请联系技术修复");
+                renderErrorText("导入失败，请联系技术修复");
                 return false;
             }
         });
@@ -250,7 +250,7 @@ public class ExcelController extends BaseController {
 //            String startDateStr = DateTimeKit.formatDateToStyle("yyyy-MM-dd", calendar.getTime()) + " 12:00:00";
 //            calendar.add(Calendar.DAY_OF_MONTH, 1);
 //            String endDateStr = DateTimeKit.formatDateToStyle("yyyy-MM-dd", calendar.getTime()) + " 12:00:00";
-            final Date createTime = getParaToDate("createTime") == null? new Date():getParaToDate("createTime");
+            final Date createTime = getParaToDate("createTime") == null ? new Date() : getParaToDate("createTime");
 
             String[] createTimes = DateUtils.getOrderCycleDateStrings(createTime);
 
@@ -271,7 +271,7 @@ public class ExcelController extends BaseController {
                     "INNER JOIN a_user AS au ON bu.a_user_sales_id = au.id " +
                     "LEFT JOIN b_logistics_info AS linfo ON linfo.order_id = o.order_id " +
                     "WHERE " +
-                    "o.order_status in (" + OrderStatusCode.AFFIRM.getStatus() + "," + OrderStatusCode.WAIT_DISTRIBUTION.getStatus() + "," + OrderStatusCode.DISTRIBUTION.getStatus() + "," + OrderStatusCode.TAKE_DISTRIBUTION.getStatus() + "," + OrderStatusCode.WAIT_PAYMENT.getStatus() + "," + OrderStatusCode.IS_OK.getStatus() + ") " +
+                    "o.order_status in (" + OrderStatusCode.AFFIRM.getStatus() + "，" + OrderStatusCode.WAIT_DISTRIBUTION.getStatus() + "，" + OrderStatusCode.DISTRIBUTION.getStatus() + "，" + OrderStatusCode.TAKE_DISTRIBUTION.getStatus() + "，" + OrderStatusCode.WAIT_PAYMENT.getStatus() + "，" + OrderStatusCode.IS_OK.getStatus() + ") " +
                     "AND o.create_time BETWEEN ? " +
                     "AND ? " +
                     "order by o.order_id");
@@ -292,7 +292,7 @@ public class ExcelController extends BaseController {
             Date now = new Date();
 
             if (orders.size() < 1) {
-                renderText("没有订单出货,请稍后操作");
+                renderText("没有订单出货，请稍后操作");
                 return;
             }
             Integer excelCount = 0;
@@ -528,7 +528,7 @@ public class ExcelController extends BaseController {
             output.flush();
             output.close();
         } catch (Exception e) {
-            renderErrorText("导出失败,出现未知异常,请联系技术,时间为:" + DateFormatUtils.format(new Date(), "yyyy-MM-dd hh:ss:mm"));
+            renderErrorText("导出失败，出现未知异常，请联系技术，时间为:" + DateFormatUtils.format(new Date(), "yyyy-MM-dd hh:ss:mm"));
             e.printStackTrace();
         }
     }
@@ -566,7 +566,7 @@ public class ExcelController extends BaseController {
 //        // 今天
 //        calendar.add(Calendar.DAY_OF_MONTH, 1);
 //        String endDateStr = DateTimeKit.formatDateToStyle("yyyy-MM-dd", calendar.getTime()) + " 12:00:00";
-        final Date createTime = getParaToDate("createTime") == null? new Date():getParaToDate("createTime");
+        final Date createTime = getParaToDate("createTime") == null ? new Date() : getParaToDate("createTime");
 
         String[] createTimes = DateUtils.getOrderCycleDateStrings(createTime);
 
@@ -604,7 +604,7 @@ public class ExcelController extends BaseController {
                 "INNER JOIN b_logistics_info AS linfo ON linfo.order_id = o.order_id " +
                 "WHERE " +
                 // .5 .10 .15 20 25 30 从已确认到已完成的所有订单都要收款
-                "o.order_status in (" + OrderStatusCode.DISTRIBUTION.getStatus() + "," + OrderStatusCode.TAKE_DISTRIBUTION.getStatus() + "," + OrderStatusCode.WAIT_PAYMENT.getStatus() + "," + OrderStatusCode.IS_OK.getStatus() + ") " +
+                "o.order_status in (" + OrderStatusCode.DISTRIBUTION.getStatus() + "，" + OrderStatusCode.TAKE_DISTRIBUTION.getStatus() + "，" + OrderStatusCode.WAIT_PAYMENT.getStatus() + "，" + OrderStatusCode.IS_OK.getStatus() + ") " +
                 "AND o.create_time BETWEEN ? " +
                 "AND ? " +
                 "order by o.order_id";
@@ -650,7 +650,7 @@ public class ExcelController extends BaseController {
             String salesPhone = order.get("sales_phone");
 
             // 创建表
-            XSSFSheet sheet = wb.createSheet(businessName + "_" + DateKit.toStr(createTime, "MM月dd日"));
+            XSSFSheet sheet = wb.createSheet(businessName);
             // 去除网格线
             sheet.setDisplayGridlines(false);
             sheet.setDefaultRowHeight((short) (512));
@@ -819,9 +819,9 @@ public class ExcelController extends BaseController {
                 // ccz 2018-5-24 修改重量为副标题
 //                c3.setCellValue(orderDetail.get("weight_price") + "");
                 c3.setCellValue(orderDetail.get("sub_title") + "");
-                c4.setCellValue(Integer.valueOf(orderDetail.get("num")+""));
-                c5.setCellValue(Integer.valueOf(orderDetail.get("actual_send_goods_num")+""));
-                c6.setCellValue(Double.parseDouble(orderDetail.get("sell_price")+""));
+                c4.setCellValue(Integer.valueOf(orderDetail.get("num") + ""));
+                c5.setCellValue(Integer.valueOf(orderDetail.get("actual_send_goods_num") + ""));
+                c6.setCellValue(Double.parseDouble(orderDetail.get("sell_price") + ""));
                 c7.setCellValue(BigDecimal.valueOf(orderDetail.getActualSendGoodsNum()).multiply(orderDetail.getSellPrice()).doubleValue());
                 c8.setCellValue(orderDetail.get("buy_remark") != null ? orderDetail.get("buy_remark").toString() : null);
             }
@@ -880,33 +880,33 @@ public class ExcelController extends BaseController {
 
             BigDecimal allOrderPrice = (BigDecimal) record.getColumnValues()[0];
 
-            row = sheet.createRow(rowCount++);
-            row.setHeightInPoints(textHeight);
-            c6 = row.createCell(5);
-            c7 = row.createCell(6);
-            c6.setCellStyle(styleText);
-            c7.setCellStyle(styleText);
-            c6.setCellValue("上次未结");
-            c7.setCellValue(allOrderPrice.subtract(pay_all_money).add(pay_total_money).doubleValue());
-
-            row = sheet.createRow(rowCount++);
-            row.setHeightInPoints(textHeight);
-            c6 = row.createCell(5);
-            c7 = row.createCell(6);
-            c6.setCellStyle(styleText);
-            c7.setCellStyle(styleText);
-            c6.setCellValue("本次已付");
-            c7.setCellValue(pay_total_money.doubleValue());
-
-
-            row = sheet.createRow(rowCount++);
-            row.setHeightInPoints(textHeight);
-            c6 = row.createCell(5);
-            c7 = row.createCell(6);
-            c6.setCellStyle(styleText);
-            c7.setCellStyle(styleText);
-            c6.setCellValue("本次应付");
-            c7.setCellValue(allOrderPrice.doubleValue());
+//            row = sheet.createRow(rowCount++);
+//            row.setHeightInPoints(textHeight);
+//            c6 = row.createCell(5);
+//            c7 = row.createCell(6);
+//            c6.setCellStyle(styleText);
+//            c7.setCellStyle(styleText);
+//            c6.setCellValue("上次未结");
+//            c7.setCellValue(allOrderPrice.subtract(pay_all_money).add(pay_total_money).doubleValue());
+//
+//            row = sheet.createRow(rowCount++);
+//            row.setHeightInPoints(textHeight);
+//            c6 = row.createCell(5);
+//            c7 = row.createCell(6);
+//            c6.setCellStyle(styleText);
+//            c7.setCellStyle(styleText);
+//            c6.setCellValue("本次已付");
+//            c7.setCellValue(pay_total_money.doubleValue());
+//
+//
+//            row = sheet.createRow(rowCount++);
+//            row.setHeightInPoints(textHeight);
+//            c6 = row.createCell(5);
+//            c7 = row.createCell(6);
+//            c6.setCellStyle(styleText);
+//            c7.setCellStyle(styleText);
+//            c6.setCellValue("本次应付");
+//            c7.setCellValue(allOrderPrice.doubleValue());
 
             row = sheet.createRow(rowCount++);
             row.setHeightInPoints(textHeight);
@@ -923,9 +923,9 @@ public class ExcelController extends BaseController {
             c6.setCellStyle(styleText);
             c8.setCellStyle(styleText);
             c2.setCellValue("共打包" + package_num + "件");
-            c4.setCellValue("摘要:" + (abstractInfo == null?"":abstractInfo));
-            c6.setCellValue("接货信息:" + (delivery_info == null?"":delivery_info));
-            c8.setCellValue("车牌:" + (license_plate_number == null?"":license_plate_number));
+            c4.setCellValue("摘要:" + (abstractInfo == null ? "" : abstractInfo));
+            c6.setCellValue("接货信息:" + (delivery_info == null ? "" : delivery_info));
+            c8.setCellValue("车牌:" + (license_plate_number == null ? "" : license_plate_number));
 
 
 //            row = sheet.createRow(rowCount++);
@@ -1027,7 +1027,7 @@ public class ExcelController extends BaseController {
 
         User user = User.dao.findById(uid);
 
-        final Date createTime = getParaToDate("createTime") == null? new Date():getParaToDate("createTime");
+        final Date createTime = getParaToDate("createTime") == null ? new Date() : getParaToDate("createTime");
 
         String[] createTimes = DateUtils.getOrderCycleDateStrings(createTime);
 //        if (createTime != null) {
@@ -1063,7 +1063,7 @@ public class ExcelController extends BaseController {
         procurementPlanGroup.put("采购汇总", planList);
 
 
-        String[] headers = {"商品名", "规格名", "规格编码", "重量(斤)", "报价", "下单量", "库存量", "采购量", "采购单价", "下单备注","采购人"};
+        String[] headers = {"商品名", "规格名", "规格编码", "重量(斤)", "报价", "下单量", "库存量", "采购量", "采购单价", "下单备注", "采购人"};
 
         XSSFWorkbook wb = new XSSFWorkbook();
 
@@ -1159,7 +1159,7 @@ public class ExcelController extends BaseController {
 
                             XSSFCell c11 = row.createCell(cellCount++);
                             c11.setCellStyle(styleTable);
-                            c11.setCellValue(procurementPlan.get("procurement_name")+"");
+                            c11.setCellValue(procurementPlan.get("procurement_name") + "");
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -1195,6 +1195,7 @@ public class ExcelController extends BaseController {
                 File file = new File(fileUrl);
                 ArrayList<String> errorRow = new ArrayList<>();
                 try {
+                    // 这里从第5行开始取,所以计算行数需要加多4行
                     List<Object[]> excel = ExcelCommon.excelRd(file, 5, 1, new ExcelRdTypeEnum[]{
                             ExcelRdTypeEnum.STRING,
                             ExcelRdTypeEnum.STRING,
@@ -1234,13 +1235,18 @@ public class ExcelController extends BaseController {
                     Map<String, Type> typeByNameMap = types.stream().collect(Collectors.toMap(Type::getName, Function.identity()));
                     Map<String, ProductType> productTypeMap = productTypes.stream().collect(Collectors.toMap(pt -> pt.getProductId() + "-" + pt.getTypeId(), Function.identity()));
 
-
-                    Map<String, Integer> duplicationCheckProductMap = new HashMap<>();
+                    // 1.商品名相同,商品id不同,排查重复数据的缓存
+                    Map<String, Integer> duplicationCheckProductMap = finalProducts.stream().collect(Collectors.toMap(Product::getName, Product::getId));
+                    // 2.規格名相同,psId不同,排查重复数据的缓存
                     Map<String, Integer> duplicationCheckProductStandardMap = new HashMap<>();
+                    // 3.psId相同,内容不相同,排查重复数据的缓存(不包含数据库内容,因为有可能需要覆盖数据库数据[使用唯一标识作为key])
                     Map<Integer, Object[]> duplicationCheckProductStandardMapbyAll = new HashMap<>();
+                    // 4.相同商品id,相同规格名称,不同规格id,排查重复数据的缓存
+                    Map<String, Integer> duplicationCheckProductMap2 = productStandardAllInfo.stream().collect(Collectors.toMap(ps -> ps.getProductId() + "-" + ps.getName(), ProductStandard::getId));
 
                     // 异常检测,容错提升
-                    for (Object[] row : excel) {
+                    for (int i = 0; i < excel.size(); i++) {
+                        Object[] row = excel.get(i);
 
                         String typeName = (String) row[1];
                         if (!StringUtils.isNotBlank(typeName)) {
@@ -1273,48 +1279,61 @@ public class ExcelController extends BaseController {
                                 productId = Integer.parseInt(idInfo[0]);
                                 productStandardId = Integer.parseInt(idInfo[1]);
 
-                                // 1.商品名相同,pId不同
-                                Integer pId = duplicationCheckProductMap.get(productName);
-                                if (productId != null) {
-                                    if (pId != null) {
-                                        if (!productId.equals(pId)) {
-                                            renderErrorText("存在相同商品名称和不同的id的商品：" + productName);
-                                            return false;
-                                        }
-                                    }
-                                    duplicationCheckProductMap.put(productName, productId);
+                                if (productId == null) {
+                                    continue;
                                 }
 
+                                if (productStandardId == null) {
+                                    continue;
+                                }
+
+                                // 1.商品名相同,商品id不同
+                                Integer pId = duplicationCheckProductMap.get(productName);
+                                if (pId != null) {
+                                    if (!productId.equals(pId)) {
+                                        renderErrorText("存在相同商品名称和不同的商品id，商品名：" + productName + "，在第" + (i + 5) + "行");
+                                        return false;
+                                    }
+                                }
+                                duplicationCheckProductMap.put(productName, productId);
 
                                 // 2.規格名相同,psId不同
-                                Integer psId = duplicationCheckProductStandardMap.get(productName + productStandardName);
-                                if (productStandardId != null) {
-                                    if (psId != null) {
-                                        if (!productStandardId.equals(psId)) {
-                                            renderErrorText("存在相同商品规格名称和不同的id的商品：" + productName + "，规格：" + productStandardName);
-                                            return false;
-                                        }
-
+                                Integer psId = duplicationCheckProductStandardMap.get(productId + productStandardName);
+                                if (psId != null) {
+                                    if (!productStandardId.equals(psId)) {
+                                        renderErrorText("存在相同商品规格名称和不同的id的商品：" + productId + "，规格：" + productStandardName + "，在第" + (i + 5) + "行");
+                                        return false;
                                     }
-                                    duplicationCheckProductStandardMap.put(productName + productStandardName, productStandardId);
                                 }
+                                duplicationCheckProductStandardMap.put(productName + productStandardName, productStandardId);
 
                                 // 3.psId相同,内容不相同
                                 Object[] duplicationCheckRow = duplicationCheckProductStandardMapbyAll.get(productStandardId);
                                 if (duplicationCheckRow != null) {
-                                    for (int i = 0; i < duplicationCheckRow.length; i++) {
-                                        if (!row[i].equals(duplicationCheckRow[i])) {
+                                    for (int j = 0; j < duplicationCheckRow.length; j++) {
+                                        if (j == 10) {
+                                            continue;
+                                        }
+                                        if (!row[j].equals(duplicationCheckRow[j])) {
                                             String rowStr = Arrays.stream(row).filter(obj -> obj != null).map(Object::toString).reduce("", String::concat);
                                             String newRowStr = Arrays.stream(duplicationCheckRow).filter(obj -> obj != null).map(Object::toString).reduce("", String::concat);
                                             renderErrorText("存在相同商品规格编号和不同的信息的商品：" + productName + "，规格：" + productStandardName +
 //                                                    "，---------------上一行row:"+rowStr + "," +
 //                                                    "---------------下一行" +newRowStr +
-                                                    "|--->差异值：" + row[i] + "和" + duplicationCheckRow[i]);
+                                                    "|--->差异值：" + row[j] + "和" + duplicationCheckRow[j] + "，在第" + (i + 5) + "行");
                                             return false;
                                         }
                                     }
                                 }
-                                duplicationCheckProductStandardMapbyAll.put(productStandardId,row);
+                                // 4.相同商品id,相同规格名称,不同规格id
+                                Integer psId2 = duplicationCheckProductMap2.get(productId + "-" + productStandardName);
+                                if (psId2 != null) {
+                                    if (!psId2.equals(productStandardId)) {
+                                        renderErrorText("存在相同商品id，相同规格名称，不同规格id的商品，商品id：" + productId + "，规格名称：" + productStandardName + "，在第" + (i + 5) + "行");
+                                        return false;
+                                    }
+                                }
+                                duplicationCheckProductMap2.put(productId + "-" + productStandardName, productStandardId);
                             }
                         }
                     }
@@ -1330,6 +1349,7 @@ public class ExcelController extends BaseController {
                         Integer productStandardId = 0;
 
                         if (StringUtils.isNotBlank(productIdInfo)) {
+
                             // 不为空
                             String[] idInfo = productIdInfo.split("-");
                             if (idInfo.length == 2) {
@@ -1684,7 +1704,7 @@ public class ExcelController extends BaseController {
 
 
             }
-            System.out.println("总数据源" + totalCount + ",一共添加了" + totalCount + "条数据");
+            System.out.println("总数据源" + totalCount + "，一共添加了" + totalCount + "条数据");
 
         } catch (Exception e) {
             e.printStackTrace();
