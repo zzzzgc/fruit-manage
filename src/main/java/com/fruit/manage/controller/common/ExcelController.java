@@ -6,19 +6,15 @@ import com.fruit.manage.constant.RoleKeyCode;
 import com.fruit.manage.constant.ShipmentConstant;
 import com.fruit.manage.model.*;
 import com.fruit.manage.util.Constant;
-import com.fruit.manage.util.DateAndStringFormat;
 import com.fruit.manage.util.DateUtils;
 import com.fruit.manage.util.ExcelCommon;
 import com.fruit.manage.util.excel.ExcelStyle;
 import com.fruit.manage.util.excelRd.ExcelRdTypeEnum;
-import com.jfinal.aop.Before;
 import com.jfinal.ext.kit.DateKit;
-import com.jfinal.ext2.kit.DateTimeKit;
 import com.jfinal.ext2.kit.RandomKit;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.IAtom;
 import com.jfinal.plugin.activerecord.Record;
-import com.jfinal.plugin.activerecord.tx.Tx;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.log4j.Logger;
@@ -1115,7 +1111,7 @@ public class ExcelController extends BaseController {
                             cell.setCellStyle(styleTable);
                             cell.setCellValue(header);
                         }
-
+                        BigDecimal totalMoney = new BigDecimal(0);
                         for (ProcurementPlan procurementPlan : procurementPlanList) {
                             cellCount = 0;
                             row = sheet.createRow(rowCount++);
@@ -1159,8 +1155,15 @@ public class ExcelController extends BaseController {
 
                             XSSFCell c11 = row.createCell(cellCount++);
                             c11.setCellStyle(styleTable);
-                            c11.setCellValue(procurementPlan.get("procurement_name") + "");
+                            c11.setCellValue(procurementPlan.get("procurement_name")+"");
+                            BigDecimal psTotalMoney = new BigDecimal(procurementPlan.get("purchaseNum") + "").multiply(new BigDecimal(procurementPlan.get("sellPrice") + ""));
+                            totalMoney=totalMoney.add(psTotalMoney);
                         }
+                        row = sheet.createRow(rowCount++);
+                        _mergedRegionNowRow(sheet, row, 1, 3);
+                        XSSFCell totalMoneyCell = row.createCell(0);
+                        totalMoneyCell.setCellStyle(styleText);
+                        totalMoneyCell.setCellValue("金额："+totalMoney.doubleValue());
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
