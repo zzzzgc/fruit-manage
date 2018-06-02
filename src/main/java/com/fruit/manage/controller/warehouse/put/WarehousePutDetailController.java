@@ -140,6 +140,8 @@ public class WarehousePutDetailController extends BaseController {
                                 if (procurementPlanDetail == null) {
                                     excelRenderErrorInfo(tableIndex,rowIndex,"不存在该采购记录信息，无法获取采购价格!");
                                     return false;
+//                                    procurementPlanDetail = new ProcurementPlanDetail();
+//                                    procurementPlanDetail.setProcurementNeedPrice(new BigDecimal(0));
                                 }
                                 Integer putInNum = Integer.parseInt(list.get(7) + "");
                                 BigDecimal boothCost = new BigDecimal(list.get(6) + "");
@@ -195,7 +197,8 @@ public class WarehousePutDetailController extends BaseController {
                                     if (putNumUpdate!=null && putNumUpdate.intValue() <=0) {
                                         continue;
                                     }
-                                    BigDecimal procurementTotalPrice = putNumUpdate.multiply(putWarehouseDetail.getProcurementPrice());
+//                                    BigDecimal procurementTotalPrice = putNumUpdate.multiply(putWarehouseDetail.getProcurementPrice());
+                                    BigDecimal procurementTotalPrice = putNumUpdate.multiply(procurementPlanDetail.getProcurementNeedPrice());
                                     // PutNum相差的值
                                     Integer differPutNum = putWarehouseDetail.getPutNum() - putNumUpdate.intValue();
                                     // 摊位分相差值
