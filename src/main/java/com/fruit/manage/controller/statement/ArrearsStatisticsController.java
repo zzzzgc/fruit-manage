@@ -10,6 +10,7 @@ import com.jfinal.kit.StrKit;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.Record;
+import org.apache.commons.lang3.ArrayUtils;
 import org.terracotta.statistics.Time;
 
 import java.io.File;
@@ -27,6 +28,8 @@ import java.util.Map;
  * @Date Created in 16:32 2018/6/1
  */
 public class ArrearsStatisticsController extends BaseController {
+    private List list = new ArrayList();
+
     /**
      * 获取客户欠款统计详细表
      */
@@ -41,31 +44,31 @@ public class ArrearsStatisticsController extends BaseController {
         // 数据参数
         String nick_name = getPara("nick_name");
         String business_name = getPara("business_name");
-        String[] order_cycle_times = getParaValues("order_cycle_time");
+        String[] order_cycle_date = getParaValues("order_cycle_date");
 
         String select = _getSelect();
         StringBuilder sqlExceptSelect = new StringBuilder();
-        sqlExceptSelect.append(_getSqlExceptSelect());
+        sqlExceptSelect.append(_getSqlExceptSelect(list, nick_name, business_name, order_cycle_date));
 
 
 //        String nick_name = getPara("nick_name");
         List<BigDecimal> bigDecimalsArrearage = new ArrayList<>();
         List<BigDecimal> bigDecimalsArrearageTotal = new ArrayList<>();
         Map map = new HashMap<>();
-        Page<Record> paginate = Db.paginate(pageNum, pageSize, select, sqlExceptSelect.toString());
+        Page<Record> paginate = Db.paginate(pageNum, pageSize, select, sqlExceptSelect.toString(),list.toArray());
         paginate.getList().stream().forEach(record -> {
                     bigDecimalsArrearageTotal.add(record.getBigDecimal("arrearage_total"));
                     bigDecimalsArrearage.add(record.getBigDecimal("arrearage"));
                 }
         );
         BigDecimal arrearageCount = new BigDecimal(0);
-        BigDecimal arrearageTotalCount  = new BigDecimal(0);
+        BigDecimal arrearageTotalCount = new BigDecimal(0);
         for (int i = 0; i < bigDecimalsArrearage.size(); i++) {
             arrearageCount = arrearageCount.add(bigDecimalsArrearage.get(i));
             arrearageTotalCount = arrearageTotalCount.add(bigDecimalsArrearageTotal.get(i));
         }
         map.put("pageData", paginate);
-        map.put("arrearageCount",arrearageCount);
+        map.put("arrearageCount", arrearageCount);
         map.put("arrearageTotalCount", arrearageTotalCount);
         renderJson(map);
     }
@@ -75,12 +78,16 @@ public class ArrearsStatisticsController extends BaseController {
      */
     public void exportExcel() {
         String select = _getSelect();
+        // 数据参数
+        String nickName = getPara("nick_name");
+        String businessName = getPara("business_name");
+        String[] orderCycleDate = getParaValues("order_cycle_date");
 
 
         File file = null;
         StringBuilder sqlExceptSelect = new StringBuilder();
-        sqlExceptSelect.append(_getSqlExceptSelect());
-        List<Record> records = Db.find(select + sqlExceptSelect);
+        sqlExceptSelect.append(_getSqlExceptSelect(list, nickName, businessName, orderCycleDate));
+        List<Record> records = Db.find(select + sqlExceptSelect,list.toArray());
         for (Record record : records) {
             String nick_name = record.getStr("nick_name");
             String business_name = record.getStr("business_name");
@@ -166,8 +173,9 @@ public class ArrearsStatisticsController extends BaseController {
 
     }
 
-    private String _getSqlExceptSelect() {
-        return "FROM  " +
+    private String _getSqlExceptSelect(List list, String nickName, String businessName, String[] createTimes) {
+        String sql = "";
+        sql += "FROM  " +
                 "  b_order AS o  " +
                 "INNER JOIN b_business_user AS bu ON o.u_id = bu.id  " +
                 "INNER JOIN a_user ON bu.a_user_sales_id = a_user.id  " +
@@ -186,11 +194,25 @@ public class ArrearsStatisticsController extends BaseController {
                 "    o.u_id  " +
                 ") AS arrearage_orderId ON arrearage_orderId.u_id = bu.id  " +
                 "WHERE  " +
-                "  o.pay_all_money > o.pay_total_money  " +
-                "ORDER BY  " +
+                "  o.pay_all_money > o.pay_total_money  ";
+        if (StrKit.notBlank(nickName)) {
+            sql += " and a_user.nick_name like ? ";
+            list.add("%" + nickName + "%");
+        }
+        if (StrKit.notBlank(businessName)) {
+            sql += " and b_business_info.business_name like ?  ";
+            list.add("%"+businessName+"%");
+        }
+        if (ArrayUtils.isNotEmpty(createTimes) && createTimes.length == 2) {
+            sql += " AND o.create_time BETWEEN ? AND ? ";
+            list.add(createTimes[0] + " 00:00:00");
+            list.add(createTimes[1] + " 23:59:59");
+        }
+        sql += "ORDER BY  " +
                 "  arrearage_orderId.arrearage_total DESC,  " +
                 "  bu.`name`,  " +
                 "  o.order_id DESC ";
+        return sql;
     }
 
     private String _getSelect() {
@@ -199,7 +221,7 @@ public class ArrearsStatisticsController extends BaseController {
                 "  b_business_info.business_name,  " +
                 "  o.order_id,  " +
                 "  o.pay_all_money - o.pay_total_money as arrearage,  " +
-                "  arrearage_orderId.arrearage_total ";
+                "  arrearage_orderId.arrearage_total,o.create_time ";
     }
 
     /**
