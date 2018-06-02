@@ -8,6 +8,7 @@ import com.fruit.manage.util.excel.ExcelException;
 import com.fruit.manage.util.excel.ExcelRow;
 import com.jfinal.kit.StrKit;
 import com.jfinal.plugin.activerecord.Db;
+import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.Record;
 import org.terracotta.statistics.Time;
 
@@ -15,7 +16,9 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 客户欠款统计报表
@@ -46,8 +49,25 @@ public class ArrearsStatisticsController extends BaseController {
 
 
 //        String nick_name = getPara("nick_name");
-
-        renderJson(Db.paginate(pageNum, pageSize, select, sqlExceptSelect.toString()));
+        List<BigDecimal> bigDecimalsArrearage = new ArrayList<>();
+        List<BigDecimal> bigDecimalsArrearageTotal = new ArrayList<>();
+        Map map = new HashMap<>();
+        Page<Record> paginate = Db.paginate(pageNum, pageSize, select, sqlExceptSelect.toString());
+        paginate.getList().stream().forEach(record -> {
+                    bigDecimalsArrearageTotal.add(record.getBigDecimal("arrearage_total"));
+                    bigDecimalsArrearage.add(record.getBigDecimal("arrearage"));
+                }
+        );
+        BigDecimal arrearageCount = new BigDecimal(0);
+        BigDecimal arrearageTotalCount  = new BigDecimal(0);
+        for (int i = 0; i < bigDecimalsArrearage.size(); i++) {
+            arrearageCount = arrearageCount.add(bigDecimalsArrearage.get(i));
+            arrearageTotalCount = arrearageTotalCount.add(bigDecimalsArrearageTotal.get(i));
+        }
+        map.put("pageData", paginate);
+        map.put("arrearageCount",arrearageCount);
+        map.put("arrearageTotalCount", arrearageTotalCount);
+        renderJson(map);
     }
 
     /**
@@ -122,7 +142,7 @@ public class ArrearsStatisticsController extends BaseController {
             }
         }
         ExcelRow row = excel.createRow();
-        row.addCell("总共总欠款：" + totalCount.doubleValue(),false);
+        row.addCell("总共总欠款：" + totalCount.doubleValue(), false);
         try {
             String excelFileUrl = excel.CreateXlsx();
             file = new File(excelFileUrl);
@@ -134,7 +154,7 @@ public class ArrearsStatisticsController extends BaseController {
         }
         renderFile(file);
 
-    //        try {
+        //        try {
 //            String excelFileUrl = ExcelCommon.createExcelModul(CommonController.FILE_PATH, fileName, "客户欠款统计报表", "", headers, tableData);
 //            file = new File(excelFileUrl);
 //            if (!file.exists()) {
@@ -144,7 +164,7 @@ public class ArrearsStatisticsController extends BaseController {
 //            e.printStackTrace();
 //        }
 
-}
+    }
 
     private String _getSqlExceptSelect() {
         return "FROM  " +
