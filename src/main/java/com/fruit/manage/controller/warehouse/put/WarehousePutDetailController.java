@@ -213,6 +213,8 @@ public class WarehousePutDetailController extends BaseController {
                                     putWarehouseDetail.setUpdateTime(new Date());
                                     putWarehouseDetail.setProcurementId(procurementId);
                                     putWarehouseDetail.setProductWeight(list.get(3)==null?"":(list.get(3)+ ""));
+                                    putWarehouseDetail.setProcurementPrice(procurementPlanDetail.getProcurementNeedPrice());
+                                    putWarehouseDetail.setProcurementTotalPrice(procurementPlanDetail.getProcurementNeedPrice().multiply(new BigDecimal(putNumUpdate.intValue())));
                                     putWarehouseDetail.setBoothCost(boothCost);
                                     putWarehouseDetail.setProcurementName(procurementName);
                                     putWarehouseDetail.update();
