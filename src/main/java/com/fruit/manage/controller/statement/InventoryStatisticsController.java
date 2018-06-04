@@ -4,6 +4,7 @@ import com.fruit.manage.base.BaseController;
 import com.fruit.manage.controller.common.CommonController;
 import com.fruit.manage.model.OrderDetail;
 import com.fruit.manage.model.ProcurementPlanDetail;
+import com.fruit.manage.model.ProductStandard;
 import com.fruit.manage.model.User;
 import com.fruit.manage.util.Constant;
 import com.fruit.manage.util.ExcelCommon;
@@ -29,17 +30,16 @@ public class InventoryStatisticsController extends BaseController {
         String productName = getPara("product_name");
         Integer productStandardId = getParaToInt("product_standard_id");
         String productStandardName = getPara("product_standard_name");
-        String[] createTimes = getParaValues("format_create_time");
         String select = _getSqlSelect();
         // TODO 修改参数
-        String selectExcept = _getSqlSelectExcept(list, productId, productName, productStandardId, productStandardName,createTimes);
+        String selectExcept = _getSqlSelectExcept(list, productId, productName, productStandardId, productStandardName);
         System.out.println("-------------库存统计报表SQL START--------------");
         System.out.println(select + selectExcept);
         for (int i = 0; i < list.size(); i++) {
             System.out.println("list index:"+i+",list value:"+list.get(i));
         }
         System.out.println("-------------库存统计报表SQL END--------------");
-        renderJson(OrderDetail.dao.paginate(pageNum,pageSize,select,selectExcept,list.toArray()));
+        renderJson(ProductStandard.dao.paginate(pageNum,pageSize,select,selectExcept,list.toArray()));
     }
 
     public void exportInventoryStatistics() {
@@ -47,9 +47,8 @@ public class InventoryStatisticsController extends BaseController {
         String productName = getPara("product_name");
         Integer productStandardId = getParaToInt("product_standard_id");
         String productStandardName = getPara("product_standard_name");
-        String[] createTimes = getParaValues("format_create_time");
         String select = _getSqlSelect();
-        String selectExcept = _getSqlSelectExcept(list, productId, productName, productStandardId, productStandardName,createTimes);
+        String selectExcept = _getSqlSelectExcept(list, productId, productName, productStandardId, productStandardName);
         System.out.println("-------------产品销售排行版报表SQL START--------------");
         System.out.println(select + selectExcept);
         for (int i = 0; i < list.size(); i++) {
@@ -57,15 +56,18 @@ public class InventoryStatisticsController extends BaseController {
         }
         System.out.println("-------------产品销售排行版报表SQL END--------------");
 
-
-        // TODO 设置headers
-        String[] headers = {};
-        List<Object> objects = new ArrayList<>();
+        String[] headers = {"商品名称","规格名称","规格编号","库存数量","今日备注"};
+        List<ProductStandard> objects = ProductStandard.dao.find(select + selectExcept, list.toArray());
         if (objects != null && objects.size() >0) {
             List<String[]> lists = new ArrayList<>();
             for (int i = 0; i < objects.size(); i++) {
+                ProductStandard productStandard=objects.get(i);
                 String[] strings = new String[headers.length];
-                // TODO 进行数据封装
+                strings[0] = productStandard.get("productName")+"";
+                strings[1] = productStandard.get("productStandardName")+"";
+                strings[2] = productStandard.get("productStandardId")+"";
+                strings[3] = productStandard.get("stock")+"";
+                strings[4] = productStandard.get("todayRemark")+"";
                 lists.add(strings);
             }
 
@@ -98,37 +100,32 @@ public class InventoryStatisticsController extends BaseController {
 
 
     private String _getSqlSelect() {
-        String select = "";
+        String select = "SELECT p.`name` as productName,p.id  as productId,ps.`name` as productStandardName,ps.id as productStandardId,ps.stock as stock,(SELECT \"\") as todayRemark ";
         return select;
     }
 
-    private String _getSqlSelectExcept(List list, Integer productId, String productName, Integer productStandardId, String productStandardName,String [] createTiems) {
-        String selectExcept = "";
-
-
+    private String _getSqlSelectExcept(List list, Integer productId, String productName, Integer productStandardId, String productStandardName) {
+        String selectExcept = "\tfrom b_product p \n" +
+                "\tINNER JOIN b_product_standard ps ON p.id = ps.product_id\n" +
+                "\twhere 1=1\n";
         if (productId != null && productId > 0) {
-            selectExcept += "\tand od.product_id like  ?\n";
+            selectExcept += "\tAND p.id LIKE ? \n";
             list.add("%" + productId + "%");
         }
         if (StrKit.notBlank(productName)) {
-
-            selectExcept += "\tand od.product_name like ?\n";
+            selectExcept+="\tand p.name like ?\n";
             list.add("%" + productName + "%");
         }
         if (productStandardId != null && productStandardId > 0) {
-
-            selectExcept += "\tand od.product_standard_id LIKE ?\n";
+            selectExcept+="\tand ps.id LIKE ?\n";
             list.add("%" + productStandardId + "%");
         }
         if (StrKit.notBlank(productStandardName)) {
-            selectExcept += "\tand od.product_standard_name LIKE ?\n";
+            selectExcept+="\tand ps.`name` LIKE ?\n";
             list.add("%" + productStandardName + "%");
         }
-        if (ArrayUtils.isNotEmpty(createTiems) && createTiems.length == 2) {
-            selectExcept += " AND od.create_time BETWEEN ? AND ? ";
-            list.add(createTiems[0]);
-            list.add(createTiems[1]);
-        }
+
+        selectExcept+="\tORDER BY ps.stock desc,p.id,ps.id";
         return selectExcept;
     }
 }
