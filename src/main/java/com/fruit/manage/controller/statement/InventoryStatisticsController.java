@@ -56,7 +56,7 @@ public class InventoryStatisticsController extends BaseController {
         }
         System.out.println("-------------产品销售排行版报表SQL END--------------");
 
-        String[] headers = {"商品名称","规格名称","规格编号","库存数量","今日备注"};
+        String[] headers = {"商品名称","规格名称","规格编号","库存数量"};
         List<ProductStandard> objects = ProductStandard.dao.find(select + selectExcept, list.toArray());
         if (objects != null && objects.size() >0) {
             List<String[]> lists = new ArrayList<>();
@@ -67,7 +67,7 @@ public class InventoryStatisticsController extends BaseController {
                 strings[1] = productStandard.get("productStandardName")+"";
                 strings[2] = productStandard.get("productStandardId")+"";
                 strings[3] = productStandard.get("stock")+"";
-                strings[4] = productStandard.get("todayRemark")+"";
+//                strings[4] = productStandard.get("todayRemark")+"";
                 lists.add(strings);
             }
 
