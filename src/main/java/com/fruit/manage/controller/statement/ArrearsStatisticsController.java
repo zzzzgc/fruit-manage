@@ -156,10 +156,14 @@ public class ArrearsStatisticsController extends BaseController {
             if (!file.exists()) {
                 throw new RuntimeException("BASE_PATH:" + CommonController.FILE_PATH + ",fileName:" + fileName + "  文件不存在 ");
             }
+            List list = new ArrayList(1);
+            list.add(fileName);
+            renderJson(list);
         } catch (Exception e) {
             e.printStackTrace();
+            renderErrorText("导出失败！");
         }
-        renderFile(file);
+//        renderFile(file);
 
         //        try {
 //            String excelFileUrl = ExcelCommon.createExcelModul(CommonController.FILE_PATH, fileName, "客户欠款统计报表", "", headers, tableData);

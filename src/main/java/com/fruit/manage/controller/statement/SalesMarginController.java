@@ -89,10 +89,14 @@ public class SalesMarginController extends BaseController {
             if (!file.exists()) {
                 throw new RuntimeException("BASE_PATH:" + CommonController.FILE_PATH + ",fileName:" + fileName + "  文件不存在");
             }
+            List<String> list = new ArrayList<>(1);
+            list.add(fileName);
+            renderJson(list);
         } catch (ExcelException e) {
             e.printStackTrace();
+            renderErrorText("导出销售毛利报表失败！");
         }
-        renderFile(file);
+//        renderFile(file);
     }
 
     /**
