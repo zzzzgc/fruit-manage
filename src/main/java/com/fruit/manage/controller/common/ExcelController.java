@@ -4,10 +4,12 @@ import com.fruit.manage.base.BaseController;
 import com.fruit.manage.constant.OrderStatusCode;
 import com.fruit.manage.constant.RoleKeyCode;
 import com.fruit.manage.constant.ShipmentConstant;
+import com.fruit.manage.constant.UserTypeConstant;
 import com.fruit.manage.model.*;
 import com.fruit.manage.util.Constant;
 import com.fruit.manage.util.DateUtils;
 import com.fruit.manage.util.ExcelCommon;
+import com.fruit.manage.util.IdUtil;
 import com.fruit.manage.util.excel.ExcelStyle;
 import com.fruit.manage.util.excelRd.ExcelRdTypeEnum;
 import com.jfinal.ext.kit.DateKit;
@@ -21,6 +23,7 @@ import org.apache.log4j.Logger;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.*;
+import org.omg.CORBA.INTERNAL;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
@@ -482,7 +485,7 @@ public class ExcelController extends BaseController {
                     c4.setCellValue((Integer) orderDetail.get("product_standard_id"));
                     c5.setCellValue(orderDetail.get("sub_title").toString());
                     c6.setCellValue((Integer) orderDetail.get("num"));
-                    c7.setCellValue((Integer) (orderDetail.get("actual_send_goods_num") == null ? 0 : orderDetail.get("actual_send_goods_num")));
+                    c7.setCellValue(orderDetail.get("actual_send_goods_num") == null ? "" : orderDetail.get("actual_send_goods_num") + "");
                     c8.setCellValue(orderDetail.get("buy_remark") != null ? orderDetail.get("buy_remark") + "" : null);
                 }
                 // 添加三行空行
@@ -1157,15 +1160,15 @@ public class ExcelController extends BaseController {
 
                             XSSFCell c11 = row.createCell(cellCount++);
                             c11.setCellStyle(styleTable);
-                            c11.setCellValue(procurementPlan.get("procurement_name")+"");
+                            c11.setCellValue(procurementPlan.get("procurement_name") + "");
                             BigDecimal psTotalMoney = new BigDecimal(procurementPlan.get("purchaseNum") + "").multiply(new BigDecimal(procurementPlan.get("sellPrice") + ""));
-                            totalMoney=totalMoney.add(psTotalMoney);
+                            totalMoney = totalMoney.add(psTotalMoney);
                         }
                         row = sheet.createRow(rowCount++);
                         _mergedRegionNowRow(sheet, row, 1, 3);
                         XSSFCell totalMoneyCell = row.createCell(0);
                         totalMoneyCell.setCellStyle(styleText);
-                        totalMoneyCell.setCellValue("金额："+totalMoney.doubleValue());
+                        totalMoneyCell.setCellValue("金额：" + totalMoney.doubleValue());
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -1937,4 +1940,116 @@ public class ExcelController extends BaseController {
         sb.append("出现异常：").append(ErrorMsg);
         renderErrorText(sb.toString());
     }
+
+
+//    /**
+//     * 批量导入订单数据
+//     */
+//    public void excelInputOldOrders() {
+//        Db.tx(new IAtom() {
+//            @Override
+//            public boolean run() throws SQLException {
+//                try {
+//                    List<List<Object[]>> excels = ExcelCommon.excelRdList("", 1, 1, new ExcelRdTypeEnum[]{
+//                            ExcelRdTypeEnum.STRING,
+//                            ExcelRdTypeEnum.STRING,
+//                            ExcelRdTypeEnum.STRING,
+//                            ExcelRdTypeEnum.STRING,
+//                            ExcelRdTypeEnum.STRING,
+//
+//                            ExcelRdTypeEnum.STRING,
+//                            ExcelRdTypeEnum.STRING,
+//                            ExcelRdTypeEnum.STRING,
+//                            ExcelRdTypeEnum.STRING,
+//                            ExcelRdTypeEnum.STRING,
+//
+//                            ExcelRdTypeEnum.STRING,
+//                            ExcelRdTypeEnum.STRING
+//                    });
+//
+//                    for (List<Object[]> rows : excels) {
+//                        Object[] objects = rows.get(0);
+//                        String orderCycleDateStr = (objects[0] + "").split(":")[1];
+//                        Date orderCycleDate = DateKit.toDate(orderCycleDateStr);
+//
+//                        Integer businessUserId = Integer.parseInt(rows.get(3) + "");
+//                        BusinessUser bUser = BusinessUser.dao.findById(businessUserId);
+//
+//                        BigDecimal payNeedMoney = new BigDecimal(0);
+//                        BigDecimal payRealityNeedMoney = new BigDecimal(0);
+//                        Order order = new Order();
+//
+//                        String orderId = IdUtil.getOrderId(orderCycleDate, businessUserId);
+//                        Order nowOrder = Order.dao.getOrder(orderId);
+//
+//                        Date now = new Date();
+//
+//                        Integer uid = getSessionAttr(Constant.SESSION_UID);
+//
+//                        for (int i = 1; i < rows.size(); i++) {
+//
+//                            Integer productStandardId = Integer.parseInt(rows.get(0)+"");
+//                            Integer num = Integer.parseInt(rows.get(1)+"");
+//                            Integer actual_send_goods_num = Integer.parseInt(rows.get(2)+"");
+//                            Integer num = Integer.parseInt(rows.get(3)+"");
+//                            BigDecimal sellPrice = Integer.parseInt(rows.get(3)+"");
+//                            String a = rows[1] + "";
+//                            String a = rows[2] + "";
+//                            String a = rows[3] + "";
+//                            String a = rows[4] + "";
+//                            String a = rows[5] + "";
+//                            String a = rows[6] + "";
+//                            String a = rows[7] + "";
+//                            String a = rows[8] + "";
+//
+//                            // 区分该订单周期的订单是否已经被创建
+//                            if (nowOrder == null) {
+//                                order.setOrderId(orderId);
+//
+//                                OrderDetail orderDetail = new OrderDetail();
+//
+//
+//                                BigDecimal totalPay = sellPrice.multiply(new BigDecimal(num));
+//
+//                                payNeedMoney = payNeedMoney.add(totalPay);
+//                                orderDetail.setTotalPay(totalPay);
+//                                orderDetail.setUId(businessUserId);
+//                                orderDetail.setOrderId(order.getOrderId());
+//                                orderDetail.setCreateTime(orderCycleDate);
+//
+//                                orderDetail.setUpdateTime(now);
+//                                // ccz 2018-5-18 orderCreateTime
+//                                orderDetail.save(UserTypeConstant.A_USER, uid, orderCycleDate);
+//                            }
+//                        }
+//                        order.setPayNeedMoney(payNeedMoney);
+//                        order.setPayTotalMoney(new BigDecimal(0));
+//                        order.setUId(businessUserId);
+//                        order.setOrderCycleDate(DateUtils.getOrderCycleDate(orderCycleDate));
+//                        order.setUpdateTime(now);
+//                        order.setCreateTime(orderCycleDate);
+//                        order.save();
+//
+//                        BusinessInfo info = BusinessInfo.dao.getBusinessInfoByUId(businessUserId);
+//                        LogisticsInfo logisticsInfo = new LogisticsInfo();
+//                        logisticsInfo.setUId(uid);
+//                        logisticsInfo.setOrderId(orderId);
+//                        logisticsInfo.setBuyAddress(info.getAddressProvince() + info.getAddressCity() + info.getAddressDetail());
+//                        logisticsInfo.setBuyPhone(info.getPhone());
+//                        logisticsInfo.setBuyUserName(info.getBusinessName());
+//                        logisticsInfo.setDeliveryType(info.getShipmentsType());
+//                        logisticsInfo.setUpdateTime(now);
+//                        logisticsInfo.setCreateTime(orderCycleDate);
+//                        logisticsInfo.save();
+//                    }
+//                    return true;
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                    return false;
+//                }
+//            }
+//        });
+//
+//    }
+
 }
