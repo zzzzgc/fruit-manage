@@ -286,7 +286,7 @@ public class ProcurementPlanDetail extends BaseProcurementPlanDetail<Procurement
 
 		StringBuilder sb = new StringBuilder();
 		sb.append("\tfrom b_procurement_plan_detail ppd\n");
-		sb.append("\tINNER join b_procurement_plan pd on ppd.procurement_id \n");
+		sb.append("\tINNER join b_procurement_plan pd on ppd.procurement_plan_id=pd.id \n");
 		sb.append("\twhere 1=1 \n");
 		if (StrKit.notBlank(procurementId)) {
 			sb.append("\tand ppd.procurement_id = ?\n");
@@ -352,7 +352,7 @@ public class ProcurementPlanDetail extends BaseProcurementPlanDetail<Procurement
 
 		StringBuilder sb = new StringBuilder();
 		sb.append("\tfrom b_procurement_plan_detail ppd\n");
-		sb.append("\tINNER join b_procurement_plan pd on ppd.procurement_id \n");
+		sb.append("\tINNER join b_procurement_plan pd on ppd.procurement_plan_id=pd.id \n");
 		sb.append("\twhere 1=1 \n");
 		if (StrKit.notBlank(procurementId)) {
 			sb.append("\tand ppd.procurement_id = ?\n");
