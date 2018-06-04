@@ -14,7 +14,7 @@ import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.*;
 
-/**
+/**@Description 6.库存统计报表
  * @author partner
  * @date 2018/6/1 17:41
  */

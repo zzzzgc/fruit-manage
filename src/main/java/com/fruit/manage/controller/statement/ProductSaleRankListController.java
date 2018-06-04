@@ -20,6 +20,7 @@ import java.sql.Ref;
 import java.util.*;
 
 /**
+ * @Description 3.产品销售排行版
  * @author partner
  * @date 2018/5/31 17:37
  */
