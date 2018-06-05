@@ -82,7 +82,7 @@ public class SalesMarginController extends BaseController {
         );
 
         File file = null;
-        fileName = Time.time() + "销售毛利报表.xlsx";
+        fileName = "销售毛利报表"+Time.time()+".xlsx";
         try {
             String filePath = ExcelCommon.createExcelModul(CommonController.FILE_PATH, fileName, "销售毛利报表", "", headers, tableData);
             file = new File(filePath);
@@ -103,6 +103,8 @@ public class SalesMarginController extends BaseController {
      * 获取汇总信息
      */
     public void getTotalInfo () {
+        // 临时获取
+
         String nick_name = getPara("nick_name");
         String business_name = getPara("business_name");
         String order_cycle_date = getPara("order_cycle_date");

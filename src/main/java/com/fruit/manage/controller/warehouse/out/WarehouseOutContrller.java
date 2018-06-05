@@ -227,7 +227,7 @@ public class WarehouseOutContrller extends BaseController {
                                     String productName = row.getCell(1) + "";
                                     Integer productStandardId = (int) row.getCell(3).getNumericCellValue();
                                     String productWeight = row.getCell(4) + "";
-                                    Integer outNum = (int) row.getCell(6).getNumericCellValue();
+                                    Integer outNum = Double.valueOf((row.getCell(6) + "")).intValue();
                                     String outRemark = row.getCell(7) + "";
 
                                     OrderDetail orderDetail = orderDetailMap.get(orderDetailId);
@@ -315,16 +315,16 @@ public class WarehouseOutContrller extends BaseController {
 
                     // 商品品类数量
                     Integer productStandardTotalNum = 0;
-                    Map<Integer,Integer> productStandardTotalMap = new HashMap<>(10000);
+                    Map<Integer, Integer> productStandardTotalMap = new HashMap<>(10000);
 
                     // 出库总额
                     BigDecimal allTotalPrice = new BigDecimal(0.00);
 
                     for (OutWarehouseDetail outWarehouseDetail : oldOutWarehouseDetail) {
                         productTotalNum += outWarehouseDetail.getOutNum();
-                        Integer  productStandardId = productStandardTotalMap.get(outWarehouseDetail.getProductStandardId());
+                        Integer productStandardId = productStandardTotalMap.get(outWarehouseDetail.getProductStandardId());
                         if (productStandardId == null) {
-                            productStandardTotalMap.put(outWarehouseDetail.getProductStandardId(),outWarehouseDetail.getProductStandardId());
+                            productStandardTotalMap.put(outWarehouseDetail.getProductStandardId(), outWarehouseDetail.getProductStandardId());
                         }
 
                         allTotalPrice = allTotalPrice.add(outWarehouseDetail.getOutTotalPrice());
