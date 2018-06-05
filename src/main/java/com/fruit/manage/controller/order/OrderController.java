@@ -352,7 +352,7 @@ public class OrderController extends BaseController {
             // 设置实际支付需要的金额
             order.setPayRealityNeedMoney(payRealityNeedMoney);
             order.setUpdateTime(now);
-            order.setOrderCycleDate(DateUtils.getOrderCycleDate(now));
+//            order.setOrderCycleDate(DateUtils.getOrderCycleDate(now));
             // 统计订单总货款pay_all_price
             Order oldOrder = Order.dao.findById(order.getId());
             if (oldOrder.getPayLogisticsMoney() != null) {
