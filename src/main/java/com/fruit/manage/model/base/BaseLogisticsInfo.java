@@ -89,6 +89,22 @@ public abstract class BaseLogisticsInfo<M extends BaseLogisticsInfo<M>> extends 
 		return getStr("abstract");
 	}
 
+	public void setDeliveryInfo(java.lang.String deliveryInfo) {
+		set("delivery_info", deliveryInfo);
+	}
+
+	public java.lang.String getDeliveryInfo() {
+		return getStr("delivery_info");
+	}
+
+	public void setLicensePlateNumber(java.lang.String licensePlateNumber) {
+		set("license_plate_number", licensePlateNumber);
+	}
+
+	public java.lang.String getLicensePlateNumber() {
+		return getStr("license_plate_number");
+	}
+
 	public void setSendGoodsTotalCost(java.math.BigDecimal sendGoodsTotalCost) {
 		set("send_goods_total_cost", sendGoodsTotalCost);
 	}
@@ -111,22 +127,6 @@ public abstract class BaseLogisticsInfo<M extends BaseLogisticsInfo<M>> extends 
 
 	public java.lang.Integer getRealitySendNum() {
 		return getInt("reality_send_num");
-	}
-
-	public void setDeliveryInfo(java.lang.String deliveryInfo) {
-		set("delivery_info", deliveryInfo);
-	}
-
-	public java.lang.String getDeliveryInfo() {
-		return getStr("delivery_info");
-	}
-
-	public void setLicensePlateNumber(java.lang.String licensePlateNumber) {
-		set("license_plate_number", licensePlateNumber);
-	}
-
-	public java.lang.String getLicensePlateNumber() {
-		return getStr("license_plate_number");
 	}
 
 	public void setBuyPhone(java.lang.String buyPhone) {
