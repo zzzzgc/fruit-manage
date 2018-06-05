@@ -58,8 +58,8 @@ public class WarehouseLog extends BaseWarehouseLog<WarehouseLog> {
 	 * @param change_type
 	 * @return
 	 */
-	public Integer getCountInventorySum(String change_type,String startTime,String endTime){
-		String sql="select sum(wl.change_num) from b_warehouse_log wl where 1=1 and wl.change_type = ? and wl.create_time BETWEEN ? and ? ";
-		return Db.queryInt(sql, change_type, startTime, endTime);
+	public Integer getCountInventorySum(String change_type,String startTime,String endTime,Integer productStandardId){
+		String sql="select sum(wl.change_num) from b_warehouse_log wl where 1=1 and wl.change_type = ? and wl.create_time BETWEEN ? and ? and wl.product_standard_id = ? ";
+		return Db.queryInt(sql, change_type, startTime, endTime,productStandardId);
 	}
 }
