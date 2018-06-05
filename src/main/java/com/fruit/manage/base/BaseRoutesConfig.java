@@ -1,5 +1,6 @@
 package com.fruit.manage.base;
 
+import com.fruit.manage.controller.order.refund.RefundController;
 import com.fruit.manage.controller.product.BannerController;
 import com.fruit.manage.controller.common.CommonController;
 import com.fruit.manage.controller.IndexController;
@@ -74,6 +75,7 @@ public class BaseRoutesConfig extends Routes {
 		add("/manage/statement/pSRankList", ProductSaleRankListController.class);
 		add("/manage/statement/arrearsStatistics", ArrearsStatisticsController.class);
         add("/manage/statement/inventoryStatistics", InventoryStatisticsController.class);
+		add("/manage/order/refund", RefundController.class);
 	}
 
 }
