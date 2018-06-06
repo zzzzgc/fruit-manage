@@ -204,6 +204,7 @@ public class Order extends BaseOrder<Order> {
                 "\to.create_time,\n" +
                 "\to.pay_need_money,\n" +
                 " o.pay_reality_need_money," +
+                " o.pay_all_money,"+
                 "\tinfo.business_name,\n" +
                 "\tli.buy_address,\n" +
                 "\tli.buy_phone,\n" +
@@ -255,7 +256,7 @@ public class Order extends BaseOrder<Order> {
      * @return
      */
     public boolean updateOrderStatus(String orderId){
-        String sql="update b_order o set order_status = 30 where o.order_id=? and o.order_status = 20\n";
+        String sql="update b_order o set order_status = "+OrderStatusCode.IS_OK.getStatus()+" where o.order_id=? and o.order_status = "+OrderStatusCode.TAKE_DISTRIBUTION.getStatus();
         if(Db.update(sql,orderId)>0)
             return true;
         return false;

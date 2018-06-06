@@ -24,6 +24,16 @@ public class PayOrderInfo extends BasePayOrderInfo<PayOrderInfo> {
 	}
 
 	/**
+	 * 根据订单编号获取真实总共支付的金额
+	 * @param orderId
+	 * @return
+	 */
+	public Double getPayAllMoney(String orderId) {
+		String sql = "SELECT o.pay_total_money from b_order o where o.order_id = ? ";
+		return Db.queryDouble(sql, orderId);
+	}
+
+	/**
 	 * 根据订单编号获取支付的订单信息
 	 * @param orderId
 	 * @return

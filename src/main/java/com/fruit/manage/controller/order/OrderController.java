@@ -630,7 +630,8 @@ public class OrderController extends BaseController {
             // 根据用户编号获取获取的手机号码和用户名称f
             BusinessUser businessUser = BusinessUser.dao.getBusinessUserByID(userId);
             // 根据订单编号获取支付的订单记录的总金额
-            Double reallyPayMoney = PayOrderInfo.dao.getReallyPayMoney(orderId);
+//            Double reallyPayMoney = PayOrderInfo.dao.getReallyPayMoney(orderId);
+            Double reallyPayMoney = PayOrderInfo.dao.getPayAllMoney(orderId);
             // 根据订单编号获取订单支付的记录
             List<PayOrderInfo> payOrderInfos = PayOrderInfo.dao.getPayOrderInfoByOrderId(orderId);
             List list = new ArrayList<>();
@@ -690,7 +691,8 @@ public class OrderController extends BaseController {
             }
             BigDecimal allTotalCost = payRealityNeedMoney.add(logisticsInfo.getSendGoodsTotalCost());
             // 根据订单编号获取支付的订单记录的总金额
-            Double reallyPayMoney = PayOrderInfo.dao.getReallyPayMoney(orderId);
+//            Double reallyPayMoney = PayOrderInfo.dao.getReallyPayMoney(orderId);
+            Double reallyPayMoney = PayOrderInfo.dao.getPayAllMoney(orderId);
             if (allTotalCost.doubleValue() == reallyPayMoney) {
                 //根据订单编号修改订单状态
                 Order.dao.updateOrderPayStatus(5, allTotalCost, orderId);
@@ -698,7 +700,7 @@ public class OrderController extends BaseController {
                 Order.dao.updateOrderStatus(orderId);
                 renderNull();
             } else {
-                renderErrorText("支付事变!");
+                renderErrorText("支付失败!");
             }
         } catch (Exception e) {
             renderErrorText("支付失败!");
