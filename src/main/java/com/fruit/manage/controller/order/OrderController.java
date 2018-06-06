@@ -406,24 +406,25 @@ public class OrderController extends BaseController {
                 // 如果有相同订单周期的订单,就叠加商品.这次添加视为补充商品.因为想修改商品应该去编辑才对,而不是添加.
                 // 具有完整字段的对象,用于作为更新模板和核对是否叠加
                 List<OrderDetail> nowOrderDetails = OrderDetail.dao.getOrderDetails(orderId);
+
                 // 导入的订单
                 OrderDetailFor:
-                for (OrderDetail orderDetail : orderDetails) {
-                    BigDecimal sellPrice = orderDetail.getSellPrice();
-                    BigDecimal num = new BigDecimal(orderDetail.getNum());
+                for (OrderDetail oldOrderDetail : orderDetails) {
+                    BigDecimal sellPrice = oldOrderDetail.getSellPrice();
+                    BigDecimal num = new BigDecimal(oldOrderDetail.getNum());
 
-                    // 过滤与数据库中的订单匹配的商品
                     for (OrderDetail nowOrderDetail : nowOrderDetails) {
-                        if (nowOrderDetail.getProductStandardId().equals(orderDetail.getProductStandardId())) {
-                            int nowNum = nowOrderDetail.getNum() + orderDetail.getNum();
-                            BigDecimal totalPrice = sellPrice.multiply(num);
+                        if (nowOrderDetail.getProductStandardId().equals(oldOrderDetail.getProductStandardId())) {
+                            // 与数据库中的订单匹配的商品
+                            int nowNum = nowOrderDetail.getNum() + oldOrderDetail.getNum();
+                            BigDecimal totalPrice = sellPrice.multiply(BigDecimal.valueOf(nowNum));
                             payNeedMoney = payNeedMoney.add(totalPrice);
 
                             nowOrderDetail.setNum(nowNum);
                             nowOrderDetail.setTotalPay(totalPrice);
                             nowOrderDetail.setUpdateTime(now);
                             // ccz 2018-5-18 orderCreateTime
-                            nowOrderDetail.update(UserTypeConstant.A_USER, uid, orderId, nowOrderDetail.getProductId(), nowOrderDetail.getProductStandardId(), nowOrderDetail.getNum(), nowNum, order.getCreateTime());
+                            nowOrderDetail.update(UserTypeConstant.A_USER, uid, orderId, nowOrderDetail.getProductId(), nowOrderDetail.getProductStandardId(), oldOrderDetail.getNum(), nowOrderDetail.getNum(), order.getCreateTime());
                             continue OrderDetailFor;
                         }
                     }
@@ -432,13 +433,13 @@ public class OrderController extends BaseController {
                     BigDecimal totalPrice = sellPrice.multiply(num);
                     payNeedMoney = payNeedMoney.add(totalPrice);
 
-                    orderDetail.setTotalPay(totalPrice);
-                    orderDetail.setOrderId(orderId);
-                    orderDetail.setUId(businessUserId);
-                    orderDetail.setUpdateTime(now);
-                    orderDetail.setCreateTime(now);
+                    oldOrderDetail.setTotalPay(totalPrice);
+                    oldOrderDetail.setOrderId(orderId);
+                    oldOrderDetail.setUId(businessUserId);
+                    oldOrderDetail.setUpdateTime(now);
+                    oldOrderDetail.setCreateTime(now);
                     // ccz 2018-5-18 orderCreateTime
-                    orderDetail.save(UserTypeConstant.A_USER, uid, order.getCreateTime());
+                    oldOrderDetail.save(UserTypeConstant.A_USER, uid, order.getCreateTime());
                 }
                 nowOrder.setPayNeedMoney(payNeedMoney);
                 nowOrder.setUpdateTime(now);
