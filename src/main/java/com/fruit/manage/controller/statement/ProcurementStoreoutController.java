@@ -97,8 +97,8 @@ public class ProcurementStoreoutController extends BaseController {
             Integer uid = getSessionAttr(Constant.SESSION_UID);
             User user = User.dao.findById(uid);
             String[] headers = {"商品名称", "商品规格", "规格编号", "下单数", "采购数量",
-                    "库存量", "缺货订单详细数", "订单详细缺货率", "采购人", "成本价",
-                    "销售价", "缺货数量", "缺货总额", "缺货占比", "采购创建时间"};
+                    "库存量", "缺货订单详细数", "订单缺货率", "采购人", "成本价",
+                    "销售价", "采购缺货数量", "缺货总额", "缺货占比", "采购创建时间"};
             String fileName = UUID.randomUUID().toString().replaceAll("-", "") + ".xlsx";
             String path = CommonController.FILE_PATH;
             String title = "采购缺货报表";
