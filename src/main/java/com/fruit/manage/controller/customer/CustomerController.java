@@ -6,6 +6,7 @@ import com.fruit.manage.model.BusinessInfo;
 import com.fruit.manage.model.BusinessUser;
 import com.fruit.manage.model.User;
 import com.fruit.manage.util.Constant;
+import com.fruit.manage.util.MessageSend;
 import com.fruit.manage.util.excelRd.ExcelRd;
 import com.fruit.manage.util.excelRd.ExcelRdException;
 import com.fruit.manage.util.excelRd.ExcelRdRow;
@@ -334,6 +335,11 @@ public class CustomerController extends BaseController {
         String status = getPara("status");
         String uid = getPara("uid");
         if (BusinessAuth.dao.setStatus(uid, status)) {
+            if ("2".equals(status)) {
+                // 修改成功
+                BusinessUser user = BusinessUser.dao.findById(uid);
+                MessageSend.sendMessage(user.getPhone(),"【广州嘻果】您的账户已认证成功.报价下单功能已开通.");
+            }
             renderNull();
             return;
         }
