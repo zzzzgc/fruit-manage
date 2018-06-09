@@ -262,31 +262,24 @@ public class ProcurementPlanDetail extends BaseProcurementPlanDetail<Procurement
 	 */
 	public Page<ProcurementPlanDetail> getProcuementStoreout(int pageNum, int pageSize, String orderBy, boolean isASC,String procurementId,String productName,String productStandardName,String [] createTimes) {
 		List list = new ArrayList();
-		String sql = "SELECT ppd.product_name,ppd.product_standard_name,ppd.product_standard_id,ppd.product_standard_num,ppd.procurement_num,\n" +
-				"\t\t\tppd.procurement_need_price,ppd.sell_price,pd.create_time,ppd.inventory_num,\n" +
-				" (select count(1) from b_order_detail od where (od.actual_send_goods_num <= 0 or od.actual_send_goods_num is NULL) and ppd.product_standard_id = od.product_standard_id) as storeoutNum, " +
-				" (select count(1) from b_order_detail od where ppd.product_standard_id = od.product_standard_id) as orderDetailTotalNum, " +
-
-				"\t(\n" +
-				"\t\tIFNULL((\n" +
-				"\t\tSELECT cid.inventory_price from b_check_inventory ci\n" +
-				"\t\t\tINNER JOIN b_check_inventory_detail cid on ci.id = cid.check_inventory_id\n" +
-				"\t\t\twhere 1=1 and cid.product_standard_id = 13\n" +
-				"\t\t\tand DATE_FORMAT(ci.create_time,'%Y-%m-%d') = DATE_FORMAT('2018-5-12','%Y-%m-%d')\n" +
-				"\t\t),(\n" +
-				"\t\tSELECT pwd.put_average_price from b_put_warehouse pw\n" +
-				"\t\t\tINNER JOIN b_put_warehouse_detail pwd on pw.id = pwd.put_id\n" +
-				"\t\t\twhere 1=1 and pwd.product_standard_id = 124\n" +
-				"\t\t\tand DATE_FORMAT(pw.create_time,'%Y-%m-%d') = DATE_FORMAT('2018-05-24','%Y-%m-%d') \n" +
-				"\t\t))\n" +
-				"\t) AS costPrice,"+
-
-				" (SELECT u.nick_name from a_user u where u.id = ppd.procurement_id) as procurement_name, "+
-				" ppd.procurement_total_price ";
+		String sql = "SELECT\n" +
+				"\tppd.product_name,\n" +
+				"\tppd.product_standard_name,\n" +
+				"\tppd.product_standard_id,\n" +
+				"\tSUM( ppd.product_standard_num ) AS product_standard_num,\n" +
+				"\tSUM( ppd.procurement_num ) AS procurement_num,\n" +
+				"\tAvg( ppd.procurement_need_price ) AS procurement_need_price,\n" +
+				"\tAVG( ppd.sell_price ) AS sell_price,\n" +
+				"\tSUM( ppd.inventory_num ) AS inventory_num,\n" +
+				"\t(select count(1) from b_order_detail od where ppd.product_standard_id = od.product_standard_id ) as orderDetailTotalNum,\n" +
+				"\t(select count(1) from b_order_detail od where (od.actual_send_goods_num <= 0 or od.actual_send_goods_num is NULL) and ppd.product_standard_id = od.product_standard_id) as storeoutNum,  \n" +
+				"\tGROUP_CONCAT(distinct  u.nick_name) as procurement_name,\n" +
+				"\tSUM(ppd.procurement_total_price)";
 
 		StringBuilder sb = new StringBuilder();
-		sb.append("\tfrom b_procurement_plan_detail ppd\n");
-		sb.append("\tINNER join b_procurement_plan pd on ppd.procurement_plan_id=pd.id \n");
+		sb.append("from b_procurement_plan_detail ppd\n" +
+				" INNER join b_procurement_plan pd on ppd.procurement_plan_id=pd.id\n" +
+				" INNER JOIN a_user u on u.id = ppd.procurement_id ");
 		sb.append("\twhere 1=1 \n");
 		if (StrKit.notBlank(procurementId)) {
 			sb.append("\tand ppd.procurement_id = ?\n");
@@ -338,12 +331,12 @@ public class ProcurementPlanDetail extends BaseProcurementPlanDetail<Procurement
 				"\t\tSELECT cid.inventory_price from b_check_inventory ci\n" +
 				"\t\t\tINNER JOIN b_check_inventory_detail cid on ci.id = cid.check_inventory_id\n" +
 				"\t\t\twhere 1=1 and cid.product_standard_id = 13\n" +
-				"\t\t\tand DATE_FORMAT(ci.create_time,'%Y-%m-%d') = DATE_FORMAT('2018-5-12','%Y-%m-%d')\n" +
+				"\t\t\tand DATE_FORMAT(ci.create_time,'%Y-%m-%d') = DATE_FORMAT(pd.order_cycle_date,'%Y-%m-%d')\n" +
 				"\t\t),(\n" +
 				"\t\tSELECT pwd.put_average_price from b_put_warehouse pw\n" +
 				"\t\t\tINNER JOIN b_put_warehouse_detail pwd on pw.id = pwd.put_id\n" +
 				"\t\t\twhere 1=1 and pwd.product_standard_id = 124\n" +
-				"\t\t\tand DATE_FORMAT(pw.create_time,'%Y-%m-%d') = DATE_FORMAT('2018-05-24','%Y-%m-%d') \n" +
+				"\t\t\tand DATE_FORMAT(pw.create_time,'%Y-%m-%d') = DATE_FORMAT(pd.order_cycle_date,'%Y-%m-%d') \n" +
 				"\t\t))\n" +
 				"\t) AS costPrice,"+
 

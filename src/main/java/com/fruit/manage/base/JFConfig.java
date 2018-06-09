@@ -112,7 +112,7 @@ public class JFConfig extends JFinalConfig {
 //		me.add(new AllowCrossDomain());
 //		me.add(new UrlShiroInterceptor());
         me.add(new ShiroInterceptor());
-        me.add(new ExceptionInterceper());
+//        me.add(new ExceptionInterceper());
 //		me.add(new Tx());
     }
 
