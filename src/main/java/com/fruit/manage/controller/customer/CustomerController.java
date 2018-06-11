@@ -1,10 +1,7 @@
 package com.fruit.manage.controller.customer;
 
 import com.fruit.manage.base.BaseController;
-import com.fruit.manage.model.BusinessAuth;
-import com.fruit.manage.model.BusinessInfo;
-import com.fruit.manage.model.BusinessUser;
-import com.fruit.manage.model.User;
+import com.fruit.manage.model.*;
 import com.fruit.manage.util.Constant;
 import com.fruit.manage.util.MessageSend;
 import com.fruit.manage.util.excelRd.ExcelRd;
@@ -338,7 +335,7 @@ public class CustomerController extends BaseController {
             if ("2".equals(status)) {
                 // 修改成功
                 BusinessUser user = BusinessUser.dao.findById(uid);
-                MessageSend.sendMessage(user.getPhone(),"【广州嘻果】您的账户已认证成功.报价下单功能已开通.");
+                MessageSend.sendMessage(user.getPhone(),Param.dao.getParam("message.content.approve"));
             }
             renderNull();
             return;
