@@ -1,10 +1,10 @@
 package com.fruit.manage.controller.common;
 
 import com.fruit.manage.base.BaseController;
+import com.fruit.manage.constant.OrderPayStatusCode;
 import com.fruit.manage.constant.OrderStatusCode;
 import com.fruit.manage.constant.RoleKeyCode;
 import com.fruit.manage.constant.ShipmentConstant;
-import com.fruit.manage.constant.UserTypeConstant;
 import com.fruit.manage.model.*;
 import com.fruit.manage.util.Constant;
 import com.fruit.manage.util.DateUtils;
@@ -17,13 +17,13 @@ import com.jfinal.ext2.kit.RandomKit;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.IAtom;
 import com.jfinal.plugin.activerecord.Record;
+import com.jfinal.upload.UploadFile;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.log4j.Logger;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.*;
-import org.omg.CORBA.INTERNAL;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
@@ -588,6 +588,7 @@ public class ExcelController extends BaseController {
                 "linfo.package_cost, " +
                 "linfo.send_goods_total_cost, " +
 
+                "linfo.delivery_info, " +
                 "linfo.package_num, " +
                 "linfo.abstract, " +
                 "linfo.license_plate_number, " +
@@ -1842,6 +1843,26 @@ public class ExcelController extends BaseController {
         procurementQuota.setProductName(productName);
         procurementQuota.setProductStandardId(productStandardId);
         procurementQuota.setProductStandardName(productStandardName);
+        procurementName = _transitionProcurementName(procurementName);
+        User user = User.dao.findFirst("select * from a_user where nick_name LIKE ? ", "%" + procurementName + "%");
+        procurementQuota.setProcurementName(procurementName);
+        procurementQuota.setProcurementId(user.getId());
+        procurementQuota.setProcurementPhone(user.getPhone());
+        procurementQuota.setCreateUserId(user.getId());
+        procurementQuota.setCreateUserName(User.dao.getUserById(getSessionAttr(Constant.SESSION_UID)).getNickName());
+        procurementQuota.setUpdateTime(new Date());
+        procurementQuota.setCreateTime(new Date());
+
+        if (procurementQuota.getId() != null) {
+            procurementQuota.update();
+        } else {
+            procurementQuota.save();
+        }
+
+        return procurementQuota;
+    }
+
+    private String _transitionProcurementName(String procurementName) {
         switch (procurementName) {
             case "A":
                 procurementName = "钟华";
@@ -1859,25 +1880,10 @@ public class ExcelController extends BaseController {
                 procurementName = "黄俊哲";
                 break;
             default:
-                procurementName = "占位用采购用户";
+                procurementName = "暂位用采购用户";
                 break;
         }
-        User user = User.dao.findFirst("select * from a_user where nick_name LIKE ? ", "%" + procurementName + "%");
-        procurementQuota.setProcurementName(procurementName);
-        procurementQuota.setProcurementId(user.getId());
-        procurementQuota.setProcurementPhone(user.getPhone());
-        procurementQuota.setCreateUserId(user.getId());
-        procurementQuota.setCreateUserName(User.dao.getUserById(getSessionAttr(Constant.SESSION_UID)).getNickName());
-        procurementQuota.setUpdateTime(new Date());
-        procurementQuota.setCreateTime(new Date());
-
-        if (procurementQuota.getId() != null) {
-            procurementQuota.update();
-        } else {
-            procurementQuota.save();
-        }
-
-        return procurementQuota;
+        return procurementName;
     }
 
     /**
@@ -1939,6 +1945,248 @@ public class ExcelController extends BaseController {
         }
         sb.append("出现异常：").append(ErrorMsg);
         renderErrorText(sb.toString());
+    }
+
+
+    /**
+     * 通过自定义出货单导入订单信息
+     * <p>
+     * 商家名不存在就为8888
+     * 否则提示不存在该用户
+     */
+    public void saveInputOrderInfos() {
+        Db.tx(new IAtom() {
+            @Override
+            public boolean run() throws SQLException {
+                int rowCount = 0;
+                int sheetCount = 0;
+                int userAddCount = 0;
+                Date now = new Date();
+                Integer uid = getSessionAttr(Constant.SESSION_UID);
+
+                String fileName = getPara("fileName");
+                String fileUrl = CommonController.FILE_PATH + File.separator + fileName;
+                File file = new File(fileUrl);
+//                ArrayList<String> errorRow = new ArrayList<>();
+                try {
+
+                    // excel 多表
+//                    XSSFWorkbook excel = new XSSFWorkbook("C:\\Users\\Administrator\\Desktop\\测试1号文件.xlsx");
+                    XSSFWorkbook excel = new XSSFWorkbook(file);
+
+                    // 多表
+//                    List<List<Object[]>> sheets = ExcelCommon.excelRdList("C:\\Users\\Administrator\\Desktop\\05-04出货单汇总.xlsx", 1, 1, new ExcelRdTypeEnum[]{
+//                            ExcelRdTypeEnum.STRING,
+//                            ExcelRdTypeEnum.STRING,
+//                            ExcelRdTypeEnum.STRING,
+//                            ExcelRdTypeEnum.STRING,
+//                            ExcelRdTypeEnum.STRING,
+//
+//                            ExcelRdTypeEnum.STRING,
+//                            ExcelRdTypeEnum.STRING,
+//                            ExcelRdTypeEnum.STRING,
+//                            ExcelRdTypeEnum.STRING,
+//                            ExcelRdTypeEnum.STRING,
+//
+//                            ExcelRdTypeEnum.STRING,
+//                            ExcelRdTypeEnum.STRING,
+//                    });
+
+                    // 单表
+                    for (sheetCount = 0; sheetCount < excel.getNumberOfSheets(); sheetCount++) {
+                        XSSFSheet sheet = excel.getSheetAt(sheetCount);
+//                        List<Object[]> rowArray = (List<Object[]>) sheetAt;
+
+
+                        // 获取商户信息
+                        BusinessUser businessUser = null;
+                        XSSFCell cell = sheet.getRow(6).getCell(0);
+                        if ("".equals(cell + "")) {
+                            continue;
+                        }
+                        Integer userId = Double.valueOf(cell + "").intValue();
+                        if (userId == null) {
+                            continue;
+                        }
+                        // 不存在的商户编码用8888代替
+                        if (userId.equals(8888)) {
+                            // ---新增商户
+
+                            // 商家名称: 长沙远  联系人:匡远   送货电话:18073847713
+                            String[] userInfos = sheet.getRow(1).getCell(0).getStringCellValue().split(":");
+                            // [0]商家名称 [1]*长沙远  联系人    [2]*匡远   送货电话     [3]*18073847713
+                            // 长沙远
+                            String userInfoName = Arrays.stream(userInfos[1].split(" ")).filter(x -> !x.equals("")).findFirst().get();
+                            // 匡远
+                            String userName = Arrays.stream(userInfos[2].split(" ")).filter(x -> !x.equals("")).findFirst().get();
+                            // 18073847713
+                            String userPhone = Arrays.stream(userInfos[3].split(" ")).filter(x -> !x.equals("")).findFirst().get();
+
+
+                            // 负责销售: 李华杰  联系电话:13054485510
+//                            String userSalesInfo = sheet.getRow(3).getCell(0).getStringCellValue();
+//                            // [0]负责销售   [1]*李华杰  联系电话   [2]*13054485510
+//                            String[] userSalesInfos = userSalesInfo.split(":");
+//                            // 李华杰
+//                            String salesNickName = Arrays.stream(userSalesInfos[1].split(" ")).filter(x -> !x.equals("")).findFirst().get();
+//                            Integer salesUserId = User.dao.getUserIdByName(salesNickName);
+
+                            String addressProvince = "广东省";
+                            String addressCity = "广州市";
+                            String addressDetail = "默认地址";
+                            // 商家默认地址
+//                            String addressDetail = (sheet.getRow(3).getCell(0).getStringCellValue()).split(":")[1].trim();
+
+                            // 添加用户信息
+                            // 1 为技术部专用账号
+
+                            String tempPhone = "000" + System.currentTimeMillis() + userAddCount;
+
+                            businessUser = BusinessUser.dao.addBusinessUser(userName, tempPhone, 1);
+                            userId = businessUser.getId();
+                            // 统一采用10086作为临时电话号码,并且不可以调用 businessUserByPhone来查询
+                            BusinessInfo.dao.addBusinessInfo(userId, userInfoName, userName, "10086", addressProvince, addressCity, addressDetail, addressDetail, 0);
+
+                            // 添加店铺绑定信息
+
+                        } else {
+                            businessUser = BusinessUser.dao.getBusinessUserByID(userId);
+                        }
+                        if (businessUser == null) {
+                            excelExceptionRender(sheetCount, 6, "用户编号为空");
+                            return false;
+                        }
+                        userId = businessUser.getId();
+
+                        // 添加订单
+                        Date createDate = DateKit.toDate((sheet.getRow(0).getCell(0).getStringCellValue()).substring(0, 10));
+                        Date orderCycleDate = DateUtils.getOrderCycleDate(createDate);
+                        // --这里添加了订单和物流信息
+                        String orderId = IdUtil.getOrderId(createDate, userId);
+                        Order order = Order.dao.getOrder(orderId);
+                        if (order == null) {
+                            order = Order.dao.addOrder(userId, createDate);
+                        }
+                        LogisticsInfo logisticsInfo = LogisticsInfo.dao.addLogisticsInfo(userId, order.getOrderId());
+
+                        BigDecimal payNeedMoney = order.getPayNeedMoney() == null ? new BigDecimal(0) : order.getPayNeedMoney();
+                        BigDecimal payRealityNeedMoney = order.getPayRealityNeedMoney() == null ? new BigDecimal(0) : order.getPayRealityNeedMoney();
+                        BigDecimal payLogisticsMoney = order.getPayLogisticsMoney() == null ? new BigDecimal(0) : order.getPayLogisticsMoney();
+                        BigDecimal payAllMoney = order.getPayAllMoney() == null ? new BigDecimal(0) : order.getPayAllMoney();
+//                        BigDecimal payNeedMoney = new BigDecimal(0);
+//                        BigDecimal payRealityNeedMoney = new BigDecimal(0);
+//                        BigDecimal payLogisticsMoney = new BigDecimal(0);
+//                        BigDecimal payAllMoney = new BigDecimal(0);
+//                        BigDecimal pay_total_money = new BigDecimal(0);
+
+                        // 第9行是订单的开始,20行结束
+                        for (rowCount = 8; rowCount < 20; rowCount++) {
+                            XSSFRow orderRow = sheet.getRow(rowCount);
+                            Integer psId = "".equals(orderRow.getCell(0) + "") ? null : Double.valueOf(orderRow.getCell(0) + "").intValue();
+                            String pName = orderRow.getCell(1).getStringCellValue();
+                            if ("".equals(pName)) {
+                                // 跳过空行
+                                break;
+                            }
+                            String psName = orderRow.getCell(2).getStringCellValue();
+                            String weight = orderRow.getCell(3).getStringCellValue();
+                            String type = orderRow.getCell(4).getStringCellValue();
+                            String procurementName = _transitionProcurementName(type);
+                            Integer procurementId = User.dao.getUserIdByName(procurementName);
+                            Integer actualSendGoodsNum = Double.valueOf(orderRow.getCell(5) + "").intValue();
+                            Integer orderNum = Double.valueOf(orderRow.getCell(6) + "").intValue();
+                            BigDecimal sellPrice = BigDecimal.valueOf(Double.valueOf(orderRow.getCell(7) + ""));
+                            BigDecimal totalPrice = BigDecimal.valueOf(Double.valueOf(orderRow.getCell(8).getRawValue() + ""));
+                            String buyRemark = orderRow.getCell(9).getStringCellValue();
+
+                            // 订单详细添加
+                            ProductStandard productStandard = null;
+                            Product product = null;
+                            if (psId == null || psId.equals("")) {
+                                // --新增
+                                product = Product.dao.findFirst("select * from b_product p where p.`name` like CONCAT('%',?,'%')", pName);
+                                if (product == null) {
+                                    // 新增商品和规格
+                                    product = Product.dao.addProduct(pName, "中国", 0L, "待添加", "件", 0, "", "");
+                                    productStandard = ProductStandard.dao.addProductStandard(product.getId(), psName, weight, sellPrice, new BigDecimal(0), new BigDecimal(0), 0.00, 0.00, 0.00, 0, 10000, null, null, 50, 50, 50, 0, 0, 0, procurementId);
+                                    psId = productStandard.getId();
+                                } else {
+                                    // 新增规格
+                                    productStandard = ProductStandard.dao.addProductStandard(product.getId(), psName, weight, sellPrice, new BigDecimal(0), new BigDecimal(0), 0.00, 0.00, 0.00, 0, 10000, null, null, 50, 50, 50, 0, 0, 0, procurementId);
+                                    psId = productStandard.getId();
+                                }
+                            } else {
+                                productStandard = ProductStandard.dao.findById(psId);
+                                if (productStandard == null) {
+                                    excelExceptionRender(sheetCount, rowCount, "商品规格" + psId + "不存在");
+                                    return false;
+                                }
+                                product = Product.dao.findById(productStandard.getProductId());
+                            }
+
+                            // 新增订单
+                            OrderDetail orderDetail = OrderDetail.dao.addOrderDetail(uid, orderCycleDate, userId, order.getOrderId(), product.getId(), productStandard.getId(), product.getName(), productStandard.getName(), productStandard.getSellPrice(), sellPrice, orderNum, new BigDecimal(0), buyRemark);
+                            payNeedMoney = payNeedMoney.add(new BigDecimal(orderDetail.getNum()).multiply(orderDetail.getSellPrice()));
+                            payRealityNeedMoney = payRealityNeedMoney.add(new BigDecimal(actualSendGoodsNum).multiply(orderDetail.getSellPrice()));
+
+                            // 新增采购配额
+                            ProcurementQuota procurementQuota = _saveProcurementQuota(product.getId(), product.getName(), productStandard.getName(), productStandard.getId(), procurementName);
+
+                        }
+                        XSSFCell cell1 = sheet.getRow(19).getCell(8);
+                        XSSFCell cell2 = sheet.getRow(20).getCell(8);
+                        XSSFCell cell3 = sheet.getRow(21).getCell(8);
+                        XSSFCell cell4 = sheet.getRow(22).getCell(8);
+
+                        // 物流费用
+                        BigDecimal freightCost = cell1 == null||(cell1 + "").equals("") ? new BigDecimal(0) : new BigDecimal(cell1.getRawValue());
+                        // 三轮车费
+                        BigDecimal tricycleCost = cell2 == null||(cell2 + "").equals("") ? new BigDecimal(0) : new BigDecimal(cell2.getRawValue());
+                        // 包装费
+                        BigDecimal packageCost = cell3 == null||(cell3 + "").equals("") ? new BigDecimal(0) : new BigDecimal(cell3.getRawValue());
+                        // 短途费/中转费
+                        BigDecimal transshipmentCost = cell4 == null||(cell4 + "").equals("") ? new BigDecimal(0) : new BigDecimal(cell4.getRawValue());
+
+                        BigDecimal sendgoodstotalCost = new BigDecimal(0).add(freightCost).add(tricycleCost).add(packageCost).add(transshipmentCost);
+
+                        // 物流信息修正
+                        logisticsInfo.setFreightCost(freightCost);
+                        logisticsInfo.setTransshipmentCost(transshipmentCost);
+                        logisticsInfo.setTricycleCost(tricycleCost);
+                        logisticsInfo.setPackageCost(packageCost);
+                        logisticsInfo.setSendGoodsTotalCost(sendgoodstotalCost);
+                        logisticsInfo.update();
+
+                        // 订单信息修正
+                        order.setPayNeedMoney(payNeedMoney);
+                        order.setPayLogisticsMoney(sendgoodstotalCost);
+                        order.setPayRealityNeedMoney(payRealityNeedMoney);
+                        order.setPayAllMoney(payRealityNeedMoney.add(sendgoodstotalCost));
+                        order.setPayTotalMoney(payRealityNeedMoney);
+                        order.setPayStatus(OrderPayStatusCode.IS_OK.getStatus());
+                        order.setOrderStatus(OrderStatusCode.IS_OK.getStatus());
+                        order.update();
+
+
+                        // 采购计划信息
+
+                        // 入库信息
+
+                        // 出库信息
+
+                    }
+                    renderNull();
+                    return true;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    excelExceptionRender(sheetCount, rowCount, e.getMessage());
+                    return false;
+                }finally {
+                    file.delete();
+                }
+            }
+
+        });
     }
 
 
@@ -2051,5 +2299,4 @@ public class ExcelController extends BaseController {
 //        });
 //
 //    }
-
 }
