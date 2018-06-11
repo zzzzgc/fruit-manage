@@ -122,6 +122,65 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
         return findFirst(sql, id);
     }
 
+
+    /**
+     * 添加订单详细
+     * @param uId
+     * @param orderCycleDate
+     * @param businessUserId
+     * @param orderId
+     * @param productId
+     * @param productStandardId
+     * @param productName
+     * @param productStandardName
+     * @param originalPrice
+     * @param sellPrice
+     * @param num
+     * @param totalPay
+     * @param buyRemark
+     * @return
+     */
+    public OrderDetail addOrderDetail(
+            Integer uId,
+            Date orderCycleDate,
+            Integer businessUserId,
+            String orderId,
+            Integer productId,
+            Integer productStandardId,
+            String productName,
+            String productStandardName,
+            BigDecimal originalPrice,
+            BigDecimal sellPrice,
+            Integer num,
+            BigDecimal totalPay,
+            String buyRemark) {
+        OrderDetail orderDetail = new OrderDetail();
+        orderDetail.setUId(businessUserId);
+        orderDetail.setOrderId(orderId);
+        orderDetail.setProductId(productId);
+        orderDetail.setProductStandardId(productStandardId);
+        orderDetail.setProductName(productName);
+        orderDetail.setProductStandardName(productStandardName);
+        // 待定默认为 件
+        orderDetail.setMeasureUnit("件");
+        orderDetail.setOriginalPrice(originalPrice);
+        orderDetail.setNum(num);
+        orderDetail.setSellPrice(sellPrice);
+        orderDetail.setTotalPay(totalPay);
+        orderDetail.setBuyRemark(buyRemark);
+        orderDetail.setCreateTime(new Date());
+        orderDetail.setUpdateTime(new Date());
+        orderDetail.save(UserTypeConstant.A_USER, uId, orderCycleDate);
+
+//        orderDetail.set  Fruit_type (  fruit_type);
+//        orderDetail.set  Actual_send_goods_num (  actual_send_goods_num);
+//        orderDetail.set  Actual_deliver_num (  actual_deliver_num);
+//        orderDetail.set  Cancel_reason (  cancel_reason);
+//        orderDetail.set  Cancel_time (  cancel_time);
+        return orderDetail;
+    }
+
+
     private OrderLog getOrderLog(String orderId, Integer productId, Integer productStandardId, Integer changeNum, Date orderCreateTime) {
         OrderLog orderLog = new OrderLog();
         // 未知用户
@@ -190,7 +249,7 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
     public boolean save(UserTypeConstant type, Integer uid, Date orderCreateTime) {
         super.save();
         // 新增商家购买数量
-        Product.dao.updateSellNum(super.getProductId(),1);
+        Product.dao.updateSellNum(super.getProductId(), 1);
         return getOrderLog(type, uid, super.getOrderId(), super.getProductId(), super.getProductStandardId(), super.getNum(), orderCreateTime).save();
     }
 
@@ -232,5 +291,6 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
         super.update();
         return getOrderLog(type, uid, orderId, productId, productStandardId, afterNum - beforeNum, orderCreateTime).save();
     }
+
 
 }

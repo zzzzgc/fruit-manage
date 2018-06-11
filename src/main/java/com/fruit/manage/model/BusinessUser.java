@@ -1,10 +1,12 @@
 package com.fruit.manage.model;
 
 import com.fruit.manage.model.base.BaseBusinessUser;
+import com.jfinal.kit.HashKit;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.IAtom;
 
 import java.sql.SQLException;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -112,5 +114,25 @@ public class BusinessUser extends BaseBusinessUser<BusinessUser> {
     public BusinessUser getBusinessUserByID(Integer businessUserId) {
         String sql = "select bu.id,bu.name,bu.phone,bu.a_user_sales_id from b_business_user bu  where bu.id = ?";
         return findFirst(sql, businessUserId);
+    }
+
+    /**
+     * 封装的添加用户的方法
+     * @param userName
+     * @param userPhone
+     * @param salesUserId
+     * @return
+     */
+    public BusinessUser addBusinessUser(String userName, String userPhone, Integer salesUserId) {
+        BusinessUser businessUser = new BusinessUser();
+        businessUser.setAUserSalesId(salesUserId);
+        businessUser.setName(userName);
+        businessUser.setPass(HashKit.md5("xiguo"+userPhone.substring(userPhone.length()-4,userPhone.length())));
+        businessUser.setPhone(userPhone);
+        businessUser.setPhone(userPhone);
+        businessUser.setUpdateTime(new Date());
+        businessUser.setCreateTime(new Date());
+        businessUser.save();
+        return businessUser;
     }
 }
