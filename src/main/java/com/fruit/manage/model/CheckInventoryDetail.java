@@ -122,9 +122,10 @@ public class CheckInventoryDetail extends BaseCheckInventoryDetail<CheckInventor
 	public CheckInventoryDetail getCheckInventoryDetail(Integer psId,String startTime,String endTime) {
 		String sql = "SELECT cid.id,cid.product_standard_id,cid.inventory_num,cid.inventory_total_price " +
 				"from b_check_inventory_detail cid " +
+				" INNER JOIN b_check_inventory ci on ci.id = cid.check_inventory_id " +
 				"where 1=1 " +
 				"and cid.product_standard_id =? " +
-				"and cid.create_time BETWEEN ? and ?";
+				"and ci.order_cycle_date BETWEEN ? and ?";
 		String time= DateAndStringFormat.getNextDay(startTime, "-1");
 		return findFirst(sql, psId, time + " 00:00:00", time+ " 23:59:59");
 	}
