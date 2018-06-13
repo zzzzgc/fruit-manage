@@ -574,6 +574,31 @@ public class PlanDetailController extends BaseController {
                                         // ccz  2018-5-28 添加的采购计划编号
                                         pPDtailOne.setProcurementPlanId(procurementPlanId);
                                         pPDtailOne.save();
+                                    }else{
+                                        // 订单不存在的数据新增（商品未下订单，执行新增）
+                                        Product product = Product.dao.getProductIDByPSID(productStandardId);
+
+                                        pPDtailOne = new ProcurementPlanDetail();
+                                        pPDtailOne.setProductStandardId(productStandardId);
+                                        //执行入库操作
+//                            putInStore((Integer)row.get(0),(Integer)row.get(3));
+                                        pPDtailOne.setProductName(productName);
+                                        pPDtailOne.setSellPrice(product.get("sell_price"));
+                                        pPDtailOne.setProductStandardNum(0);
+                                        pPDtailOne.setProductId(product.getId());
+                                        pPDtailOne.setProductStandardName(productStandardName);
+                                        pPDtailOne.setProcurementNum(procurementNum);
+                                        pPDtailOne.setProcurementNeedPrice(procurementNeedPrice);
+                                        pPDtailOne.setProcurementId(procurementId);
+                                        pPDtailOne.setProcurementRemark(procurementRemark);
+                                        BigDecimal pNum = new BigDecimal(procurementNum);
+                                        pPDtailOne.setProcurementTotalPrice(procurementNeedPrice.multiply(pNum));
+                                        Date date =new Date();
+                                        pPDtailOne.setCreateTime(date);
+                                        pPDtailOne.setUpdateTime(date);
+                                        // ccz  2018-5-28 添加的采购计划编号
+                                        pPDtailOne.setProcurementPlanId(procurementPlanId);
+                                        pPDtailOne.save();
                                     }
                                 }
                             }
