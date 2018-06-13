@@ -117,6 +117,16 @@ public class BusinessUser extends BaseBusinessUser<BusinessUser> {
     }
 
     /**
+     *  根据用户名来获取用户
+     * @param name
+     * @return
+     */
+    public List<BusinessUser> getBusinessUserByName(String name){
+        String sql = "select bu.id,bu.name,bu.phone,bu.a_user_sales_id from b_business_user bu  where bu.`name` = ?";
+        return find(sql, name);
+    }
+
+    /**
      * 封装的添加用户的方法
      * @param userName
      * @param userPhone
