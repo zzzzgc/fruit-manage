@@ -247,4 +247,11 @@ public class ProcurementPlan extends BaseProcurementPlan<ProcurementPlan> {
         String sql = "SELECT * from b_procurement_plan where id = ? ";
         return findFirst(sql, pPId);
     }
+
+    /**
+     * 添加采购计划
+     */
+    public void addProcurementPlan() {
+        ProcurementPlan procurementPlan = new ProcurementPlan();
+    }
 }

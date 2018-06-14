@@ -46,7 +46,7 @@ public class MessageSend {
     public static boolean sendMessage(String toPhone,String content){
         String appId = Param.dao.getParam("message.appId");
         String appKey = Param.dao.getParam("message.appKey");
-        String signType = Param.dao.getParam("message.content.authCode");
+        String signType = Param.dao.getParam("message.signType");
         return sendMessage(appId,appKey,toPhone,content,signType);
     }
 

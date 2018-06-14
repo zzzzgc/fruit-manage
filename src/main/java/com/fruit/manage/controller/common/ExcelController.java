@@ -22,7 +22,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.log4j.Logger;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.*;
 
@@ -2265,138 +2267,153 @@ public class ExcelController extends BaseController {
      * 导入商品的采购信息,并添加出入库信息
      */
     public void saveProductProcurementInfo() {
-        int rowCount = 0;
-        int sheetCount = 0;
 
-        Date now = new Date();
-        Integer uid = getSessionAttr(Constant.SESSION_UID);
+        Db.tx(new IAtom() {
+            @Override
+            public boolean run() throws SQLException {
+                try {
+                    int rowCount = 0;
+                    int sheetCount = 0;
+
+                    Date now = new Date();
+                    Integer uid = getSessionAttr(Constant.SESSION_UID);
 
 //        String fileName = getPara("fileName");
 //        String fileUrl = CommonController.FILE_PATH + File.separator + fileName;
 //        File file = new File(fileUrl);
-        ArrayList<String> errorRow = new ArrayList<>();
-        File file = new File("C:\\Users\\Administrator\\Desktop\\测试2.xlsx");
 
-        try {
-            XSSFWorkbook excel = new XSSFWorkbook(file);
+                    ArrayList<String> errorRow = new ArrayList<>();
+                    File file = new File("C:\\Users\\Administrator\\Desktop\\测试2.xlsx");
 
+                    XSSFWorkbook excel = new XSSFWorkbook(file);
+
+
+                    for (sheetCount = 0; sheetCount < excel.getNumberOfSheets(); sheetCount++) {
+                        XSSFSheet sheet = excel.getSheetAt(sheetCount);
+
+                        // 为空计数
+                        int nullRowCount = 0;
+
+                        // 需要新增商品
+                        int addProductNum = 0;
+                        int addProductStandardNum = 0;
+
+
+                        // 从第二行开始,跳过第一行
+                        for (rowCount = 1; rowCount < sheet.getPhysicalNumberOfRows(); rowCount++) {
+                            // 5月16日	钟华	泰国削皮小菠萝	约16袋 4-11个/袋	净重约30斤	91	1	375	2	350	700	700	加单一件
+                            XSSFRow row = sheet.getRow(rowCount);
+
+                            StringBuilder sb = new StringBuilder();
+
+                            // 持续三个空行就跳过之后的行
+                            if (nullRowCount > 2) {
+                                break;
+                            }
+
+                            if (row.getCell(0) == null || (row.getCell(0) + "").equals("")) {
+                                // 添加空行计数+1
+                                nullRowCount++;
+                                errorRow.add("跳过第" + (sheetCount + 1) + "张名为《" + sheet.getSheetName() + "》的表被跳过。第" + 7 + "行,没有用户编码");
+                                continue;
+                            }
+
+                            // 存在非空行,空行计数清零
+                            nullRowCount = 0;
+
+                            for (Cell cell : row) {
+                                sb.append(cell + "  ");
+                            }
+
+                            System.out.println(sb);
+
+
+                            // 5月16日
+                            String orderDate = row.getCell(0) + "";
+                            // 钟华
+                            String procurementName = row.getCell(1) + "";
+                            // 	泰国削皮小菠萝
+                            String productName = row.getCell(2) + "";
+                            // 约16袋4-11个/袋
+                            String productStandardName = row.getCell(3) + "";
+                            // 净重约30斤
+                            String weightStr = row.getCell(4) + "";
+
+                            // 91
+                            Integer productStandardId = row.getCell(5) == null || "".equals(row.getCell(5) + "") ? null : Double.valueOf(row.getCell(5) + "").intValue();
+                            // 1
+                            Integer productStandardNum = row.getCell(6) == null || "".equals(row.getCell(6) + "") ? 0 : Double.valueOf(row.getCell(6) + "").intValue();
+                            // 375  需要查看当天订单
+                            BigDecimal sellPrice = row.getCell(7) == null || "".equals(row.getCell(7) + "") ? BigDecimal.ZERO : new BigDecimal(Double.valueOf(row.getCell(7) + "").intValue());
+                            // 2
+                            Integer procurementNum = row.getCell(8) == null || "".equals(row.getCell(8) + "") ? 0 : Double.valueOf(row.getCell(8) + "").intValue();
+                            // 350
+                            BigDecimal procurementprice = row.getCell(9) == null || "".equals(row.getCell(9) + "") ? BigDecimal.ZERO : new BigDecimal(Double.valueOf(row.getCell(9) + ""));
+                            // 700
+                            BigDecimal procurementTotalPrice = row.getCell(10) == null || "".equals(row.getCell(10) + "") ? BigDecimal.ZERO : new BigDecimal(Double.valueOf(row.getCell(10) + ""));
+                            // 700
+                            BigDecimal procurementRealityTotalPrice = row.getCell(11) == null || "".equals(row.getCell(11) + "") ? BigDecimal.ZERO : new BigDecimal(Double.valueOf(row.getCell(11) + ""));
+                            // 加单一件
+                            String remark = row.getCell(12) + "";
+
+
+                            // 加工参数
+                            Integer procurementId = User.dao.getUserIdByName(procurementName);
+                            if (procurementId == null) {
+                                procurementId = 99;
+                            }
+
+                            // 初始化商品和规格
+                            ProductStandard productStandard = ProductStandard.dao.findById(productStandardId);
+                            Product product = null;
+
+
+                            // 商品匹配测试
+                            if (productStandardId == null || productStandardId.equals("")) {
+                                // --新增
+
+                                if (productName == null) {
+                                    errorRow.add("跳过第" + (sheetCount + 1) + "张名为《" + sheet.getSheetName() + "》的第" + (rowCount + 1) + "行,商品名称和规格编码都为空");
+                                    continue;
+                                }
+                                product = Product.dao.findFirst("select * from b_product p where p.`name` like CONCAT('%',?,'%')", productName);
+                                if (product == null) {
+                                    // 新增商品和规格
+                                    product = Product.dao.addProduct(productName, "中国", 0L, "待添加", "件", 0, "", "");
+                                    addProductNum++;
+                                }
+
+                                productStandard = ProductStandard.dao.findFirst("select * from b_product_standard ps WHERE ps.product_id = ? AND ps.`name` = ?", product.getId(), productStandardName);
+                                if (productStandard == null) {
+                                    // 新增规格
+                                    addProductStandardNum++;
+                                    productStandard = ProductStandard.dao.addProductStandard(product.getId(), productStandardName, weightStr, sellPrice, new BigDecimal(0), new BigDecimal(0), 0.00, 0.00, 0.00, 0, 10000, null, null, 50, 50, 50, 0, 0, 0, procurementId);
+                                }
+                                productStandardId = productStandard.getId();
+                            } else {
+                                productStandard = ProductStandard.dao.findById(productStandardId);
+                                if (productStandard == null) {
+                                    excelExceptionRender(sheetCount, rowCount, "商品规格" + productStandardId + "不存在");
+                                    return false;
+                                }
+                                product = Product.dao.findById(productStandard.getProductId());
+                            }
+
+                            System.out.println("需要新增商品数量:" + addProductNum);
+                            System.out.println("需要新增商品规格数量:" + addProductStandardNum);
+
+                            ProcurementPlan.dao.addProcurementPlan();
+
+                        }
+                    }
+                    return true;
 //            excel
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InvalidFormatException e) {
-            e.printStackTrace();
-        }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return false;
+                }
 
-
+            }
+        });
     }
-
-//    /**
-//     * 批量导入订单数据
-//     */
-//    public void excelInputOldOrders() {
-//        Db.tx(new IAtom() {
-//            @Override
-//            public boolean run() throws SQLException {
-//                try {
-//                    List<List<Object[]>> excels = ExcelCommon.excelRdList("", 1, 1, new ExcelRdTypeEnum[]{
-//                            ExcelRdTypeEnum.STRING,
-//                            ExcelRdTypeEnum.STRING,
-//                            ExcelRdTypeEnum.STRING,
-//                            ExcelRdTypeEnum.STRING,
-//                            ExcelRdTypeEnum.STRING,
-//
-//                            ExcelRdTypeEnum.STRING,
-//                            ExcelRdTypeEnum.STRING,
-//                            ExcelRdTypeEnum.STRING,
-//                            ExcelRdTypeEnum.STRING,
-//                            ExcelRdTypeEnum.STRING,
-//
-//                            ExcelRdTypeEnum.STRING,
-//                            ExcelRdTypeEnum.STRING
-//                    });
-//
-//                    for (List<Object[]> rows : excels) {
-//                        Object[] objects = rows.get(0);
-//                        String orderCycleDateStr = (objects[0] + "").split(":")[1];
-//                        Date orderCycleDate = DateKit.toDate(orderCycleDateStr);
-//
-//                        Integer businessUserId = Integer.parseInt(rows.get(3) + "");
-//                        BusinessUser bUser = BusinessUser.dao.findById(businessUserId);
-//
-//                        BigDecimal payNeedMoney = new BigDecimal(0);
-//                        BigDecimal payRealityNeedMoney = new BigDecimal(0);
-//                        Order order = new Order();
-//
-//                        String orderId = IdUtil.getOrderId(orderCycleDate, businessUserId);
-//                        Order nowOrder = Order.dao.getOrder(orderId);
-//
-//                        Date now = new Date();
-//
-//                        Integer uid = getSessionAttr(Constant.SESSION_UID);
-//
-//                        for (int i = 1; i < rows.size(); i++) {
-//
-//                            Integer productStandardId = Integer.parseInt(rows.get(0)+"");
-//                            Integer num = Integer.parseInt(rows.get(1)+"");
-//                            Integer actual_send_goods_num = Integer.parseInt(rows.get(2)+"");
-//                            Integer num = Integer.parseInt(rows.get(3)+"");
-//                            BigDecimal sellPrice = Integer.parseInt(rows.get(3)+"");
-//                            String a = rows[1] + "";
-//                            String a = rows[2] + "";
-//                            String a = rows[3] + "";
-//                            String a = rows[4] + "";
-//                            String a = rows[5] + "";
-//                            String a = rows[6] + "";
-//                            String a = rows[7] + "";
-//                            String a = rows[8] + "";
-//
-//                            // 区分该订单周期的订单是否已经被创建
-//                            if (nowOrder == null) {
-//                                order.setOrderId(orderId);
-//
-//                                OrderDetail orderDetail = new OrderDetail();
-//
-//
-//                                BigDecimal totalPay = sellPrice.multiply(new BigDecimal(num));
-//
-//                                payNeedMoney = payNeedMoney.add(totalPay);
-//                                orderDetail.setTotalPay(totalPay);
-//                                orderDetail.setUId(businessUserId);
-//                                orderDetail.setOrderId(order.getOrderId());
-//                                orderDetail.setCreateTime(orderCycleDate);
-//
-//                                orderDetail.setUpdateTime(now);
-//                                // ccz 2018-5-18 orderCreateTime
-//                                orderDetail.save(UserTypeConstant.A_USER, uid, orderCycleDate);
-//                            }
-//                        }
-//                        order.setPayNeedMoney(payNeedMoney);
-//                        order.setPayTotalMoney(new BigDecimal(0));
-//                        order.setUId(businessUserId);
-//                        order.setOrderCycleDate(DateUtils.getOrderCycleDate(orderCycleDate));
-//                        order.setUpdateTime(now);
-//                        order.setCreateTime(orderCycleDate);
-//                        order.save();
-//
-//                        BusinessInfo info = BusinessInfo.dao.getBusinessInfoByUId(businessUserId);
-//                        LogisticsInfo logisticsInfo = new LogisticsInfo();
-//                        logisticsInfo.setUId(uid);
-//                        logisticsInfo.setOrderId(orderId);
-//                        logisticsInfo.setBuyAddress(info.getAddressProvince() + info.getAddressCity() + info.getAddressDetail());
-//                        logisticsInfo.setBuyPhone(info.getPhone());
-//                        logisticsInfo.setBuyUserName(info.getBusinessName());
-//                        logisticsInfo.setDeliveryType(info.getShipmentsType());
-//                        logisticsInfo.setUpdateTime(now);
-//                        logisticsInfo.setCreateTime(orderCycleDate);
-//                        logisticsInfo.save();
-//                    }
-//                    return true;
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                    return false;
-//                }
-//            }
-//        });
-//
-//    }
 }
