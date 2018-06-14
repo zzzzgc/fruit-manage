@@ -148,6 +148,19 @@ public class Product extends BaseProduct<Product> {
     }
 
     /**
+     * 获取产品ID，用于判断是否存在该商品
+     *
+     * @param productStandardID
+     * @return
+     */
+    public Product getProductIDByPSID(Integer productStandardID) {
+        String sql = "select p.id,ps.sell_price from b_product p,b_product_standard ps where 1=1 \n" +
+                "and p.id = ps.product_id " +
+                "and ps.id= ? ";
+        return findFirst(sql, productStandardID);
+    }
+
+    /**
      * 增加该商品的购买量
      *
      * @return
