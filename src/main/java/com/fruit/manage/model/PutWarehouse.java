@@ -27,7 +27,7 @@ public class PutWarehouse extends BasePutWarehouse<PutWarehouse> {
 	 */
 	public Page<PutWarehouse> getAllInfo(int pageNum, int pageSize, String orderBy, boolean isASC, Map map){
 		ArrayList<Object> params = new ArrayList<Object>();
-		String selectStr = "select pw.id,pw.put_num,pw.put_type_num,pw.put_total_price,pw.put_type,pw.warehouse_address,pw.create_time,pw.put_time";
+		String selectStr = "select pw.id,pw.put_num,pw.put_type_num,pw.put_total_price,pw.put_type,pw.warehouse_address,pw.create_time,pw.put_time,pw.order_cycle_date ";
 		StringBuilder sql=new StringBuilder();
 		sql.append("from b_put_warehouse pw where 1=1 ");
 		if (ArrayUtils.isNotEmpty((String[]) map.get("createTime")) && ((String[]) map.get("createTime")).length == 2) {

@@ -13,41 +13,52 @@ import java.util.Map;
  */
 @SuppressWarnings("serial")
 public class CheckInventory extends BaseCheckInventory<CheckInventory> {
-	public static final CheckInventory dao = new CheckInventory().dao();
+    public static final CheckInventory dao = new CheckInventory().dao();
 
-	/**
-	 * 根据开始时间和结束时间获取带分页的盘点单的所有信息
-	 * @param pageNum
-	 * @param pageSize
-	 * @param orderBy
-	 * @param isASC
-	 * @param map
-	 * @return
-	 */
-	public Page<CheckInventory> getAllInfo(int pageNum, int pageSize, String orderBy, boolean isASC, Map map){
-		ArrayList<Object> params = new ArrayList<Object>();
-		String selectStr = "select ci.id,ci.product_count,ci.product_total_price,ci.warehouse_id,ci.warehouse_name,ci.check_inventory_time,ci.create_time,ci.update_time";
-		StringBuilder sql=new StringBuilder();
-		sql.append("from b_check_inventory ci where 1=1 ");
-		if (ArrayUtils.isNotEmpty((String[]) map.get("createTimes")) && ((String[]) map.get("createTimes")).length == 2) {
-			sql.append("and ci.create_time BETWEEN ? and ? ");
-			String startDate = ((String[]) map.get("createTimes"))[0] + " 00:00:00";
-			String endDate = ((String[]) map.get("createTimes"))[1]+ " 23:59:59";
-			params.add(startDate);
-			params.add(endDate);
-		}
-		orderBy = StrKit.isBlank(orderBy) ? "pw.create_time" : orderBy;
-		sql.append("order by " + orderBy + " " + (isASC ? "" : "desc "));
-		return paginate(pageNum, pageSize, selectStr, sql.toString(), params.toArray());
-	}
+    /**
+     * 根据开始时间和结束时间获取带分页的盘点单的所有信息
+     *
+     * @param pageNum
+     * @param pageSize
+     * @param orderBy
+     * @param isASC
+     * @param map
+     * @return
+     */
+    public Page<CheckInventory> getAllInfo(int pageNum, int pageSize, String orderBy, boolean isASC, Map map) {
+        ArrayList<Object> params = new ArrayList<Object>();
+        String selectStr = "select " +
+                "ci.id, " +
+                "ci.product_count, " +
+                "ci.product_total_price, " +
+                "ci.warehouse_id, " +
+                "ci.warehouse_name, " +
+                "ci.check_inventory_time, " +
+                "ci.order_cycle_date, " +
+                "ci.create_time, " +
+                "ci.update_time";
+        StringBuilder sql = new StringBuilder();
+        sql.append("from b_check_inventory ci where 1=1 ");
+        if (ArrayUtils.isNotEmpty((String[]) map.get("createTimes")) && ((String[]) map.get("createTimes")).length == 2) {
+            sql.append("and ci.create_time BETWEEN ? and ? ");
+            String startDate = ((String[]) map.get("createTimes"))[0] + " 00:00:00";
+            String endDate = ((String[]) map.get("createTimes"))[1] + " 23:59:59";
+            params.add(startDate);
+            params.add(endDate);
+        }
+        orderBy = StrKit.isBlank(orderBy) ? "pw.create_time" : orderBy;
+        sql.append("order by " + orderBy + " " + (isASC ? "" : "desc "));
+        return paginate(pageNum, pageSize, selectStr, sql.toString(), params.toArray());
+    }
 
-	/**
-	 * 根据盘点编号获取盘点信息
-	 * @param id
-	 * @return
-	 */
-	public CheckInventory getCheckInventoryById(String id) {
-		String sql = "SELECT * from b_check_inventory ci where ci.id = ? ";
-		return findFirst(sql, id);
-	}
+    /**
+     * 根据盘点编号获取盘点信息
+     *
+     * @param id
+     * @return
+     */
+    public CheckInventory getCheckInventoryById(String id) {
+        String sql = "SELECT * from b_check_inventory ci where ci.id = ? ";
+        return findFirst(sql, id);
+    }
 }

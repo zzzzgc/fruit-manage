@@ -1,10 +1,7 @@
 package com.fruit.manage.controller.common;
 
 import com.fruit.manage.base.BaseController;
-import com.fruit.manage.constant.OrderPayStatusCode;
-import com.fruit.manage.constant.OrderStatusCode;
-import com.fruit.manage.constant.RoleKeyCode;
-import com.fruit.manage.constant.ShipmentConstant;
+import com.fruit.manage.constant.*;
 import com.fruit.manage.model.*;
 import com.fruit.manage.util.Constant;
 import com.fruit.manage.util.DateUtils;
@@ -2197,6 +2194,10 @@ public class ExcelController extends BaseController {
 
                             // 新增订单
                             OrderDetail orderDetail = OrderDetail.dao.addOrderDetail(uid, orderCycleDate, userId, order.getOrderId(), product.getId(), productStandard.getId(), product.getName(), productStandard.getName(), productStandard.getSellPrice(), sellPrice, orderNum, sellPrice.multiply(new BigDecimal(orderNum)), buyRemark);
+                            orderDetail.setActualSendGoodsNum(actualSendGoodsNum);
+                            orderDetail.setActualDeliverNum(actualSendGoodsNum);
+                            orderDetail.update(UserTypeConstant.A_USER,uid,orderCycleDate);
+
                             payNeedMoney = payNeedMoney.add(new BigDecimal(orderDetail.getNum()).multiply(orderDetail.getSellPrice()));
                             payRealityNeedMoney = payRealityNeedMoney.add(new BigDecimal(actualSendGoodsNum).multiply(orderDetail.getSellPrice()));
 
