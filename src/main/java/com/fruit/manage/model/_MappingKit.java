@@ -34,6 +34,7 @@ public class _MappingKit {
 		arp.addMapping("b_cart_product", "id", CartProduct.class);
 		arp.addMapping("b_check_inventory", "id", CheckInventory.class);
 		arp.addMapping("b_check_inventory_detail", "id", CheckInventoryDetail.class);
+		arp.addMapping("b_inventory_records", "id", InventoryRecords.class);
 		arp.addMapping("b_logistics_info", "id", LogisticsInfo.class);
 		arp.addMapping("b_order", "id", Order.class);
 		arp.addMapping("b_order_breakage", "id", OrderBreakage.class);

@@ -81,11 +81,9 @@ public class CheckInventoryDetail extends BaseCheckInventoryDetail<CheckInventor
 	 * 根据规格编号 盘点库编号 开始时间和结束时间获取盘点单详细信息
 	 * @param psId
 	 * @param checkInventoryId
-	 * @param startTime
-	 * @param endTime
 	 * @return
 	 */
-	public CheckInventoryDetail getCheckInventoryDetail(Integer psId,String checkInventoryId,String startTime,String endTime){
+	public CheckInventoryDetail getCheckInventoryDetail(Integer psId,String checkInventoryId){
 		String sql="SELECT " +
 				"cid.id," +
 				"cid.product_id, " +
@@ -107,8 +105,7 @@ public class CheckInventoryDetail extends BaseCheckInventoryDetail<CheckInventor
 				"WHERE " +
 				"1 = 1 " +
 				"AND cid.product_standard_id = ? " +
-				"AND cid.check_inventory_id = ? ";// +
-				//"and cid.create_time BETWEEN ? and ?";
+				"AND cid.check_inventory_id = ? ";
 		return findFirst(sql,psId,checkInventoryId);
 	}
 

@@ -207,7 +207,7 @@ public class ProductStandard extends BaseProductStandard<ProductStandard> {
      *
      * @return 商品规格对象
      */
-    public ProductStandard addProductStandard( Integer productId, String name, String subTitle, BigDecimal sellPrice, BigDecimal costPrice, BigDecimal shippingFee, double cartonWeight, double fruitWeight, double grossWeight, Integer purchaseQuantityMin, Integer purchaseQuantityMax, Date buyStartTime, Date buyEndTime, Integer sortPurchase, Integer sortSoldOut, Integer sortSplit, Integer stock, Integer status, Integer isDefault, Integer purchaserUid) {
+    public ProductStandard addProductStandard(Integer productId, String name, String subTitle, BigDecimal sellPrice, BigDecimal costPrice, BigDecimal shippingFee, double cartonWeight, double fruitWeight, double grossWeight, Integer purchaseQuantityMin, Integer purchaseQuantityMax, Date buyStartTime, Date buyEndTime, Integer sortPurchase, Integer sortSoldOut, Integer sortSplit, Integer stock, Integer status, Integer isDefault, Integer purchaserUid) {
         ProductStandard productStandard = new ProductStandard();
         productStandard.setProductId(productId);
         productStandard.setName(name);
@@ -236,6 +236,20 @@ public class ProductStandard extends BaseProductStandard<ProductStandard> {
 //        productStandard.setWeightPrice(weightPrice);
 //        productStandard.setBuyStartTime(buyStartTime);
 //        productStandard.setBuyEndTime(buyEndTime);
+    }
+
+    /**
+     * 获取所有库存商品规格,附带上规格的商品名称
+     */
+    public List<ProductStandard> getAllProductStock() {
+        return find("SELECT  " +
+                "  ps.*,  " +
+                "  p.`name` AS product_name  " +
+                "FROM  " +
+                "  b_product_standard ps  " +
+                "INNER JOIN b_product p ON p.id = ps.product_id  " +
+                "WHERE  " +
+                "  ps.stock > 0");
     }
 
     // 修改完状态，刷新商品列表
