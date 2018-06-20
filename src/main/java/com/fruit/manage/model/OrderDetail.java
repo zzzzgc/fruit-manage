@@ -2,6 +2,7 @@ package com.fruit.manage.model;
 
 import com.fruit.manage.constant.UserTypeConstant;
 import com.fruit.manage.model.base.BaseOrderDetail;
+import com.fruit.manage.util.DateUtils;
 import com.jfinal.aop.Before;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.IAtom;
@@ -72,19 +73,6 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
     public List<OrderDetail> getOrderDetailSingleTable(String orderId) {
         String sql = "select od.id,od.product_standard_id,od.actual_send_goods_num from b_order_detail od where od.order_id = ? ";
         return find(sql, orderId);
-    }
-
-    private OrderLog getOrderLog(UserTypeConstant type, Integer uid, String orderId, Integer productId, Integer productStandardId, Integer changeNum, Date orderCreateTime) {
-        OrderLog orderLog = new OrderLog();
-        orderLog.setUId(uid);
-        orderLog.setUserType(type.getValue());
-        orderLog.setOrderId(orderId);
-        orderLog.setProductId(productId);
-        orderLog.setProductStandardId(productStandardId);
-        orderLog.setChangeNum(changeNum);
-        orderLog.setOrderCreateTime(orderCreateTime);
-        orderLog.setCreateTime(new Date());
-        return orderLog;
     }
 
     /**
@@ -181,7 +169,7 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
     }
 
 
-    private OrderLog getOrderLog(String orderId, Integer productId, Integer productStandardId, Integer changeNum, Date orderCreateTime) {
+    private boolean getOrderLog(String orderId, Integer productId, Integer productStandardId, Integer changeNum, Date orderCreateTime) {
         OrderLog orderLog = new OrderLog();
         // 未知用户
         orderLog.setUserType(UserTypeConstant.UNKNOWN_USER.getValue());
@@ -189,28 +177,43 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
         orderLog.setProductId(productId);
         orderLog.setProductStandardId(productStandardId);
         orderLog.setChangeNum(changeNum);
+        orderLog.setOrderCycleDate(DateUtils.getOrderCycleDate(orderCreateTime));
         orderLog.setOrderCreateTime(orderCreateTime);
         orderLog.setCreateTime(new Date());
-        return orderLog;
-    }
-
-    @Before(Tx.class)
-    public boolean save(OrderLog orderLog) {
-        super.save();
         return orderLog.save();
     }
 
-    @Before(Tx.class)
-    public boolean delete(OrderLog orderLog) {
-        super.delete();
+    private boolean getOrderLog(UserTypeConstant type, Integer uid, String orderId, Integer productId, Integer productStandardId, Integer changeNum, Date orderCreateTime) {
+        OrderLog orderLog = new OrderLog();
+        orderLog.setUId(uid);
+        orderLog.setUserType(type.getValue());
+        orderLog.setOrderId(orderId);
+        orderLog.setProductId(productId);
+        orderLog.setProductStandardId(productStandardId);
+        orderLog.setChangeNum(changeNum);
+        orderLog.setOrderCycleDate(DateUtils.getOrderCycleDate(orderCreateTime));
+        orderLog.setOrderCreateTime(orderCreateTime);
+        orderLog.setCreateTime(new Date());
         return orderLog.save();
     }
 
-    @Before(Tx.class)
-    public boolean update(OrderLog orderLog) {
-        super.update();
-        return orderLog.save();
-    }
+//    @Before(Tx.class)
+//    public boolean save(OrderLog orderLog) {
+//        super.save();
+//        return orderLog.save();
+//    }
+//
+//    @Before(Tx.class)
+//    public boolean delete(OrderLog orderLog) {
+//        super.delete();
+//        return orderLog.save();
+//    }
+//
+//    @Before(Tx.class)
+//    public boolean update(OrderLog orderLog) {
+//        super.update();
+//        return orderLog.save();
+//    }
 
     @Deprecated
     @Override
@@ -227,7 +230,7 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
         String sql = " SELECT o.create_time from b_order o INNER JOIN b_order_detail od on o.order_id=od.order_id where od.id = ? ";
         Date orderCreateTime = Db.queryDate(sql, super.getOrderId());
         super.delete();
-        return getOrderLog(super.getOrderId(), super.getProductId(), super.getProductStandardId(), ~super.getNum() + 1, orderCreateTime).save();
+        return getOrderLog(super.getOrderId(), super.getProductId(), super.getProductStandardId(), ~super.getNum() + 1, orderCreateTime);
     }
 
     @Deprecated
@@ -238,7 +241,7 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
         String sql = " SELECT o.create_time from b_order o INNER JOIN b_order_detail od on o.order_id=od.order_id where od.id = ? ";
         Date orderCreateTime = Db.queryDate(sql, super.getOrderId());
         super.update();
-        return getOrderLog(orderDetail.getOrderId(), orderDetail.getProductId(), orderDetail.getProductStandardId(), super.getNum() - orderDetail.getNum(), orderCreateTime).save();
+        return getOrderLog(orderDetail.getOrderId(), orderDetail.getProductId(), orderDetail.getProductStandardId(), super.getNum() - orderDetail.getNum(), orderCreateTime);
     }
 
 
@@ -250,27 +253,27 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
         super.save();
         // 新增商家购买数量
         Product.dao.updateSellNum(super.getProductId(), 1);
-        return getOrderLog(type, uid, super.getOrderId(), super.getProductId(), super.getProductStandardId(), super.getNum(), orderCreateTime).save();
+        return getOrderLog(type, uid, super.getOrderId(), super.getProductId(), super.getProductStandardId(), super.getNum(), orderCreateTime);
     }
 
     @Before(Tx.class)
     public boolean delete(UserTypeConstant type, Integer uid, Date orderCreateTime) {
         super.delete();
-        return getOrderLog(type, uid, super.getOrderId(), super.getProductId(), super.getProductStandardId(), ~super.getNum() + 1, orderCreateTime).save();
+        return getOrderLog(type, uid, super.getOrderId(), super.getProductId(), super.getProductStandardId(), ~super.getNum() + 1, orderCreateTime);
     }
 
     @Before(Tx.class)
     public boolean update(UserTypeConstant type, Integer uid, Date orderCreateTime) {
         OrderDetail orderDetail = OrderDetail.dao.findById(super.getId());
         super.update();
-        return getOrderLog(type, uid, orderDetail.getOrderId(), orderDetail.getProductId(), orderDetail.getProductStandardId(), super.getNum() - orderDetail.getNum(), orderCreateTime).save();
+        return getOrderLog(type, uid, orderDetail.getOrderId(), orderDetail.getProductId(), orderDetail.getProductStandardId(), super.getNum() - orderDetail.getNum(), orderCreateTime);
     }
 
 
     @Before(Tx.class)
     public boolean save(UserTypeConstant type, Integer uid, String orderId, Integer productId, Integer productStandardId, Integer num, Date orderCreateTime) {
         super.save();
-        return getOrderLog(type, uid, orderId, productId, productStandardId, num, orderCreateTime).save();
+        return getOrderLog(type, uid, orderId, productId, productStandardId, num, orderCreateTime);
     }
 
     /**
@@ -279,7 +282,7 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
     @Before(Tx.class)
     public boolean delete(UserTypeConstant type, Integer uid, String orderId, Integer productId, Integer productStandardId, Integer num, Date orderCreateTime) {
         super.delete();
-        return getOrderLog(type, uid, orderId, productId, productStandardId, ~num + 1, orderCreateTime).save();
+        return getOrderLog(type, uid, orderId, productId, productStandardId, ~num + 1, orderCreateTime);
     }
 
     /**
@@ -289,7 +292,7 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
     public boolean update(UserTypeConstant type, Integer uid, String orderId, Integer productId, Integer productStandardId, Integer beforeNum, Integer afterNum, Date orderCreateTime) {
         super.setUpdateTime(new Date());
         super.update();
-        return getOrderLog(type, uid, orderId, productId, productStandardId, afterNum - beforeNum, orderCreateTime).save();
+        return getOrderLog(type, uid, orderId, productId, productStandardId, afterNum - beforeNum, orderCreateTime);
     }
 
 

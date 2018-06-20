@@ -66,7 +66,6 @@ public class CheckInventoryDetailController extends BaseController {
     /**
      * 导入Excel
      */
-    @Before(Tx.class)
     public void importExcelInfo() {
         Db.tx(new IAtom() {
             @Override
@@ -75,13 +74,17 @@ public class CheckInventoryDetailController extends BaseController {
                 try {
                     String fileName = getPara("fileName");
                     String checkInventoryId = getPara("checkInventoryId");
-                    String order_cycle_date = getPara("order_cycle_date");
+                    String orderCycleDate = getPara("order_cycle_date");
+
+                    Calendar calendar = Calendar.getInstance();
+                    calendar.setTime(DateKit.toDate(orderCycleDate));
+                    calendar.add(Calendar.DAY_OF_MONTH,-1);
+                    String yesterdayOrderCycleDate = DateKit.toStr(calendar.getTime(), "yyyy-MM-dd");
+
                     String filePath = CommonController.FILE_PATH + File.separator + fileName;
                     Iterator<ExcelRdRow> iterable = readExcel(filePath).iterator();
                     Integer count = 0;
                     Date currentTime = new Date();
-                    String startTime = null;
-                    String endTime = null;
                     String nullInfo = "";
                     while (iterable.hasNext()) {
                         rowIndex++;
@@ -89,9 +92,9 @@ public class CheckInventoryDetailController extends BaseController {
                         ExcelRdRow excelRdRow = iterable.next();
                         List<Object> list = excelRdRow.getRow();
                         if (count == 1) {
-                            String creatTimeStr = ((String) list.get(0)).split(" ")[0].substring(5);
-                            startTime = creatTimeStr + " 00:00:00";
-                            endTime = creatTimeStr + " 23:59:59";
+//                            String creatTimeStr = ((String) list.get(0)).split(" ")[0].substring(5);
+//                            startTime = creatTimeStr + " 00:00:00";
+//                            endTime = creatTimeStr + " 23:59:59";
                         } else if (count > 2) {
 
                             // 参数获取
@@ -103,10 +106,10 @@ public class CheckInventoryDetailController extends BaseController {
                             Integer checkInventoryNum = list.get(7) == null ? 0 : Integer.parseInt(list.get(7) + "");
                             String remark = list.get(8) == null ? "" : list.get(8) + "";
 
-                            CheckInventoryDetail nowCID = CheckInventoryDetail.dao.getCheckInventoryDetail(productStandardId, checkInventoryId);
+                            CheckInventoryDetail nowCID = CheckInventoryDetail.dao.getCheckInventoryDetail(productStandardId, orderCycleDate);
                             if (nowCID != null) {
                                 // 已存在,需要新增
-                                Record stockRecord = new WarehouseService().getStock(order_cycle_date,productStandardId);
+                                Record stockRecord = new WarehouseService().getStock(orderCycleDate,productStandardId);
                                 if (stockRecord == null) {
                                     nullInfo += "商品规格编号" + productStandardId + "的库存为空,";
                                     continue;
@@ -153,7 +156,7 @@ public class CheckInventoryDetailController extends BaseController {
                                 Integer productId = ProductStandard.dao.getProductIdByPSId(productStandardId);
 
 //                                ProductStandard productStandard = ProductStandard.dao.getProductStandardById(productStandardId);
-                                Record stockRecord = new WarehouseService().getStock(order_cycle_date,productStandardId);
+                                Record stockRecord = new WarehouseService().getStock(orderCycleDate,productStandardId);
                                 if (stockRecord == null) {
                                     nullInfo += "商品规格编号" + productStandardId + "的库存为空,";
                                     continue;
@@ -162,7 +165,7 @@ public class CheckInventoryDetailController extends BaseController {
                                 Integer stock = stockRecord.getInt("stock");
 
                                 nowCID = new CheckInventoryDetail();
-                                nowCID.setId(IdUtil.getCheckInventoryDetailId(DateKit.toDate(order_cycle_date), productStandardId));
+                                nowCID.setId(IdUtil.getCheckInventoryDetailId(DateKit.toDate(orderCycleDate), productStandardId));
                                 nowCID.setCheckInventoryId(checkInventoryId);
                                 nowCID.setProductId(productId);
                                 nowCID.setProductName(productName);
@@ -171,24 +174,26 @@ public class CheckInventoryDetailController extends BaseController {
                                 nowCID.setProductWeight(productWeight);
 
                                 // 获取前一天的
-                                CheckInventoryDetail yesterdayCID = CheckInventoryDetail.dao.getCheckInventoryDetail(productStandardId, startTime, endTime);
+//                                CheckInventoryDetail yesterdayCID = CheckInventoryDetail.dao.getCheckInventoryDetail(productStandardId, startTime, endTime);
+                                CheckInventoryDetail yesterdayCID = CheckInventoryDetail.dao.getCheckInventoryDetail(productStandardId, yesterdayOrderCycleDate);
                                 if (yesterdayCID == null) {
                                     yesterdayCID = new CheckInventoryDetail();
                                     yesterdayCID.setInventoryPrice(new BigDecimal(0));
                                     yesterdayCID.setInventoryTotalPrice(new BigDecimal(0));
+                                    yesterdayCID.setInventoryNum(0);
                                 }
                                 // 期中入库数量
-                                Integer putInNum = WarehouseLog.dao.getCountInventorySum("0", startTime, endTime, productStandardId);
+                                Integer putInNum = WarehouseLog.dao.getCountInventorySum(0, orderCycleDate, productStandardId);
                                 if (putInNum == null) {
                                     putInNum = 0;
                                 }
                                 // 期中出库数量
-                                Integer outPutNum = WarehouseLog.dao.getCountInventorySum("1", startTime, endTime, productStandardId);
+                                Integer outPutNum = WarehouseLog.dao.getCountInventorySum(0, orderCycleDate, productStandardId);
                                 if (outPutNum == null) {
                                     outPutNum = 0;
                                 }
                                 // 获取入库单价
-                                BigDecimal average = PutWarehouseDetail.dao.getAveragePriceByPsIdAndTime(productStandardId, startTime, endTime);
+                                BigDecimal average = PutWarehouseDetail.dao.getAveragePriceByPsIdAndTime(productStandardId, orderCycleDate);
                                 if (average == null) {
                                     average = new BigDecimal(0);
                                 }
@@ -204,8 +209,9 @@ public class CheckInventoryDetailController extends BaseController {
                                 // 期末单价  最高总价 / 最高数量
                                 BigDecimal inventoryAveragePrice = nowTotalPrice.divide(nowTotalNum,2);
                                 // 期末库存总额  最高总价 - 期末单价*期中出库数量
-                                BigDecimal inventoryTotalPrice = nowTotalPrice.subtract(inventoryAveragePrice.multiply(new BigDecimal(-outPutNum)));
-
+                                BigDecimal inventoryTotalPrice = nowTotalPrice.subtract(inventoryAveragePrice.multiply(new BigDecimal(outPutNum)));
+                                // 期末库存数量 期初库存 + 期中差异值
+                                Integer nowStock = stock + (putInNum - outPutNum);
 
                                 // 库存单价=【期初库存总额+期中入库单价*(期中入库数量-期中出库数量)】/期末库存数量
 //                                BigDecimal inventoryAveragePrice = (yesterdayCID.getInventoryTotalPrice().add(average.multiply(new BigDecimal(putInNum).subtract(new BigDecimal(-outPutNum))))).divide(new BigDecimal(stock), 2, BigDecimal.ROUND_HALF_DOWN);
@@ -215,7 +221,7 @@ public class CheckInventoryDetailController extends BaseController {
                                 nowCID.setInventoryPrice(inventoryAveragePrice);
                                 nowCID.setInventoryTotalPrice(inventoryTotalPrice);
                                 nowCID.setUserName(userName);
-                                nowCID.setInventoryNum(stock);
+                                nowCID.setInventoryNum(nowStock);
                                 nowCID.setCheckInventoryNum(checkInventoryNum);
                                 nowCID.setInventoryRemark(remark);
                                 nowCID.setCreateTime(currentTime);

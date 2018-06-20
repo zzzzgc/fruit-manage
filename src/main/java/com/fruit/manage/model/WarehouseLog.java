@@ -7,6 +7,7 @@ import com.jfinal.plugin.activerecord.Page;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Map;
 
 /**
@@ -14,52 +15,86 @@ import java.util.Map;
  */
 @SuppressWarnings("serial")
 public class WarehouseLog extends BaseWarehouseLog<WarehouseLog> {
-	public static final WarehouseLog dao = new WarehouseLog().dao();
+    public static final WarehouseLog dao = new WarehouseLog().dao();
 
-	/**
-	 * 获取带条件的分页查询
-	 * @param pageNum
-	 * @param pageSize
-	 * @param orderBy
-	 * @param isASC
-	 * @param map
-	 * @return
-	 */
-	public Page<WarehouseLog> getAllInfo(int pageNum, int pageSize, String orderBy, boolean isASC, Map map){
-		ArrayList<Object> params = new ArrayList<Object>();
-		String selectStr = "SELECT wl.id,wl.user_id,wl.product_standard_id,wl.user_type,wl.change_type,wl.change_type,wl.is_statistical,wl.create_time";
-		StringBuilder sql=new StringBuilder();
-		sql.append("from b_warehouse_log wl where 1=1 ");
+    /**
+     * 获取带条件的分页查询
+     *
+     * @param pageNum
+     * @param pageSize
+     * @param orderBy
+     * @param isASC
+     * @param map
+     * @return
+     */
+    public Page<WarehouseLog> getAllInfo(int pageNum, int pageSize, String orderBy, boolean isASC, Map map) {
+        ArrayList<Object> params = new ArrayList<Object>();
+        String selectStr = "SELECT wl.id,wl.user_id,wl.product_standard_id,wl.user_type,wl.change_type,wl.change_type,wl.is_statistical,wl.create_time";
+        StringBuilder sql = new StringBuilder();
+        sql.append("from b_warehouse_log wl where 1=1 ");
 
-		if(StrKit.notBlank((String) map.get("productName"))){
-			sql.append("and wl.product_name like ? ");
-			params.add("%"+map.get("productName")+"%");
-		}
-		if(StrKit.notBlank((String)map.get("productId"))){
-			sql.append("and wl.product_id like ? ");
-			params.add("%"+map.get("productId")+"%");
-		}
-		if(StrKit.notBlank((String)map.get("productStandardName"))){
-			sql.append("and wl.product_standard_name like ? ");
-			params.add("%"+map.get("productStandardName")+"%");
-		}
-		if(StrKit.notBlank((String)map.get("productStandardId"))){
-			sql.append("and wl.product_standard_id like ? ");
-			params.add("%"+map.get("productStandardId")+"%");
-		}
+        if (StrKit.notBlank((String) map.get("productName"))) {
+            sql.append("and wl.product_name like ? ");
+            params.add("%" + map.get("productName") + "%");
+        }
+        if (StrKit.notBlank((String) map.get("productId"))) {
+            sql.append("and wl.product_id like ? ");
+            params.add("%" + map.get("productId") + "%");
+        }
+        if (StrKit.notBlank((String) map.get("productStandardName"))) {
+            sql.append("and wl.product_standard_name like ? ");
+            params.add("%" + map.get("productStandardName") + "%");
+        }
+        if (StrKit.notBlank((String) map.get("productStandardId"))) {
+            sql.append("and wl.product_standard_id like ? ");
+            params.add("%" + map.get("productStandardId") + "%");
+        }
 
-		orderBy = StrKit.isBlank(orderBy) ? "wl.create_time" : orderBy;
-		sql.append("order by " + orderBy + " " + (isASC ? "" : "desc "));
-		return paginate(pageNum, pageSize, selectStr, sql.toString(), params.toArray());
-	}
+        orderBy = StrKit.isBlank(orderBy) ? "wl.create_time" : orderBy;
+        sql.append("order by " + orderBy + " " + (isASC ? "" : "desc "));
+        return paginate(pageNum, pageSize, selectStr, sql.toString(), params.toArray());
+    }
 
-	/**
-	 * 根据change_type(0:入库，1：出库)和时间获取总量
-	 * @param change_type
-	 * @return
-	 */
-	public Integer getCountInventorySum(String change_type,String startTime,String endTime,Integer productStandardId){
-		String sql="select sum(wl.change_num) from b_warehouse_log wl where 1=1 and wl.change_type = ? and wl.create_time BETWEEN ? and ? and wl.product_standard_id = ? ";
-		return Db.queryInt(sql, change_type, startTime, endTime,productStandardId);
-	}
+    /**
+     * 根据change_type(0:入库，1：出库)和时间获取总量
+     *
+     * @param change_type
+     * @return
+     */
+    public Integer getCountInventorySum(String change_type, String startTime, String endTime, Integer productStandardId) {
+        String sql = "select sum(wl.change_num) from b_warehouse_log wl where 1=1 and wl.change_type = ? and wl.create_time BETWEEN ? and ? and wl.product_standard_id = ? ";
+        return Db.queryInt(sql, change_type, startTime, endTime, productStandardId);
+    }
+
+    /**
+     * 根据change_type(0:入库，1：出库)和时间获取总量
+     *
+     * @param change_type
+     * @return
+     */
+    public Integer getCountInventorySum(Integer change_type, String orderClcyleDate, Integer productStandardId) {
+        String sql = null;
+        if (change_type == 0) {
+            sql = "SELECT  " +
+                    "  SUM(pwd.put_num)  " +
+                    "FROM  " +
+                    " b_put_warehouse pw   " +
+                    "JOIN b_put_warehouse_detail pwd ON pwd.put_id = pw.id  " +
+                    "where  " +
+                    " pw.order_cycle_date = ?   " +
+                    "AND pwd.product_standard_id = ? ";
+        } else {
+            sql = "SELECT  " +
+                    "  SUM(owd.out_num)  " +
+                    "FROM  " +
+                    " b_out_warehouse ow   " +
+                    "JOIN b_out_warehouse_detail owd ON owd.out_id = ow.id  " +
+                    "where  " +
+                    " ow.order_cycle_date = ?  " +
+                    "AND owd.product_standard_id = ? ";
+        }
+
+
+        return Db.queryInt(sql, orderClcyleDate, productStandardId);
+    }
 }

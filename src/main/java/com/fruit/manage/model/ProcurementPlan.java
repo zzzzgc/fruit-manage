@@ -6,6 +6,7 @@ import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Page;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -77,84 +78,84 @@ public class ProcurementPlan extends BaseProcurementPlan<ProcurementPlan> {
     public List<ProcurementPlan> getExportDataByPPlanID(String[] createTime) {
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT " +
-                        "p.`name` AS productName, " +
-                        "pq.procurement_id, " +
-                        "pq.procurement_name, " +
-                        "ps.`name` AS productStandardName, " +
-                        "ps.id AS productStandardID, " +
+                "p.`name` AS productName, " +
+                "pq.procurement_id, " +
+                "pq.procurement_name, " +
+                "ps.`name` AS productStandardName, " +
+                "ps.id AS productStandardID, " +
 //                  "ps.fruit_weight AS fruitWeight, " +
-                        "ps.sub_title, " +
-                        "ps.sell_price AS sellPrice, " +
-                        "( " +
-                        "SELECT " +
-                        "SUM(ol2.change_num) " +
-                        "FROM " +
-                        "b_order_log ol2 " +
-                        "WHERE " +
-                        "ol2.product_standard_id = ol.product_standard_id " +
+                "ps.sub_title, " +
+                "ps.sell_price AS sellPrice, " +
+                "( " +
+                "SELECT " +
+                "SUM(ol2.change_num) " +
+                "FROM " +
+                "b_order_log ol2 " +
+                "WHERE " +
+                "ol2.product_standard_id = ol.product_standard_id " +
 
-                        //ccz 2018-5-15 添加时间区间
-                        // ccz 2018-5-18 order_create_time
+                //ccz 2018-5-15 添加时间区间
+                // ccz 2018-5-18 order_create_time
 //                        " and ol2.create_time BETWEEN ? AND ? "+
-                        " and ol2.order_create_time BETWEEN ? AND ? " +
+                " and ol2.order_create_time BETWEEN ? AND ? " +
 
-                        ") AS purchaseNum, " +
-                        "ps.stock AS inventoryNum, " +
-                        "(SELECT 0) AS procurementNum, " +
-                        "(SELECT 0) AS procurementPrice, " +
-                        "(SELECT '') AS procurementRemark, " +
-                        "p.id AS productId, " +
-                        "( " +
-                        "SELECT " +
-                        "SUM(ol2.change_num) " +
-                        "FROM " +
-                        "b_order_log ol2 " +
-                        "WHERE " +
-                        "ol2.product_standard_id = ol.product_standard_id " +
+                ") AS purchaseNum, " +
+                "ps.stock AS inventoryNum, " +
+                "(SELECT 0) AS procurementNum, " +
+                "(SELECT 0) AS procurementPrice, " +
+                "(SELECT '') AS procurementRemark, " +
+                "p.id AS productId, " +
+                "( " +
+                "SELECT " +
+                "SUM(ol2.change_num) " +
+                "FROM " +
+                "b_order_log ol2 " +
+                "WHERE " +
+                "ol2.product_standard_id = ol.product_standard_id " +
 
-                        //ccz 2018-5-15 添加时间区间
-                        // ccz 2018-5-18 order_create_time
+                //ccz 2018-5-15 添加时间区间
+                // ccz 2018-5-18 order_create_time
 //                        " and ol2.create_time BETWEEN ? AND ? "+
-                        " and ol2.order_create_time BETWEEN ? AND ? " +
+                " and ol2.order_create_time BETWEEN ? AND ? " +
 
-                        ") AS productStandardNum, " +
-                        "(SELECT 0) AS procurementNeedPrice, " +
-                        "(SELECT 0) AS procurementTotalPrice, " +
-                        // 订单详细下单备注，多个以分号拼接
-                        " (SELECT group_concat(CONCAT(num,measure_unit,'|',buy_remark) SEPARATOR ';')  as concatStr " +
-                        " from b_order_detail od2 " +
+                ") AS productStandardNum, " +
+                "(SELECT 0) AS procurementNeedPrice, " +
+                "(SELECT 0) AS procurementTotalPrice, " +
+                // 订单详细下单备注，多个以分号拼接
+                " (SELECT group_concat(CONCAT(num,measure_unit,'|',buy_remark) SEPARATOR ';')  as concatStr " +
+                " from b_order_detail od2 " +
 //                        " where od2.product_standard_id in (ol.product_standard_id) " +
-                        " WHERE 1=1 and od2.order_id  = ol.order_id " +
-                        // 以订单创建时间为准 ccz 2018-5-18
-                        " and ol.order_create_time BETWEEN ? AND ? " +
-                        " and od2.product_standard_id in (ol.product_standard_id) "+
-                        " and buy_remark <> '' " +
-                        " )as orderRemark  " +
+                " WHERE 1=1 and od2.order_id  = ol.order_id " +
+                // 以订单创建时间为准 ccz 2018-5-18
+                " and ol.order_create_time BETWEEN ? AND ? " +
+                " and od2.product_standard_id in (ol.product_standard_id) " +
+                " and buy_remark <> '' " +
+                " )as orderRemark  " +
 //                    "(SELECT group_concat(buy_remark SEPARATOR ';') from b_order_detail od2 where od2.product_standard_id in (ol.product_standard_id)) as orderRemark " +
 //                  "(SELECT '') AS orderRemark " +
-                        "FROM " +
-                        "b_order_log ol, " +
-                        "b_product p, " +
-                        "b_product_standard ps, " +
-                        "b_procurement_quota pq " +
-                        "WHERE " +
-                        "1 = 1 " +
-                        "AND pq.product_standard_id = ol.product_standard_id " +
-                        "AND ol.product_id = p.id " +
-                        "AND ol.product_standard_id = ps.id " +
+                "FROM " +
+                "b_order_log ol, " +
+                "b_product p, " +
+                "b_product_standard ps, " +
+                "b_procurement_quota pq " +
+                "WHERE " +
+                "1 = 1 " +
+                "AND pq.product_standard_id = ol.product_standard_id " +
+                "AND ol.product_id = p.id " +
+                "AND ol.product_standard_id = ps.id " +
 
-                        // ccz 2018-5-18 order_create_time
+                // ccz 2018-5-18 order_create_time
 //                        "AND ol.create_time BETWEEN ? AND ? " +
-                        "AND ol.order_create_time BETWEEN ? AND ? " +
+                "AND ol.order_create_time BETWEEN ? AND ? " +
 
-                        "GROUP BY " +
-                        "ol.product_standard_id " +
-                        "HAVING " +
-                        "purchaseNum > 0 " +
-                        "ORDER BY " +
-                        "pq.procurement_name ASC, " +
-                        "purchaseNum DESC, " +
-                        "ps.sell_price DESC");
+                "GROUP BY " +
+                "ol.product_standard_id " +
+                "HAVING " +
+                "purchaseNum > 0 " +
+                "ORDER BY " +
+                "pq.procurement_name ASC, " +
+                "purchaseNum DESC, " +
+                "ps.sell_price DESC");
 //		sql.append("select p.`name` as productName, ");
 //		sql.append("pq.procurement_id, ");
 //		sql.append("pq.procurement_name, ");
@@ -253,5 +254,59 @@ public class ProcurementPlan extends BaseProcurementPlan<ProcurementPlan> {
      */
     public void addProcurementPlan() {
         ProcurementPlan procurementPlan = new ProcurementPlan();
+    }
+
+    public List<ProcurementPlan> getExportDataByPPlanID(Date createTime) {
+        String sql = "SELECT  " +
+                "  p.`name` AS productName,  " +
+                "  pq.procurement_id,  " +
+                "  pq.procurement_name,  " +
+                "  ps.`name` AS productStandardName,  " +
+                "  ps.id AS productStandardID,  " +
+                "  ps.sub_title,  " +
+                "  ps.sell_price AS sellPrice,  " +
+                "  SUM(ol.change_num) AS purchaseNum,  " +
+                "  ps.stock AS inventoryNum,  " +
+                "  (SELECT 0) AS procurementNum,  " +
+                "  (SELECT 0) AS procurementPrice,  " +
+                "  (SELECT '') AS procurementRemark,  " +
+                "  p.id AS productId,  " +
+                "  SUM(ol.change_num) AS productStandardNum,  " +
+                "  (SELECT 0) AS procurementNeedPrice,  " +
+                "  (SELECT 0) AS procurementTotalPrice,  " +
+                "  (  " +
+                "    SELECT  " +
+                "      group_concat(  " +
+                "        CONCAT(  " +
+                "          num,  " +
+                "          measure_unit,  " +
+                "          '|',  " +
+                "          buy_remark  " +
+                "        ) SEPARATOR ';'  " +
+                "      ) AS concatStr  " +
+                "    FROM  " +
+                "      b_order o  " +
+                "    JOIN b_order_detail od ON od.order_id = o.order_id  " +
+                "    WHERE  " +
+                "      1 = 1  " +
+                "    AND od.order_id = ol.order_id  " +
+                "    AND o.order_cycle_date = ol.order_cycle_date  " +
+                "    AND od.product_standard_id = ol.product_standard_id  " +
+                "    AND buy_remark <> ''  " +
+                "  ) AS orderRemark  " +
+                "FROM  " +
+                "  b_order_log ol  " +
+                "JOIN b_product p ON p.id = ol.product_id  " +
+                "JOIN b_product_standard ps ON ps.id = ol.product_standard_id  " +
+                "JOIN b_procurement_quota pq ON pq.product_standard_id = ol.product_standard_id  " +
+                "WHERE  " +
+                "  ol.order_cycle_date = '2018-06-20'  " +
+                "GROUP BY  " +
+                "  ol.product_standard_id  " +
+                "ORDER BY  " +
+                "  pq.procurement_name ASC,  " +
+                "  purchaseNum DESC,  " +
+                "  ps.sell_price DESC  ";
+        return find(sql, createTime);
     }
 }

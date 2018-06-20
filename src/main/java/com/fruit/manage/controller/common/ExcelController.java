@@ -1053,6 +1053,7 @@ public class ExcelController extends BaseController {
 
         // 获取要导出数据
         List<ProcurementPlan> planList = ProcurementPlan.dao.getExportDataByPPlanID(createTimes);
+//        List<ProcurementPlan> planList = ProcurementPlan.dao.getExportDataByPPlanID(createTime);
 
         if (planList.size() < 1) {
             renderText("没有可导出的采购计划");

@@ -7,6 +7,7 @@ import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Page;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -80,33 +81,19 @@ public class CheckInventoryDetail extends BaseCheckInventoryDetail<CheckInventor
 	/**
 	 * 根据规格编号 盘点库编号 开始时间和结束时间获取盘点单详细信息
 	 * @param psId
-	 * @param checkInventoryId
+	 * @param order_cycle_date
 	 * @return
 	 */
-	public CheckInventoryDetail getCheckInventoryDetail(Integer psId,String checkInventoryId){
-		String sql="SELECT " +
-				"cid.id," +
-				"cid.product_id, " +
-				"cid.product_name, " +
-				"cid.product_standard_id, " +
-				"cid.product_standard_name, " +
-				"cid.check_inventory_id, " +
-				"cid.product_weight, " +
-				"cid.inventory_price, " +
-				"cid.inventory_num, " +
-				"cid.inventory_total_price, " +
-				"cid.user_id, " +
-				"cid.user_name, " +
-				"cid.inventory_remark, " +
-				"cid.create_time, " +
-				"cid.update_time " +
-				"FROM " +
-				"b_check_inventory_detail cid " +
-				"WHERE " +
-				"1 = 1 " +
-				"AND cid.product_standard_id = ? " +
-				"AND cid.check_inventory_id = ? ";
-		return findFirst(sql,psId,checkInventoryId);
+	public CheckInventoryDetail getCheckInventoryDetail(Integer psId,String order_cycle_date){
+		String sql="SELECT  " +
+				"  *  " +
+				"FROM  " +
+				"  b_check_inventory ci  " +
+				"JOIN b_check_inventory_detail cid ON cid.check_inventory_id = ci.id  " +
+				"WHERE  " +
+				"  ci.order_cycle_date = ?  " +
+				"AND cid.product_standard_id = ? ";
+		return findFirst(sql,order_cycle_date,psId);
 	}
 
 	/**

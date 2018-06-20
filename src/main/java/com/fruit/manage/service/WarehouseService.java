@@ -6,7 +6,7 @@ import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.IAtom;
 import com.jfinal.plugin.activerecord.Record;
 
-import java.sql.Date;
+import java.util.Date;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -42,7 +42,7 @@ public class WarehouseService {
     /**
      * 获取历史库存
      */
-    public Record getStock(String orderCycleDate,Integer productStandardId) {
+    public Record getStock(String orderCycleDate, Integer productStandardId) {
         return Db.findFirst("SELECT   " +
                 "  ps.id," +
                 "  (  " +

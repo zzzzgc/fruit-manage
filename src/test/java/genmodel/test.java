@@ -9,6 +9,8 @@ import java.util.Arrays;
 public class test {
 
     public static void main(String[] args) {
-        System.out.println("2018-05-04 广州嘻果出货单".substring(0,10));
+        System.out.println(new Integer(0) == 0);
     }
+    
+
 }
