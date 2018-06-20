@@ -34,4 +34,14 @@ public class BusinessAuth extends BaseBusinessAuth<BusinessAuth> {
     public boolean setStatus(String uid, String status) {
 		return Db.update("UPDATE b_business_auth SET  audit = ? WHERE u_id = ?", status, uid) == 1;
 	}
+
+	/**
+	 * 设置用户是否可下单的状态 0可以 1不可以
+	 * @param uid 商户id
+	 * @param status 状态
+	 * @return
+	 */
+	public boolean setLockStatus(String uid, String status) {
+		return Db.update("UPDATE b_business_user SET `lock` = ? WHERE id = ?", status, uid) == 1;
+	}
 }

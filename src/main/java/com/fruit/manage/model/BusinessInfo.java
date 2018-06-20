@@ -44,6 +44,8 @@ public class BusinessInfo extends BaseBusinessInfo<BusinessInfo> {
                 "auser.nick_name AS sales_name, " +
                 "auser.phone AS sales_phone, " +
                 "bauth.audit, " +
+                "buser.grade, " +
+                "buser.lock, " +
                 "buser.create_time ";
         sql.append("FROM " +
                 "a_user auser " +

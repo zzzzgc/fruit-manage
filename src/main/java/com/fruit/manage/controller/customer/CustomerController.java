@@ -341,4 +341,17 @@ public class CustomerController extends BaseController {
         }
         renderErrorText("没有修改成功");
     }
+
+    /**
+     * 修改禁单状态(用户是否可下单开关)
+     */
+    public void setLockStatus() {
+        String status = getPara("status");
+        String uid = getPara("uid");
+        if (BusinessAuth.dao.setLockStatus(uid, status)) {
+            renderNull();
+            return;
+        }
+        renderErrorText("修改失败");
+    }
 }
