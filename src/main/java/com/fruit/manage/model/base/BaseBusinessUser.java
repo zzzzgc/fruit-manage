@@ -89,6 +89,14 @@ public abstract class BaseBusinessUser<M extends BaseBusinessUser<M>> extends Mo
 		return getStr("ip");
 	}
 
+	public void setGrade(java.lang.Integer grade) {
+		set("grade", grade);
+	}
+
+	public java.lang.Integer getGrade() {
+		return getInt("grade");
+	}
+
 	public void setLastLoginTime(java.util.Date lastLoginTime) {
 		set("last_login_time", lastLoginTime);
 	}

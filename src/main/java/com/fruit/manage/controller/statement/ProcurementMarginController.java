@@ -33,12 +33,12 @@ public class ProcurementMarginController extends BaseController {
         String select = _getSqlSelect();
         // TODO 修改参数
         String selectExcept = _getSqlSelectExcept(list, productId, productName, productStandardId, productStandardName,createTimes);
-        System.out.println("-------------库存统计报表SQL START--------------");
+        System.out.println("-------------产品毛利排行报表SQL START--------------");
         System.out.println(select + selectExcept);
         for (int i = 0; i < list.size(); i++) {
             System.out.println("list index:"+i+",list value:"+list.get(i));
         }
-        System.out.println("-------------库存统计报表SQL END--------------");
+        System.out.println("-------------产品毛利排行报表SQL END--------------");
         renderJson(OrderDetail.dao.paginate(pageNum,pageSize,select,selectExcept,list.toArray()));
     }
 

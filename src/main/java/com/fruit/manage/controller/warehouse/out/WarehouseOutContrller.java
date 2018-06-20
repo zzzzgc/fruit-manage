@@ -64,6 +64,9 @@ public class WarehouseOutContrller extends BaseController {
     public void save() {
         Date createTime = getParaToDate("create_Time");
         Integer outType = getParaToInt("out_type");
+        if (outType == null) {
+            outType = 1;
+        }
         OutWarehouse outWarehouse = new OutWarehouse();
         outWarehouse.setOutTime(createTime);
         outWarehouse.setOrderCycleDate(createTime);
@@ -177,7 +180,7 @@ public class WarehouseOutContrller extends BaseController {
 
     /**
      * 导入商家出库单,前提是用户已导入入库单.
-     *
+     * <p>
      * 出库后记录当天库存总量.注意:暂时不兼容招待出库
      */
     public void importExcelOutWarehouse() throws IOException, InvalidFormatException {
@@ -342,10 +345,6 @@ public class WarehouseOutContrller extends BaseController {
                     ow.update();
 
                     // 记录库存
-
-
-
-
 
 
                     renderNull();

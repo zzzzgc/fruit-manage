@@ -1,6 +1,7 @@
 package com.fruit.manage.controller.statement;
 
 import com.fruit.manage.base.BaseController;
+import com.fruit.manage.constant.OrderStatusCode;
 import com.fruit.manage.controller.common.CommonController;
 import com.fruit.manage.model.OrderDetail;
 import com.fruit.manage.util.ExcelCommon;
@@ -42,9 +43,9 @@ public class SalesMarginController extends BaseController {
         String order_cycle_date = getPara("order_cycle_date");
         String select = _getSelect();
         List<Object> params = new ArrayList<>();
-        String sqlExceptSelect = _getSqlExceptSelect(params,nick_name,business_name,order_cycle_date);
+        String sqlExceptSelect = _getSqlExceptSelect(params, nick_name, business_name, order_cycle_date);
 
-        renderJson(Db.paginate(pageNum, pageSize, select,sqlExceptSelect,params.toArray()));
+        renderJson(Db.paginate(pageNum, pageSize, select, sqlExceptSelect, params.toArray()));
     }
 
     /**
@@ -64,7 +65,7 @@ public class SalesMarginController extends BaseController {
         };
         String select = _getSelect();
         List<Object> params = new ArrayList<>();
-        String sqlExceptSelect = _getSqlExceptSelect(params,nick_name,business_name,order_cycle_date);
+        String sqlExceptSelect = _getSqlExceptSelect(params, nick_name, business_name, order_cycle_date);
         List<Record> salesMarginList = Db.find(select + sqlExceptSelect, params.toArray());
         ArrayList<Object[]> tableData = new ArrayList<>();
         salesMarginList.stream().forEach(
@@ -82,7 +83,7 @@ public class SalesMarginController extends BaseController {
         );
 
         File file = null;
-        fileName = "销售毛利报表"+Time.time()+".xlsx";
+        fileName = "销售毛利报表" + Time.time() + ".xlsx";
         try {
             String filePath = ExcelCommon.createExcelModul(CommonController.FILE_PATH, fileName, "销售毛利报表", "", headers, tableData);
             file = new File(filePath);
@@ -102,7 +103,7 @@ public class SalesMarginController extends BaseController {
     /**
      * 获取汇总信息
      */
-    public void getTotalInfo () {
+    public void getTotalInfo() {
         // 临时获取
 
         String nick_name = getPara("nick_name");
@@ -110,32 +111,32 @@ public class SalesMarginController extends BaseController {
         String order_cycle_date = getPara("order_cycle_date");
         String select = _getSelect();
         List<Object> params = new ArrayList<>();
-        String sqlExceptSelect = _getSqlExceptSelect(params,nick_name,business_name,order_cycle_date);
+        String sqlExceptSelect = _getSqlExceptSelect(params, nick_name, business_name, order_cycle_date);
         List<Record> salesMarginList = Db.find(select + sqlExceptSelect, params.toArray());
 
-        BigDecimal total_gross_margin =new BigDecimal(0);
-        BigDecimal gross_margin  =new BigDecimal(0);
+        BigDecimal total_gross_margin = new BigDecimal(0);
+        BigDecimal gross_margin = new BigDecimal(0);
         int orderCount = 0;
 
         for (Record record : salesMarginList) {
-                // 订单总利润
-                BigDecimal tgm = record.get("total_gross_margin");
-                // 订单总毛利率
-                BigDecimal gm = record.get("gross_margin");
-                if (tgm!=null&&gm !=null) {
-                    orderCount ++;
-                    total_gross_margin = total_gross_margin.add(tgm);
-                    gross_margin = gross_margin.add(gm);
-                }
+            // 订单总利润
+            BigDecimal tgm = record.get("total_gross_margin");
+            // 订单总毛利率
+            BigDecimal gm = record.get("gross_margin");
+            if (tgm != null && gm != null) {
+                orderCount++;
+                total_gross_margin = total_gross_margin.add(tgm);
+                gross_margin = gross_margin.add(gm);
+            }
         }
 
         HashMap<Object, Object> map = new HashMap<>(2);
-        map.put("total_gross_margin",total_gross_margin);
-        map.put("gross_margin",gross_margin.divide(new BigDecimal(orderCount),5));
+        map.put("total_gross_margin", total_gross_margin);
+        map.put("gross_margin", gross_margin.divide(new BigDecimal(orderCount), 5));
         renderJson(map);
     }
 
-    private String _getSqlExceptSelect(List<Object> params,String nick_name, String business_name, String order_cycle_date) {
+    private String _getSqlExceptSelect(List<Object> params, String nick_name, String business_name, String order_cycle_date) {
         StringBuffer sql = new StringBuffer();
         sql.append(" FROM  " +
                 "  b_order AS o  " +
@@ -147,7 +148,8 @@ public class SalesMarginController extends BaseController {
                 "LEFT JOIN b_check_inventory_detail cid ON cid.check_inventory_id = ci.id AND cid.product_standard_id = od.product_standard_id  " +
                 "LEFT JOIN b_put_warehouse as pw ON pw.order_cycle_date = o.order_cycle_date  " +
                 "LEFT JOIN b_put_warehouse_detail pwd ON pwd.put_id = pw.id AND pwd.product_standard_id = od.product_standard_id  " +
-                "WHERE 1 = 1 ");
+                "WHERE 1 = 1 " +
+                "AND  o.order_status != " + OrderStatusCode.DELETED.getStatus() + " ");
         if (StringUtils.isNotBlank(nick_name)) {
             sql.append("AND au.nick_name = ? ");
             params.add(nick_name);

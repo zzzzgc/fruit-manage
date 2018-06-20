@@ -49,24 +49,26 @@ public class WarehousePutController extends BaseController {
     /**
      * 创建入库单
      */
+    @Before(Tx.class)
     public void createWarehouse() {
-        try {
-            System.out.println("---------------putInTime----------------");
-            String putIntTimeStr = getPara("putInTime");
-            System.out.println("putInTime:" + putIntTimeStr);
+        System.out.println("---------------putInTime----------------");
+        Date putIntTimeStr = getParaToDate("putInTime");
+        System.out.println("putInTime:" + putIntTimeStr);
+        PutWarehouse putWarehouseByOrderCycleDate = PutWarehouse.dao.getPutWarehouseByOrderCycleDate(putIntTimeStr);
+        if (putWarehouseByOrderCycleDate == null) {
             PutWarehouse putWarehouse = new PutWarehouse();
             putWarehouse.setPutNum(0);
             putWarehouse.setPutTypeNum(0);
             putWarehouse.setPutTotalPrice(new BigDecimal(0));
             putWarehouse.setPutType(0);
             putWarehouse.setWarehouseAddress("默认地址");
-            putWarehouse.setCreateTime(DateAndStringFormat.strToDate(putIntTimeStr, "yyyy-MM-dd HH:mm:ss"));
-            putWarehouse.setOrderCycleDate(DateAndStringFormat.strToDate(putIntTimeStr, "yyyy-MM-dd"));
+            putWarehouse.setCreateTime(putIntTimeStr);
+            putWarehouse.setOrderCycleDate(putIntTimeStr);
             putWarehouse.save();
             renderNull();
-        } catch (Exception e) {
-            renderErrorText("创建失败!");
+            return;
         }
+        renderErrorText("重复添加入库单！");
     }
 
     /**
@@ -95,7 +97,7 @@ public class WarehousePutController extends BaseController {
                             productStandard.setStock(afterNum);
                             productStandard.update(UserTypeConstant.A_USER, getSessionAttr(Constant.SESSION_UID), afterNum, beforeNum, "1", productStandard.getName(), productStandard.getProductId(), null);
                         } else {
-                            renderErrorText("规格编号为"+productStandardId +"执行删库之后库存不够！");
+                            renderErrorText("规格编号为" + productStandardId + "执行删库之后库存不够！");
                             return false;
                         }
                     }

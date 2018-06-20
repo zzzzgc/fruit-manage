@@ -1,11 +1,14 @@
 package com.fruit.manage.model;
 
 import com.fruit.manage.model.base.BasePutWarehouse;
+import com.jfinal.ext.kit.DateKit;
 import com.jfinal.kit.StrKit;
 import com.jfinal.plugin.activerecord.Page;
+import com.jfinal.plugin.activerecord.SqlPara;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -51,4 +54,16 @@ public class PutWarehouse extends BasePutWarehouse<PutWarehouse> {
 		String sql="select * from b_put_warehouse where id = ? ";
 		return findFirst(sql, putId);
 	}
+
+	/**
+	 * 根据订单周期时间获取入库信息
+	 * @param orderCycleDate 入库时间
+	 * @return 入库信息
+	 */
+	public PutWarehouse getPutWarehouseByOrderCycleDate(Date orderCycleDate) {
+		String sql="select * from b_put_warehouse where order_cycle_date = ? ";
+		return findFirst(sql, DateKit.toStr(orderCycleDate,"yyyy-MM-dd"));
+	}
+
+
 }

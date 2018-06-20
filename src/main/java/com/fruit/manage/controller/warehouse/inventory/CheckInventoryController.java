@@ -30,34 +30,39 @@ public class CheckInventoryController extends BaseController {
     /**
      * 根据条件查询获取带分页的仓库日志信息
      */
-    public void getAllInfo(){
+    public void getAllInfo() {
         int pageNum = getParaToInt("pageNum", 1);
         int pageSize = getParaToInt("pageSize", 10);
         Map map = new HashMap();
         String orderBy = getPara("prop");
         // ascending为升序，其他为降序
         boolean isASC = "ascending".equals(getPara("order"));
-        String [] create_times = getParaValues("format_create_time");
+        String[] create_times = getParaValues("format_create_time");
         map.put("createTimes", create_times);
-        renderJson(CheckInventory.dao.getAllInfo(pageNum,pageSize,orderBy,isASC,map));
+        renderJson(CheckInventory.dao.getAllInfo(pageNum, pageSize, orderBy, isASC, map));
     }
 
     /**
      * 添加盘点单
      */
-    public void addCheckInventory(){
-        try {
-            Date currentTime = new Date();
-            CheckInventory checkInventory =new CheckInventory();
-            checkInventory.setId(IdUtil.getCheckInventoryIdByDate(currentTime));
-            checkInventory.setCreateTime(currentTime);
-            checkInventory.setOrderCycleDate(currentTime);
+    @Before(Tx.class)
+    public void addCheckInventory() {
+        Date orderClcyleDate = getParaToDate("pPlanDate");
+        if (orderClcyleDate == null) {
+            orderClcyleDate = new Date();
+        }
+        String CIDId = IdUtil.getCheckInventoryIdByDate(orderClcyleDate);
+        CheckInventory checkInventories = CheckInventory.dao.findById(CIDId);
+        if (checkInventories == null) {
+            CheckInventory checkInventory = new CheckInventory();
+            checkInventory.setId(CIDId);
+            checkInventory.setCreateTime(orderClcyleDate);
+            checkInventory.setOrderCycleDate(orderClcyleDate);
             checkInventory.save();
             renderNull();
-        } catch (Exception e) {
-            e.printStackTrace();
-            renderErrorText("一天只能创建一张盘点单！");
+            return;
         }
+        renderErrorText("重复创建盘点单！");
     }
 
     /**
@@ -65,7 +70,7 @@ public class CheckInventoryController extends BaseController {
      */
     @Before(Tx.class)
     public void delCheckInventory() {
-        String checkInventoryId =getPara("checkInventoryId");
+        String checkInventoryId = getPara("checkInventoryId");
         // 先删除盘点单详细信息
         CheckInventoryDetail.dao.delCheckInventoryDetailByCIId(checkInventoryId);
         // 删除盘点单信息
@@ -89,8 +94,8 @@ public class CheckInventoryController extends BaseController {
     /**
      * 导出盘点单（Excel）
      */
-    public void exportCheckInventory(){
-        String checkInventoryId =getPara("checkInventoryId");
+    public void exportCheckInventory() {
+        String checkInventoryId = getPara("checkInventoryId");
         List<CheckInventoryDetail> detailList = CheckInventoryDetail.dao.getCheckInventoryDetailsByCIId(checkInventoryId);
         if (detailList != null && detailList.size() > 0) {
             List<String[]> lists = new ArrayList<>();
@@ -107,17 +112,17 @@ public class CheckInventoryController extends BaseController {
                 strs[8] = detailList.get(i).getInventoryRemark();
                 lists.add(strs);
             }
-            String fileName = UUID.randomUUID().toString().replaceAll("-", "")+".xlsx";
-            String path =CommonController.FILE_PATH;
-            String title ="盘点单";
+            String fileName = UUID.randomUUID().toString().replaceAll("-", "") + ".xlsx";
+            String path = CommonController.FILE_PATH;
+            String title = "盘点单";
             Integer uid = getSessionAttr(Constant.SESSION_UID);
             User user = User.dao.findById(uid);
-            String [] headers={"商品名","规格名","规格编码","重量(斤)","库存单价","库存总额","盘点人","盘点数量","备注"};
+            String[] headers = {"商品名", "规格名", "规格编码", "重量(斤)", "库存单价", "库存总额", "盘点人", "盘点数量", "备注"};
             Map map = new HashMap();
             map.put("path", path);
             map.put("fileName", fileName);
             map.put("title", title);
-            map.put("createBy",user.getName());
+            map.put("createBy", user.getName());
             map.put("header", headers);
             map.put("listData", lists);
             try {
@@ -128,7 +133,7 @@ public class CheckInventoryController extends BaseController {
             } catch (ExcelException e) {
                 renderErrorText("导出盘点Excel异常!");
             }
-        }else {
+        } else {
             renderErrorText("该盘点单没有盘点详细记录!");
         }
     }
