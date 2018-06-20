@@ -11,14 +11,10 @@ import com.fruit.manage.util.excelRd.ExcelRdTypeEnum;
 import com.jfinal.aop.Before;
 import com.jfinal.kit.HashKit;
 import com.jfinal.plugin.activerecord.Db;
-import com.jfinal.plugin.activerecord.IAtom;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.sql.SQLException;
-import java.text.DecimalFormat;
 import java.util.*;
 
 public class CustomerController extends BaseController {
@@ -297,7 +293,7 @@ public class CustomerController extends BaseController {
      */
     public void getCustomerInfo() {
         Integer uid = getSessionAttr(Constant.SESSION_UID);
-        renderJson(BusinessUser.dao.getBusinessUsersByUid(uid));
+        renderJson(BusinessUser.dao.getBusinessUsersByAUid(uid));
     }
 
     /**
@@ -335,6 +331,9 @@ public class CustomerController extends BaseController {
             if ("2".equals(status)) {
                 // 修改成功
                 BusinessUser user = BusinessUser.dao.findById(uid);
+                // 关闭订单锁
+                user.setLock(0);
+                user.update();
                 MessageSend.sendMessage(user.getPhone(),Param.dao.getParam("message.content.approve"));
             }
             renderNull();

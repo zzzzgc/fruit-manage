@@ -89,6 +89,14 @@ public abstract class BaseBusinessUser<M extends BaseBusinessUser<M>> extends Mo
 		return getStr("ip");
 	}
 
+	public void setLock(java.lang.Integer lock) {
+		set("lock", lock);
+	}
+
+	public java.lang.Integer getLock() {
+		return getInt("lock");
+	}
+
 	public void setGrade(java.lang.Integer grade) {
 		set("grade", grade);
 	}

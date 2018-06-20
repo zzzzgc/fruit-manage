@@ -17,7 +17,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 
-import javax.sound.midi.Soundbank;
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -362,6 +361,14 @@ public class OrderController extends BaseController {
             order.update();
         } else {
             //添加,并校验是否存在相同订单周期的订单.这时候物流信息还没出来,不能统计订单总货款 pay_all_price
+
+            // 订单锁拦截器
+            BusinessUser user = BusinessUser.dao.findById(businessUserId);
+            Integer lock = user.getLock();
+            if (lock == 1) {
+                renderErrorText("用户下单功能已被锁，请联系运营或销售解锁");
+                return;
+            }
 
             String orderId = IdUtil.getOrderId(orderCycle, businessUserId);
             Order nowOrder = Order.dao.getOrder(orderId);

@@ -32,7 +32,7 @@ public class BusinessUser extends BaseBusinessUser<BusinessUser> {
      *
      * @param uid
      */
-    public List<BusinessUser> getBusinessUsersByUid(Integer uid) {
+    public List<BusinessUser> getBusinessUsersByAUid(Integer uid) {
         // 销售只能获取自己的客户,其他人能获取全部,但是其他人除了超级管理员都不能调用这个方法,因为权限控制.
         String sql = "SELECT  " +
                 "u.`name` AS business_user_name,  " +
