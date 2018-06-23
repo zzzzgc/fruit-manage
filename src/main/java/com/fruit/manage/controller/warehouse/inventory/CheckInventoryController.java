@@ -6,12 +6,14 @@ import com.fruit.manage.model.CheckInventory;
 import com.fruit.manage.model.CheckInventoryDetail;
 import com.fruit.manage.model.User;
 import com.fruit.manage.model.WarehouseLog;
+import com.fruit.manage.service.WarehouseService;
 import com.fruit.manage.util.Constant;
 import com.fruit.manage.util.DateAndStringFormat;
 import com.fruit.manage.util.ExcelCommon;
 import com.fruit.manage.util.IdUtil;
 import com.fruit.manage.util.excel.ExcelException;
 import com.jfinal.aop.Before;
+import com.jfinal.ext.kit.DateKit;
 import com.jfinal.log.Logger;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException;
@@ -26,6 +28,8 @@ import java.util.*;
  */
 public class CheckInventoryController extends BaseController {
     private Logger logger = Logger.getLogger(CheckInventoryController.class);
+
+    private static final WarehouseService warehouseService = new WarehouseService();
 
     /**
      * 根据条件查询获取带分页的仓库日志信息
@@ -47,10 +51,13 @@ public class CheckInventoryController extends BaseController {
      */
     @Before(Tx.class)
     public void addCheckInventory() {
+        Integer userId = getSessionAttr(Constant.SESSION_UID);
+        User user = User.dao.findById(userId);
         Date orderClcyleDate = getParaToDate("pPlanDate");
         if (orderClcyleDate == null) {
             orderClcyleDate = new Date();
         }
+        String orderClcyleDateStr = getPara("pPlanDate");
         String CIDId = IdUtil.getCheckInventoryIdByDate(orderClcyleDate);
         CheckInventory checkInventories = CheckInventory.dao.findById(CIDId);
         if (checkInventories == null) {
@@ -60,6 +67,8 @@ public class CheckInventoryController extends BaseController {
             checkInventory.setOrderCycleDate(orderClcyleDate);
             checkInventory.save();
             renderNull();
+            // 更新盘点单详细信息
+            warehouseService.updateCheckInventoryDetail(orderClcyleDateStr,user.getNickName());
             return;
         }
         renderErrorText("重复创建盘点单！");

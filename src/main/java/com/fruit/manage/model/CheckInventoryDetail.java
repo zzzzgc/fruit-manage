@@ -1,11 +1,16 @@
 package com.fruit.manage.model;
 
 import com.fruit.manage.model.base.BaseCheckInventoryDetail;
+import com.fruit.manage.service.WarehouseService;
 import com.fruit.manage.util.DateAndStringFormat;
+import com.fruit.manage.util.IdUtil;
+import com.jfinal.ext.kit.DateKit;
 import com.jfinal.kit.StrKit;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Page;
+import org.apache.commons.lang3.StringUtils;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -16,121 +21,286 @@ import java.util.Map;
  */
 @SuppressWarnings("serial")
 public class CheckInventoryDetail extends BaseCheckInventoryDetail<CheckInventoryDetail> {
-	public static final CheckInventoryDetail dao = new CheckInventoryDetail().dao();
+    public static final CheckInventoryDetail dao = new CheckInventoryDetail().dao();
 
-	/**
-	 * 根据条件进行分页查询
-	 * @param pageNum
-	 * @param pageSize
-	 * @param orderBy
-	 * @param isASC
-	 * @param map
-	 * @return
-	 */
-	public Page<CheckInventoryDetail> getAllInfo(Integer pageNum, Integer pageSize, String orderBy, boolean isASC, Map map){
-		ArrayList<Object> params = new ArrayList<Object>();
-		String selectStr ="select cid.id,cid.product_id,cid.product_name,cid.product_standard_id,cid.product_standard_name, " +
-				" cid.check_inventory_id,cid.product_weight,cid.inventory_price,cid.inventory_num,cid.inventory_total_price, " +
-				" cid.user_id,cid.user_name,cid.inventory_remark,cid.create_time,cid.update_time,cid.check_inventory_num ";
-		StringBuilder sql = new StringBuilder();
-		sql.append("from b_check_inventory_detail cid ");
-		sql.append("where 1=1 ");
-		if(StrKit.notBlank((String) map.get("productName"))){
-			sql.append("and cid.product_name like ? ");
-			params.add("%"+map.get("productName")+"%");
-		}
-		if(StrKit.notBlank((String)map.get("productId"))){
-			sql.append("and cid.product_id like ? ");
-			params.add("%"+map.get("productId")+"%");
-		}
-		if(StrKit.notBlank((String)map.get("productStandardName"))){
-			sql.append("and cid.product_standard_name like ? ");
-			params.add("%"+map.get("productStandardName")+"%");
-		}
-		if(StrKit.notBlank((String)map.get("productStandardId"))){
-			sql.append("and cid.product_standard_id like ? ");
-			params.add("%"+map.get("productStandardId")+"%");
-		}
-		if(StrKit.notBlank((String) map.get("checkInventoryId"))){
-			sql.append("and cid.check_inventory_id = ? ");
-			params.add((String) map.get("checkInventoryId"));
-		}
-		if (StrKit.notBlank((String) map.get("createTime")) && !"null".equals((String) map.get("createTime"))) {
-			sql.append("and cid.create_time BETWEEN ? and ? ");
-			params.add(map.get("createTime") + " 00:00:00");
-			params.add(map.get("createTime") + " 23:59:59");
-		}
-		orderBy = StrKit.isBlank(orderBy) ? "cid.create_time" : orderBy;
-		sql.append("order by " + orderBy + " " + (isASC ? "" : "desc "));
-		return paginate(pageNum, pageSize, selectStr, sql.toString(), params.toArray());
-	}
+    /**
+     * 根据条件进行分页查询
+     *
+     * @param pageNum
+     * @param pageSize
+     * @param orderBy
+     * @param isASC
+     * @param map
+     * @return
+     */
+    public Page<CheckInventoryDetail> getAllInfo(Integer pageNum, Integer pageSize, String orderBy, boolean isASC, Map map) {
+        ArrayList<Object> params = new ArrayList<Object>();
+        String selectStr = "select cid.id,cid.product_id,cid.product_name,cid.product_standard_id,cid.product_standard_name, " +
+                " cid.check_inventory_id,cid.product_weight,cid.inventory_price,cid.inventory_num,cid.inventory_total_price, " +
+                " cid.user_id,cid.user_name,cid.inventory_remark,cid.create_time,cid.update_time,cid.check_inventory_num ";
+        StringBuilder sql = new StringBuilder();
+        sql.append("FROM  " +
+                "  b_check_inventory ci  " +
+                "  JOIN b_check_inventory_detail cid ON cid.check_inventory_id = ci.id ");
+        sql.append("where 1=1 ");
+        if (StrKit.notBlank((String) map.get("productName"))) {
+            sql.append("and cid.product_name like ? ");
+            params.add("%" + map.get("productName") + "%");
+        }
+        if (StrKit.notBlank((String) map.get("productId"))) {
+            sql.append("and cid.product_id like ? ");
+            params.add("%" + map.get("productId") + "%");
+        }
+        if (StrKit.notBlank((String) map.get("productStandardName"))) {
+            sql.append("and cid.product_standard_name like ? ");
+            params.add("%" + map.get("productStandardName") + "%");
+        }
+        if (StrKit.notBlank((String) map.get("productStandardId"))) {
+            sql.append("and cid.product_standard_id like ? ");
+            params.add("%" + map.get("productStandardId") + "%");
+        }
+        if (StrKit.notBlank((String) map.get("checkInventoryId"))) {
+            sql.append("and cid.check_inventory_id = ? ");
+            params.add((String) map.get("checkInventoryId"));
+        }
+        if (StrKit.notBlank((String) map.get("createTime")) && !"null".equals((String) map.get("createTime"))) {
+            sql.append("and ci.order_cycle_date = ?");
+            params.add(map.get("createTime"));
+        }
+        orderBy = StrKit.isBlank(orderBy) ? "cid.inventory_num" : orderBy;
+        sql.append("order by " + orderBy + " " + (isASC ? "" : "desc "));
+        return paginate(pageNum, pageSize, selectStr, sql.toString(), params.toArray());
+    }
 
-	/**
-	 * 根据盘点单编号删除盘点单详细信息
-	 * @param checkInventoryId 盘点单编号
-	 * @return
-	 */
-	public boolean delCheckInventoryDetailByCIId(String checkInventoryId) {
-		String sql = "DELETE from b_check_inventory_detail where check_inventory_id = ?";
-		if (Db.update(sql, checkInventoryId) > 0) {
-			return  true;
-		}
-		return false;
-	}
+    /**
+     * 根据盘点单编号删除盘点单详细信息
+     *
+     * @param checkInventoryId 盘点单编号
+     * @return
+     */
+    public boolean delCheckInventoryDetailByCIId(String checkInventoryId) {
+        String sql = "DELETE from b_check_inventory_detail where check_inventory_id = ?";
+        if (Db.update(sql, checkInventoryId) > 0) {
+            return true;
+        }
+        return false;
+    }
 
-	/**
-	 * 根据规格编号 盘点库编号 开始时间和结束时间获取盘点单详细信息
-	 * @param psId
-	 * @param order_cycle_date
-	 * @return
-	 */
-	public CheckInventoryDetail getCheckInventoryDetail(Integer psId,String order_cycle_date){
-		String sql="SELECT  " +
-				"  *  " +
-				"FROM  " +
-				"  b_check_inventory ci  " +
-				"JOIN b_check_inventory_detail cid ON cid.check_inventory_id = ci.id  " +
-				"WHERE  " +
-				"  ci.order_cycle_date = ?  " +
-				"AND cid.product_standard_id = ? ";
-		return findFirst(sql,order_cycle_date,psId);
-	}
+    /**
+     * 根据规格编号 盘点库编号 开始时间和结束时间获取盘点单详细信息
+     *
+     * @param psId
+     * @param order_cycle_date
+     * @return
+     */
+    public CheckInventoryDetail getCheckInventoryDetail(Integer psId, String order_cycle_date) {
+        String sql = "SELECT  " +
+                "  *  " +
+                "FROM  " +
+                "  b_check_inventory ci  " +
+                "JOIN b_check_inventory_detail cid ON cid.check_inventory_id = ci.id  " +
+                "WHERE  " +
+                "  ci.order_cycle_date = ?  " +
+                "AND cid.product_standard_id = ? ";
+        return findFirst(sql, order_cycle_date, psId);
+    }
 
-	/**
-	 * 根据规格编号、开始时间和结束时间
-	 * @param psId 规格编号
-	 * @param startTime 开始时间
-	 * @param endTime 结束时间
-	 * @return 盘点详细信息
-	 */
-	public CheckInventoryDetail getCheckInventoryDetail(Integer psId,String startTime,String endTime) {
-		String sql = "SELECT cid.id,cid.product_standard_id,cid.inventory_num,cid.inventory_total_price " +
-				"from b_check_inventory_detail cid " +
-				" INNER JOIN b_check_inventory ci on ci.id = cid.check_inventory_id " +
-				"where 1=1 " +
-				"and cid.product_standard_id =? " +
-				"and ci.order_cycle_date BETWEEN ? and ?";
-		String time= DateAndStringFormat.getNextDay(startTime, "-1");
-		return findFirst(sql, psId, time + " 00:00:00", time+ " 23:59:59");
-	}
+    /**
+     * 根据规格编号、开始时间和结束时间
+     *
+     * @param psId      规格编号
+     * @param startTime 开始时间
+     * @param endTime   结束时间
+     * @return 盘点详细信息
+     */
+    public CheckInventoryDetail getCheckInventoryDetail(Integer psId, String startTime, String endTime) {
+        String sql = "SELECT cid.id,cid.product_standard_id,cid.inventory_num,cid.inventory_total_price " +
+                "from b_check_inventory_detail cid " +
+                " INNER JOIN b_check_inventory ci on ci.id = cid.check_inventory_id " +
+                "where 1=1 " +
+                "and cid.product_standard_id =? " +
+                "and ci.order_cycle_date BETWEEN ? and ?";
+        String time = DateAndStringFormat.getNextDay(startTime, "-1");
+        return findFirst(sql, psId, time + " 00:00:00", time + " 23:59:59");
+    }
 
-	/**
-	 * 根据盘点编号获取盘点详细信息
-	 * @param checkInventoryId
-	 * @return
-	 */
-	public List<CheckInventoryDetail> getCheckInventoryDetailsByCIId(String checkInventoryId) {
-		String sql = "SELECT * from b_check_inventory_detail cid where cid.check_inventory_id = ? ";
-		return find(sql, checkInventoryId);
-	}
+    /**
+     * 根据盘点编号获取盘点详细信息
+     *
+     * @param checkInventoryId
+     * @return
+     */
+    public List<CheckInventoryDetail> getCheckInventoryDetailsByCIId(String checkInventoryId) {
+        String sql = "SELECT * from b_check_inventory_detail cid where cid.check_inventory_id = ? ";
+        return find(sql, checkInventoryId);
+    }
 
-	/**
-	 * 根据Id获取盘点单详细信息
-	 * @param id
-	 * @return
-	 */
-	public CheckInventoryDetail getCheckInventoryDetailById(String id) {
-		String sql = "SELECT * from b_check_inventory_detail  where id = ?";
-		return findFirst(sql, id);
-	}
+    /**
+     * 根据Id获取盘点单详细信息
+     *
+     * @param id
+     * @return
+     */
+    public CheckInventoryDetail getCheckInventoryDetailById(String id) {
+        String sql = "SELECT * from b_check_inventory_detail  where id = ?";
+        return findFirst(sql, id);
+    }
+
+    /**
+     * 新增盘点详细表记录
+     *
+     * @param productStandardId
+     * @param productName
+     * @param productStandardName
+     * @param productId
+     * @param inventoryRemark
+     * @param checkInventoryId
+     * @param inventoryTotalPrice
+     * @param checkInventoryNum
+     * @param productWeight
+     * @param userName
+     * @param userId
+     * @param inventoryNum
+     * @param inventoryPrice
+     * @return
+     */
+    public CheckInventoryDetail addCheckInventoryDetail(String checkInventoryDetailId,Integer productStandardId, String productName, String productStandardName, Integer productId, String inventoryRemark, String checkInventoryId, BigDecimal inventoryTotalPrice, Integer checkInventoryNum, String productWeight, String userName, Integer userId, Integer inventoryNum, BigDecimal inventoryPrice) {
+        CheckInventoryDetail checkInventoryDetail = new CheckInventoryDetail();
+        checkInventoryDetail.setId(checkInventoryDetailId);
+        checkInventoryDetail.setProductWeight(productWeight);
+        checkInventoryDetail.setUserId(userId);
+        checkInventoryDetail.setUserName(userName);
+        checkInventoryDetail.setInventoryNum(inventoryNum);
+        checkInventoryDetail.setProductName(productName);
+        checkInventoryDetail.setProductId(productId);
+        checkInventoryDetail.setInventoryTotalPrice(inventoryTotalPrice);
+        checkInventoryDetail.setProductStandardName(productStandardName);
+        checkInventoryDetail.setInventoryPrice(inventoryPrice);
+        checkInventoryDetail.setProductStandardId(productStandardId);
+        checkInventoryDetail.setInventoryRemark(inventoryRemark);
+        checkInventoryDetail.setCheckInventoryNum(checkInventoryNum);
+        checkInventoryDetail.setCheckInventoryId(checkInventoryId);
+        checkInventoryDetail.setCreateTime(new Date());
+        checkInventoryDetail.setUpdateTime(new Date());
+        checkInventoryDetail.save();
+        return checkInventoryDetail;
+    }
+
+    /**
+     * 添加或修改盘点单详细表
+     * 盘点单核心逻辑
+     * @param checkInventoryId
+     * @param orderCycleDate
+     * @param yesterdayOrderCycleDateStr
+     * @param productName
+     * @param productStandardName
+     * @param productStandardId
+     * @param productWeight
+     * @param userName
+     * @param checkInventoryNum
+     * @param remark
+     * @return
+     */
+    public boolean addOrUpdateCheckInventoryDetail(String checkInventoryId, String orderCycleDate, String yesterdayOrderCycleDateStr, String productName, String productStandardName, Integer productStandardId, Integer productId, String productWeight, String userName, Integer checkInventoryNum, String remark) {
+//        String nullInfo = "";
+        Date currentTime = new Date();
+        CheckInventoryDetail nowCID = CheckInventoryDetail.dao.getCheckInventoryDetail(productStandardId, orderCycleDate);
+
+        // 最好一切重新计算.因为入库的修改会影响库存总额、数量和库存单价,出库的修改会影响库存总额和数量.
+
+        CheckInventoryDetail yesterdayCID = CheckInventoryDetail.dao.getCheckInventoryDetail(productStandardId, yesterdayOrderCycleDateStr);
+        if (yesterdayCID == null) {
+            yesterdayCID = new CheckInventoryDetail();
+            yesterdayCID.setInventoryPrice(new BigDecimal(0));
+            yesterdayCID.setInventoryTotalPrice(new BigDecimal(0));
+            yesterdayCID.setInventoryNum(0);
+        }
+        // 期中入库数量
+        Integer putInNum = WarehouseLog.dao.getCountInventorySum(0, orderCycleDate, productStandardId);
+        if (putInNum == null) {
+            putInNum = 0;
+        }
+        // 期中出库数量
+        Integer outPutNum = WarehouseLog.dao.getCountInventorySum(0, orderCycleDate, productStandardId);
+        if (outPutNum == null) {
+            outPutNum = 0;
+        }
+        // 获取入库单价
+        BigDecimal average = PutWarehouseDetail.dao.getAveragePriceByPsIdAndTime(productStandardId, orderCycleDate);
+        if (average == null) {
+            average = new BigDecimal(0);
+        }
+
+        // 最高总价  期初库存总额 + 期中入库总额     期中入库总额 = 期中入库数量 * 期中入库单价
+        BigDecimal nowTotalPrice = yesterdayCID.getInventoryTotalPrice().add(new BigDecimal(putInNum).multiply(average));
+        // 最高数量  期初库存 + 期中入库
+        BigDecimal nowTotalNum = new BigDecimal(yesterdayCID.getInventoryNum()).add(new BigDecimal(putInNum));
+        // 期末单价  最高总价 / 最高数量
+        BigDecimal inventoryAveragePrice = nowTotalNum.equals(BigDecimal.ZERO)?BigDecimal.ZERO:nowTotalPrice.divide(nowTotalNum, 2);
+        // 期末库存总额  最高总价 - 期末单价*期中出库数量
+        BigDecimal inventoryTotalPrice = nowTotalPrice.subtract(inventoryAveragePrice.multiply(new BigDecimal(outPutNum)));
+        // 期末库存数量 期初库存 + 期中差异值
+        Integer stock = yesterdayCID.getInventoryNum() + (putInNum - outPutNum);
+
+        // 添加或是修改
+        if (nowCID != null) {
+            // 已存在,需要修改
+
+            CheckInventoryDetail oldCID = CheckInventoryDetail.dao.getCheckInventoryDetailById(nowCID.getId());
+            oldCID.setCheckInventoryNum(checkInventoryNum);
+            oldCID.setInventoryRemark(remark);
+            oldCID.setInventoryPrice(inventoryAveragePrice);
+            oldCID.setInventoryTotalPrice(inventoryTotalPrice);
+            oldCID.setInventoryNum(stock);
+            oldCID.setUpdateTime(currentTime);
+            oldCID.update();
+
+            // 修改前的库存值
+            Integer inventoryNumPrimeval = oldCID.getInventoryNum();
+            // 修改后的库存差异值(因为可能有其他表单影响了库存,订正后会形成差异值)
+            Integer inventoryNumDiffer = stock - inventoryNumPrimeval;
+            // 修改后的期末库存总额差异值(因为可能有其他表单影响了库存,订正后会形成差异值)
+            BigDecimal changeInventoryTotalPrice = inventoryTotalPrice.subtract(oldCID.getInventoryTotalPrice());
+
+            CheckInventory checkInventory = CheckInventory.dao.getCheckInventoryById(nowCID.getCheckInventoryId());
+            checkInventory.setUpdateTime(currentTime);
+            checkInventory.setProductCount(checkInventory.getProductCount() + inventoryNumDiffer);
+            checkInventory.setProductTotalPrice((new BigDecimal(checkInventory.getProductTotalPrice()).add(changeInventoryTotalPrice)).doubleValue());
+            checkInventory.update();
+        } else {
+            // 不存在,需要新增
+
+//            // 根据商品规格编号获取商品编号
+//            Integer productId = ProductStandard.dao.getProductIdByPSId(productStandardId);
+
+            String checkInventoryDetailId = IdUtil.getCheckInventoryDetailId(DateKit.toDate(orderCycleDate), productStandardId);
+
+            addCheckInventoryDetail(checkInventoryDetailId,productStandardId,productName,productStandardName,productId,remark,checkInventoryId,inventoryTotalPrice,checkInventoryNum,productWeight,userName,null,stock,inventoryAveragePrice);
+//            nowCID = new CheckInventoryDetail();
+//            nowCID.setId(IdUtil.getCheckInventoryDetailId(DateKit.toDate(orderCycleDate), productStandardId));
+//            nowCID.setCheckInventoryId(checkInventoryId);
+//            nowCID.setProductId(productId);
+//            nowCID.setProductName(productName);
+//            nowCID.setProductStandardName(productStandardName);
+//            nowCID.setProductStandardId(productStandardId);
+//            nowCID.setProductWeight(productWeight);
+//            nowCID.setInventoryPrice(inventoryAveragePrice);
+//            nowCID.setInventoryTotalPrice(inventoryTotalPrice);
+//            nowCID.setUserName(userName);
+//            nowCID.setInventoryNum(stock);
+//            nowCID.setCheckInventoryNum(checkInventoryNum);
+//            nowCID.setInventoryRemark(remark);
+//            nowCID.setCreateTime(currentTime);
+//            nowCID.save();
+
+            // 根据盘点单的编号获取盘点信息
+            CheckInventory checkInventory = CheckInventory.dao.getCheckInventoryById(checkInventoryId);
+            checkInventory.setProductTotalPrice((new BigDecimal(checkInventory.getProductTotalPrice()).add(inventoryTotalPrice)).doubleValue());
+            checkInventory.setProductCount(checkInventory.getProductCount() + stock);
+            checkInventory.setUpdateTime(currentTime);
+            checkInventory.setCheckInventoryTime(currentTime);
+            checkInventory.update();
+        }
+        return true;
+    }
 }

@@ -61,4 +61,14 @@ public class CheckInventory extends BaseCheckInventory<CheckInventory> {
         String sql = "SELECT * from b_check_inventory ci where ci.id = ? ";
         return findFirst(sql, id);
     }
+
+    /**
+     * 根据业务周期获取盘点信息
+     * @param orderCycleDate 业务周期时间
+     * @return 盘点表对象
+     */
+    public CheckInventory getCheckInventoryByOrderCycleDate(String orderCycleDate) {
+        String sql = "select * from b_check_inventory ci WHERE ci.order_cycle_date = ? ";
+        return findFirst(sql, orderCycleDate);
+    }
 }
