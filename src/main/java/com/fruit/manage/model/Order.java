@@ -3,8 +3,8 @@ package com.fruit.manage.model;
 import com.fruit.manage.constant.OrderPayStatusCode;
 import com.fruit.manage.constant.OrderStatusCode;
 import com.fruit.manage.model.base.BaseOrder;
-import com.fruit.manage.util.DateUtils;
-import com.fruit.manage.util.IdUtil;
+import com.fruit.manage.util.ZhioDateUtils;
+import com.fruit.manage.util.ZhioIdUtil;
 import com.jfinal.kit.StrKit;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Page;
@@ -95,6 +95,7 @@ public class Order extends BaseOrder<Order> {
                 "\to.order_status,\n" +
                 "\to.pay_need_money,\n" +
                 "\to.pay_total_money,\n" +
+                "\to.pay_all_money,\n" +
                 "\to.pay_status,\n" +
                 "\to.pay_success,\n" +
                 "\to.create_time,\n" +
@@ -358,10 +359,10 @@ public class Order extends BaseOrder<Order> {
     public Order addOrder(Integer bUserId, Date CreateTime) {
         Order order = new Order();
         order.setUId(bUserId);
-        order.setOrderId(IdUtil.getOrderId(CreateTime,bUserId));
+        order.setOrderId(ZhioIdUtil.getOrderId(CreateTime,bUserId));
         order.setPayNeedMoney(new BigDecimal(0));
         order.setPayTotalMoney(new BigDecimal(0));
-        order.setOrderCycleDate(DateUtils.getOrderCycleDate(CreateTime));
+        order.setOrderCycleDate(ZhioDateUtils.getOrderCycleDate(CreateTime));
         order.setCreateTime(CreateTime);
         order.setUpdateTime(new Date());
         order.save();

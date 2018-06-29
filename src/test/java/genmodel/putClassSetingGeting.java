@@ -1,6 +1,6 @@
 package genmodel;
 
-import com.fruit.manage.model.CheckInventoryDetail;
+import com.fruit.manage.model.*;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -12,7 +12,7 @@ import java.util.HashMap;
  */
 public class putClassSetingGeting {
     public static void main(String[] args) throws ClassNotFoundException {
-        Class zlass = CheckInventoryDetail.class;
+        Class zlass = PutWarehouseDetail.class;
         getSetingStr(zlass);
     }
 

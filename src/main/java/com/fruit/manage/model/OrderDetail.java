@@ -2,17 +2,12 @@ package com.fruit.manage.model;
 
 import com.fruit.manage.constant.UserTypeConstant;
 import com.fruit.manage.model.base.BaseOrderDetail;
-import com.fruit.manage.util.DateUtils;
+import com.fruit.manage.util.ZhioDateUtils;
 import com.jfinal.aop.Before;
 import com.jfinal.plugin.activerecord.Db;
-import com.jfinal.plugin.activerecord.IAtom;
-import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.tx.Tx;
-import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
-import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -177,7 +172,7 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
         orderLog.setProductId(productId);
         orderLog.setProductStandardId(productStandardId);
         orderLog.setChangeNum(changeNum);
-        orderLog.setOrderCycleDate(DateUtils.getOrderCycleDate(orderCreateTime));
+        orderLog.setOrderCycleDate(ZhioDateUtils.getOrderCycleDate(orderCreateTime));
         orderLog.setOrderCreateTime(orderCreateTime);
         orderLog.setCreateTime(new Date());
         return orderLog.save();
@@ -191,7 +186,7 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
         orderLog.setProductId(productId);
         orderLog.setProductStandardId(productStandardId);
         orderLog.setChangeNum(changeNum);
-        orderLog.setOrderCycleDate(DateUtils.getOrderCycleDate(orderCreateTime));
+        orderLog.setOrderCycleDate(ZhioDateUtils.getOrderCycleDate(orderCreateTime));
         orderLog.setOrderCreateTime(orderCreateTime);
         orderLog.setCreateTime(new Date());
         return orderLog.save();

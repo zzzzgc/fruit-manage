@@ -145,7 +145,7 @@ public class SalesMarginController extends BaseController {
                 "INNER JOIN a_user AS au ON bu.a_user_sales_id = au.id  " +
                 "INNER JOIN b_business_info AS bi ON bi.u_id = bu.id  " +
                 "LEFT JOIN b_check_inventory AS ci ON ci.order_cycle_date  = o.order_cycle_date   " +
-                "LEFT JOIN b_check_inventory_detail cid ON cid.check_inventory_id = ci.id AND cid.product_standard_id = od.product_standard_id  " +
+                "LEFT JOIN b_check_inventory_detail cid ON cid.check_inventory_id = ci.id AND cid.product_standard_id = od.product_standard_id  AND cid.inventory_price <> 0 " +
                 "LEFT JOIN b_put_warehouse as pw ON pw.order_cycle_date = o.order_cycle_date  " +
                 "LEFT JOIN b_put_warehouse_detail pwd ON pwd.put_id = pw.id AND pwd.product_standard_id = od.product_standard_id  " +
                 "WHERE 1 = 1 " +

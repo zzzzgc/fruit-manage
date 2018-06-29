@@ -10,7 +10,7 @@ import java.util.Date;
  * @Author: ZGC
  * @Date Created in 14:30 2018/5/30
  */
-public class DateUtils {
+public class ZhioDateUtils {
 
     /**
      * 根据时间获取该时间段的订单周期日期
@@ -54,7 +54,7 @@ public class DateUtils {
     public static void main(String[] args) {
         Calendar instance = Calendar.getInstance();
         instance.add(Calendar.DAY_OF_MONTH,-1);
-        for (String s : DateUtils.getOrderCycleDateStrings(instance.getTime())) {
+        for (String s : ZhioDateUtils.getOrderCycleDateStrings(instance.getTime())) {
             System.out.println(s);
         }
     }

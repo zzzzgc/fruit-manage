@@ -1,21 +1,16 @@
 package com.fruit.manage.controller.procurement;
 
 import com.fruit.manage.base.BaseController;
-import com.fruit.manage.controller.common.CommonController;
 import com.fruit.manage.model.OrderLog;
 import com.fruit.manage.model.ProcurementPlan;
 import com.fruit.manage.model.ProcurementPlanDetail;
-import com.fruit.manage.model.User;
 import com.fruit.manage.util.*;
-import com.fruit.manage.util.excel.ExcelException;
 import com.jfinal.aop.Before;
-import com.jfinal.ext.kit.DateKit;
 import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import org.apache.log4j.Logger;
 
 import java.io.*;
-import java.math.BigDecimal;
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -55,7 +50,7 @@ public class PlanController extends BaseController {
         ProcurementPlan procurementPlan = ProcurementPlan.dao.getPPlanById(pPlanId);
         if (procurementPlan != null && procurementPlan.getCreateTime() != null) {
             // ccz 2018-5-31 orderCreateTime封装成通用方法
-            String[] createTimes = DateUtils.getOrderCycleDateStrings(procurementPlan.getCreateTime());
+            String[] createTimes = ZhioDateUtils.getOrderCycleDateStrings(procurementPlan.getCreateTime());
 //            String createTimeStr= DateAndStringFormat.getStringDateShort(procurementPlan.getCreateTime());
 //            String[] createTimes = new String[2];
 //            createTimes[0] = DateAndStringFormat.getNextDay(createTimeStr,"-1")+" 12:00:00";
@@ -77,8 +72,8 @@ public class PlanController extends BaseController {
      * 添加采购计划
      */
     public void addPlan() {
-        Date nowDateStr2 = DateUtils.getOrderCycleDate(new Date());
-        String[] create_time = DateUtils.getOrderCycleDateStrings(nowDateStr2);
+        Date nowDateStr2 = ZhioDateUtils.getOrderCycleDate(new Date());
+        String[] create_time = ZhioDateUtils.getOrderCycleDateStrings(nowDateStr2);
         String nowDateStr = DateAndStringFormat.getStringDateShort(nowDateStr2);
 
         // ccz 2018-5-31 orderCreateTime 封装成通用方法
@@ -109,7 +104,7 @@ public class PlanController extends BaseController {
                     // 此段日期已经有人有人下单，并重新覆盖
                     list.add(0);
                 } else {
-                    procurementPlan.setId(IdUtil.getProrementPlanId());
+                    procurementPlan.setId(ZhioIdUtil.getProrementPlanId(nowDateStr2));
                     procurementPlan.setProcurementId(getSessionAttr(Constant.SESSION_UID));
                     procurementPlan.setCreateTime(DateAndStringFormat.strToDate(nowDateStr));
                     // ccz 2018-5-30 添加订单周期时间
@@ -141,7 +136,7 @@ public class PlanController extends BaseController {
             Date createTime = getParaToDate("createTime");
 
             String createTimeStr = DateAndStringFormat.getStringDateShort(createTime);
-            String[] create_time = DateUtils.getOrderCycleDateStrings(createTime);
+            String[] create_time = ZhioDateUtils.getOrderCycleDateStrings(createTime);
             // ccz 2018-5-31 orderCreateTime封装成通用方法
 //            String[] create_time = new String[2];
 //            create_time[0] = DateAndStringFormat.getNextDay(createTimeStr, "-1") + " 12:00:00";

@@ -15,23 +15,7 @@ import java.util.Random;
  * @author partner
  * @date 2018/3/22 11:42
  */
-public class IdUtil {
-
-    /**
-     * 获取采购订单编号
-     *
-     * @return 返回采购订单编号
-     */
-    public static String getProrementPlanId() {
-        String prorementPlanId = "";
-        if (Integer.parseInt(DateAndStringFormat.getHour()) >= 12) {
-            prorementPlanId = DateAndStringFormat.getNextDay(DateAndStringFormat.getStringDateShort(new Date()), "1").replaceAll("-", "") + DateAndStringFormat.getHour() + DateAndStringFormat.getTime();
-        } else {
-            prorementPlanId = DateAndStringFormat.getStringDateLong();
-        }
-
-        return prorementPlanId;
-    }
+public class ZhioIdUtil {
 
     /**
      * 获取采购订单编号
@@ -39,8 +23,9 @@ public class IdUtil {
      * @return 返回采购订单编号
      */
     public static String getProrementPlanId(Date ordercycleDate) {
-        return DateKit.toStr(ordercycleDate,"yyyyMMddHHmm") + RandomKit.smsAuthCode(1);
+        return DateKit.toStr(ordercycleDate,"yyyyMMdd") + RandomKit.random(100,999);
     }
+
 
     /**
      * 创建订单周期订单号(b_order的order_id)
@@ -99,6 +84,6 @@ public class IdUtil {
     }
 
     public static void main(String[] args) {
-        System.out.println(getProrementPlanId());
+        System.out.println(DateKit.toStr(new Date(),"yyyyMMdd") + RandomKit.random(100,999));
     }
 }

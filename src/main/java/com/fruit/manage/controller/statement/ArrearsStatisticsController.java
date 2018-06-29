@@ -57,7 +57,7 @@ public class ArrearsStatisticsController extends BaseController {
         Map map = new HashMap<>();
         Page<Record> paginate = Db.paginate(pageNum, pageSize, select, sqlExceptSelect.toString(),list.toArray());
         paginate.getList().stream().forEach(record -> {
-                    bigDecimalsArrearageTotal.add(record.getBigDecimal("arrearage_total"));
+//                    bigDecimalsArrearageTotal.add(record.getBigDecimal("arrearage_total"));
                     bigDecimalsArrearage.add(record.getBigDecimal("arrearage"));
                 }
         );
@@ -65,11 +65,11 @@ public class ArrearsStatisticsController extends BaseController {
         BigDecimal arrearageTotalCount = new BigDecimal(0);
         for (int i = 0; i < bigDecimalsArrearage.size(); i++) {
             arrearageCount = arrearageCount.add(bigDecimalsArrearage.get(i));
-            arrearageTotalCount = arrearageTotalCount.add(bigDecimalsArrearageTotal.get(i));
+//            arrearageTotalCount = arrearageTotalCount.add(bigDecimalsArrearageTotal.get(i));
         }
         map.put("pageData", paginate);
         map.put("arrearageCount", arrearageCount);
-        map.put("arrearageTotalCount", arrearageTotalCount);
+//        map.put("arrearageTotalCount", arrearageTotalCount);
         renderJson(map);
     }
 

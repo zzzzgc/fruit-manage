@@ -6,8 +6,7 @@ import com.fruit.manage.controller.common.CommonController;
 import com.fruit.manage.model.*;
 import com.fruit.manage.util.Constant;
 import com.fruit.manage.util.DateAndStringFormat;
-import com.fruit.manage.util.DateUtils;
-import com.fruit.manage.util.IdUtil;
+import com.fruit.manage.util.ZhioDateUtils;
 import com.fruit.manage.util.excelRd.ExcelRd;
 import com.fruit.manage.util.excelRd.ExcelRdException;
 import com.fruit.manage.util.excelRd.ExcelRdRow;
@@ -17,7 +16,6 @@ import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.IAtom;
 import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.tx.Tx;
-import com.jfinal.upload.UploadFile;
 import org.apache.log4j.Logger;
 
 import java.io.File;
@@ -91,7 +89,7 @@ public class PlanDetailController extends BaseController {
         
         Date createTime = getParaToDate("createTime");
         // ccz 2018-5-31 orderCreateTime 封装成通用方法
-        String[] createTimes = DateUtils.getOrderCycleDateStrings(createTime);
+        String[] createTimes = ZhioDateUtils.getOrderCycleDateStrings(createTime);
 //        String createTimeStr = DateAndStringFormat.getStringDateShort(createTime);
 //        String[] createTimes = new String[2];
 //        createTimes[0] = DateAndStringFormat.getNextDay(createTimeStr, "-1") + " 12:00:00";

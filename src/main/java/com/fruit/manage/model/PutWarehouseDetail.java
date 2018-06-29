@@ -105,7 +105,7 @@ public class PutWarehouseDetail extends BasePutWarehouseDetail<PutWarehouseDetai
      * @param procurementId
      * @return
      */
-    public PutWarehouseDetail getPutDetailByPSIDAndProcurementId(Integer psId, Integer procurementId, String startTime, String endTime, Integer putId) {
+    public PutWarehouseDetail getPutDetailByPSIDAndProcurementId(Integer psId, Integer procurementId, Integer putId) {
         StringBuilder sql = new StringBuilder();
         sql.append("select pwd.id,pwd.product_name,pwd.procurement_id,pwd.product_id,pwd.product_standard_name, ");
         sql.append("pwd.product_standard_id,pwd.product_weight,pwd.procurement_price,pwd.procurement_total_price, ");
@@ -113,7 +113,6 @@ public class PutWarehouseDetail extends BasePutWarehouseDetail<PutWarehouseDetai
         sql.append("pwd.put_remark,pwd.create_time,pwd.update_time,pwd.put_id ");
         sql.append("from b_put_warehouse_detail pwd  ");
         sql.append("where pwd.product_standard_id= ? and pwd.procurement_id = ?  and pwd.put_id = ? ");
-        // sql.append("and pwd.create_time BETWEEN ? and ? ");
         return findFirst(sql.toString(), psId, procurementId, putId);
     }
 
@@ -168,5 +167,31 @@ public class PutWarehouseDetail extends BasePutWarehouseDetail<PutWarehouseDetai
                 "AND pw.order_cycle_date = ?  " +
                 "AND pwd.product_standard_id = ? ";
         return Db.queryBigDecimal(sql, orderCycleDate, psId);
+    }
+
+    /**
+     * 添加入库详细
+     * @return
+     */
+    public PutWarehouseDetail addPutWarehouseDetail(Integer productStandardId,String productName,String productStandardName,Integer productId,String procurementName,BigDecimal procurementPrice,Integer putNum,String putRemark,BigDecimal putAveragePrice,BigDecimal procurementTotalPrice,Integer procurementId,BigDecimal boothCost,String productWeight,Integer putId) {
+        PutWarehouseDetail putWarehouseDetail = new PutWarehouseDetail();
+        putWarehouseDetail.setProductName(productName);
+        putWarehouseDetail.setProductId(productId);
+        putWarehouseDetail.setProductWeight(productWeight);
+        putWarehouseDetail.setProcurementId(procurementId);
+        putWarehouseDetail.setBoothCost(boothCost);
+        putWarehouseDetail.setProcurementPrice(procurementPrice);
+        putWarehouseDetail.setProcurementTotalPrice(procurementTotalPrice);
+        putWarehouseDetail.setProductStandardId(productStandardId);
+        putWarehouseDetail.setProductStandardName(productStandardName);
+        putWarehouseDetail.setProcurementName(procurementName);
+        putWarehouseDetail.setPutAveragePrice(putAveragePrice);
+        putWarehouseDetail.setPutRemark(putRemark);
+        putWarehouseDetail.setPutNum(putNum);
+        putWarehouseDetail.setPutId(putId);
+        putWarehouseDetail.setUpdateTime(new Date());
+        putWarehouseDetail.setCreateTime(new Date());
+        putWarehouseDetail.save();
+        return putWarehouseDetail;
     }
 }

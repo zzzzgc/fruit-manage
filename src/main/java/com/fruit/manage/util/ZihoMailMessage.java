@@ -4,7 +4,7 @@ package com.fruit.manage.util;
  * @author partner
  * @date 2018/5/24 19:54
  */
-public class MailMessage {
+public class ZihoMailMessage {
     private String id;
     private String subject;
     private String content;

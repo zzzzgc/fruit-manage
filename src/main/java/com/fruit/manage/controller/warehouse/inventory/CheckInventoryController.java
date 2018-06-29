@@ -5,21 +5,15 @@ import com.fruit.manage.controller.common.CommonController;
 import com.fruit.manage.model.CheckInventory;
 import com.fruit.manage.model.CheckInventoryDetail;
 import com.fruit.manage.model.User;
-import com.fruit.manage.model.WarehouseLog;
 import com.fruit.manage.service.WarehouseService;
 import com.fruit.manage.util.Constant;
-import com.fruit.manage.util.DateAndStringFormat;
 import com.fruit.manage.util.ExcelCommon;
-import com.fruit.manage.util.IdUtil;
+import com.fruit.manage.util.ZhioIdUtil;
 import com.fruit.manage.util.excel.ExcelException;
 import com.jfinal.aop.Before;
-import com.jfinal.ext.kit.DateKit;
 import com.jfinal.log.Logger;
 import com.jfinal.plugin.activerecord.tx.Tx;
-import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException;
-import org.apache.xmlbeans.impl.piccolo.util.DuplicateKeyException;
 
-import java.sql.SQLException;
 import java.util.*;
 
 /**
@@ -58,7 +52,7 @@ public class CheckInventoryController extends BaseController {
             orderClcyleDate = new Date();
         }
         String orderClcyleDateStr = getPara("pPlanDate");
-        String CIDId = IdUtil.getCheckInventoryIdByDate(orderClcyleDate);
+        String CIDId = ZhioIdUtil.getCheckInventoryIdByDate(orderClcyleDate);
         CheckInventory checkInventories = CheckInventory.dao.findById(CIDId);
         if (checkInventories == null) {
             CheckInventory checkInventory = new CheckInventory();

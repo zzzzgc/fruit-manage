@@ -199,7 +199,7 @@ public class CheckInventoryDetailController extends BaseController {
             checkInventory.setUpdateTime(currentTime);
             // 修改盘点单的商品数量
             checkInventory.setProductCount(checkInventory.getProductCount() + inventoryNumDiffer);
-            checkInventory.setProductTotalPrice((new BigDecimal(checkInventory.getProductTotalPrice()).add(inventoryTotalPriceDiffer)).doubleValue());
+            checkInventory.setProductTotalPrice((checkInventory.getProductTotalPrice().add(inventoryTotalPriceDiffer)));
             checkInventory.update();
         }
     }

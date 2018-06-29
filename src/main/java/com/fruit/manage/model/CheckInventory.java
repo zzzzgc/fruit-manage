@@ -5,7 +5,9 @@ import com.jfinal.kit.StrKit;
 import com.jfinal.plugin.activerecord.Page;
 import org.apache.commons.lang3.ArrayUtils;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Map;
 
 /**
@@ -71,4 +73,25 @@ public class CheckInventory extends BaseCheckInventory<CheckInventory> {
         String sql = "select * from b_check_inventory ci WHERE ci.order_cycle_date = ? ";
         return findFirst(sql, orderCycleDate);
     }
+
+    /**
+     * 新增盘点单
+     * @return
+     */
+    public CheckInventory addCheckInventory(String id,BigDecimal productTotalPrice, Integer productCount, Date checkInventoryTime, Date orderCycleDate, Integer warehouseId, String warehouseName) {
+        CheckInventory checkInventory = new CheckInventory();
+        checkInventory.setId(id);
+        checkInventory.setWarehouseName(warehouseName);
+        checkInventory.setProductCount(productCount);
+        checkInventory.setWarehouseId(warehouseId);
+        checkInventory.setProductTotalPrice(productTotalPrice);
+        checkInventory.setOrderCycleDate(orderCycleDate);
+        checkInventory.setCheckInventoryTime(checkInventoryTime);
+        checkInventory.setUpdateTime(new Date());
+        checkInventory.setCreateTime(new Date());
+        checkInventory.save();
+        return checkInventory;
+    }
+
+
 }

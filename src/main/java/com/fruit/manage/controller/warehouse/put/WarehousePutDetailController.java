@@ -94,153 +94,132 @@ public class WarehousePutDetailController extends BaseController {
         Db.tx(new IAtom() {
             @Override
             public boolean run() throws SQLException {
-                Integer tableIndex = 0;
-                Integer rowIndex = 1;
+                Date currentTime = new Date();
+                int tableIndex = 0;
+                int rowIndex = 0;
                 try {
                     String fileName = getPara("fileName");
-                    Integer putId = getParaToInt("putId");
                     String filePath = CommonController.FILE_PATH + File.separator + fileName;
-                    // 入库总数量
-                    BigDecimal putAllCount = new BigDecimal(0);
-                    // 入库类型总数量
-                    Map<Integer, String> putAllTypeCount = new HashMap<>();
-                    // 入库总费用
-                    BigDecimal putAllTotalCost = new BigDecimal(0);
-                    Date currentTime = new Date();
-                    String startTime = null;
-                    String endTime = null;
-//        Iterator<ExcelRdRow> iterator = WarehousePutDetailController.readExcel(filePath).iterator();
-                    List<List<ExcelRdRow>> listExcelRdRows = readExcelMultiTable(filePath);
-                    String createTimeStr=null;
-                    for (int i = 0; i < listExcelRdRows.size(); i++) {
-                        Iterator<ExcelRdRow> iterator = listExcelRdRows.get(i).iterator();
-                        Integer count = 0;
-                        tableIndex++;
-                        rowIndex=1;
-                        while (iterator.hasNext()) {
-                            rowIndex++;
-                            count++;
-                            ExcelRdRow excelRdRow = iterator.next();
-                            List<Object> list = excelRdRow.getRow();
-                            if (count == 1 && i == 0) {
-                                createTimeStr = ((String) list.get(0)).split(" ")[0].substring(5);
-                                startTime = createTimeStr + " 00:00:00";
-                                endTime = createTimeStr + " 23:59:59";
+                    String orderCycleDateStr = getPara("order_cycle_date");
+                    Integer putId = getParaToInt("putId");
+
+                    List<List<ExcelRdRow>> sheets = readExcelMultiTable(filePath);
+                    for (tableIndex = 0; tableIndex < sheets.size(); tableIndex++) {
+                        List<ExcelRdRow> excelRdRows = sheets.get(tableIndex);
+
+                        // 初始化,用来重新计算总额的
+                        PutWarehouse putWarehouse = PutWarehouse.dao.getPutWarehouseById(putId);
+                        putWarehouse.setPutTotalPrice(new BigDecimal(0));
+                        putWarehouse.setPutNum(0);
+                        putWarehouse.setPutTypeNum(0);
+
+                        for (rowIndex = 3; rowIndex < excelRdRows.size(); rowIndex++) {
+                            List<Object> row = excelRdRows.get(rowIndex).getRow();
+                            String productName = row.get(0) + "";
+                            String productStandardName = row.get(1) + "";
+                            Integer productStandardId = Integer.parseInt(row.get(2) + "");
+                            String product_weight = row.get(3) + "";
+                            BigDecimal boothCost = row.get(6) == null || "".equals(row.get(6) + "") ? new BigDecimal(0) : new BigDecimal(Double.parseDouble(row.get(6) + ""));
+                            Integer putInNum = Integer.parseInt(row.get(7) + "");
+                            if (putInNum < 1) {
+                                continue;
                             }
+                            String procurementName = row.get(8) + "";
+                            Integer procurementId = User.dao.getUserIdByName(procurementName + "");
 
-                            if (count > 2) {
-                                // ccz 2018-04-25 startTime endTime 暂时无用
-//                    String procurementName = User.dao.getNickNameById(Integer.parseInt(list.get(8)+""));
-                                String procurementName = list.get(8) + "";
-                                Integer procurementId = User.dao.getUserIdByName(procurementName + "");
-//                    PutWarehouseDetail putWarehouseDetail = PutWarehouseDetail.dao.getPutDetailByPSIDAndProcurementId(Integer.parseInt((list.get(2)) + ""), Integer.parseInt((list.get(8)) + ""), startTime, endTime, putId);
-                                PutWarehouseDetail putWarehouseDetail = PutWarehouseDetail.dao.getPutDetailByPSIDAndProcurementId(Integer.parseInt((list.get(2)) + ""), procurementId, startTime, endTime, putId);
-                                Integer productStandardId = Integer.parseInt(list.get(2) + "");
-                                ProcurementPlanDetail procurementPlanDetail = ProcurementPlanDetail.dao.getProcurementPlanDetail(createTimeStr, productStandardId, procurementId);
-                                if (procurementPlanDetail == null) {
-                                    excelRenderErrorInfo(tableIndex,rowIndex,"不存在该采购记录信息，无法获取采购价格!");
-                                    return false;
-//                                    procurementPlanDetail = new ProcurementPlanDetail();
-//                                    procurementPlanDetail.setProcurementNeedPrice(new BigDecimal(0));
-                                }
-                                Integer putInNum = Integer.parseInt(list.get(7) + "");
-                                BigDecimal boothCost = new BigDecimal(list.get(6) + "");
-
-                                if (putWarehouseDetail == null) {
-                                    putWarehouseDetail = new PutWarehouseDetail();
-                                    // 计算总价和入库单价
-                                    BigDecimal procurementPrice = procurementPlanDetail.getProcurementNeedPrice();
-                                    BigDecimal putNum = new BigDecimal(putInNum);
-                                    BigDecimal procurementTotalPrice = procurementPrice.multiply(putNum);
-                                    putAllCount = putAllCount.add(putNum);
-                                    putAllTypeCount.put(productStandardId, "countNeed");
-                                    // 弃用
-                                    putAllTotalCost = putAllTotalCost.add(procurementTotalPrice.add(boothCost));
-                                    if (BigDecimal.ZERO.compareTo(putNum) == 0) {
-                                        continue;
-                                    }
-                                    //入库单价 = （入库总价+摊位费）/ 入库数量
-                                    BigDecimal averagePrice = (procurementTotalPrice.add(boothCost)).divide(putNum, 2, BigDecimal.ROUND_HALF_DOWN);
-
-                                    // 根据商品规格编号获取商品编号
-                                    Integer productId = ProductStandard.dao.getProductIdByPSId(productStandardId);
-                                    putWarehouseDetail.setProductId(productId);
-                                    //给入库详细信息赋值
-                                    putWarehouseDetail.setProductName(list.get(0) + "");
-                                    putWarehouseDetail.setProductStandardName(list.get(1) + "");
-                                    putWarehouseDetail.setProductStandardId(productStandardId);
-                                    putWarehouseDetail.setProductWeight(list.get(3)==null?"":(list.get(3)+""));
-                                    putWarehouseDetail.setProcurementPrice(procurementPrice);
-                                    putWarehouseDetail.setProcurementTotalPrice(procurementTotalPrice);
-                                    putWarehouseDetail.setBoothCost(boothCost);
-                                    putWarehouseDetail.setPutNum(putInNum);
-                                    putWarehouseDetail.setProcurementId(procurementId);
-                                    putWarehouseDetail.setPutAveragePrice(averagePrice);
-                                    putWarehouseDetail.setPutId(putId);
-                                    putWarehouseDetail.setCreateTime(currentTime);
-                                    putWarehouseDetail.setProcurementName(procurementName);
-                                    putWarehouseDetail.save();
-
-                                    // 根据商品规格编号修改商品规格的库存量
-                                    updateProductStandardStore(putWarehouseDetail.getProductStandardId(), putWarehouseDetail.getPutNum(), putWarehouseDetail.getProductStandardName(), putWarehouseDetail.getProductId(), putWarehouseDetail.getProductName());
-
-                                    PutWarehouse putWarehouse = PutWarehouse.dao.getPutWarehouseById(putId);
-                                    putWarehouse.setPutTime(currentTime);
-                                    putWarehouse.setUpdateTime(currentTime);
-                                    putWarehouse.setPutNum(putAllCount.intValue());
-                                    putWarehouse.setPutTypeNum(putAllTypeCount.size());
-                                    putWarehouse.setPutTotalPrice(putWarehouse.getPutTotalPrice().add(procurementTotalPrice).add(boothCost));
-                                    putWarehouse.update();
-                                } else {
-                                    // 执行修改操作
-                                    BigDecimal putNumUpdate = new BigDecimal(putInNum);
-                                    if (putNumUpdate!=null && putNumUpdate.intValue() <=0) {
-                                        continue;
-                                    }
-//                                    BigDecimal procurementTotalPrice = putNumUpdate.multiply(putWarehouseDetail.getProcurementPrice());
-                                    BigDecimal procurementTotalPrice = putNumUpdate.multiply(procurementPlanDetail.getProcurementNeedPrice());
-                                    // PutNum相差的值
-                                    Integer differPutNum = putWarehouseDetail.getPutNum() - putNumUpdate.intValue();
-                                    // 摊位分相差值
-                                    BigDecimal differBoothCost = putWarehouseDetail.getBoothCost().subtract(boothCost);
-                                    // 入库数量的相差值
-                                    BigDecimal differPutTotalPrice = (putWarehouseDetail.getProcurementPrice().multiply(new BigDecimal(putWarehouseDetail.getPutNum()))).subtract(putWarehouseDetail.getProcurementPrice().multiply(putNumUpdate));
-
-                                    putWarehouseDetail.setPutNum(putNumUpdate.intValue());
-                                    putWarehouseDetail.setProcurementTotalPrice(procurementTotalPrice);
-
-                                    putWarehouseDetail.setPutAveragePrice((procurementTotalPrice.add(boothCost)).divide(putNumUpdate, 2, BigDecimal.ROUND_HALF_DOWN));
-                                    putWarehouseDetail.setUpdateTime(new Date());
-                                    putWarehouseDetail.setProcurementId(procurementId);
-                                    putWarehouseDetail.setProductWeight(list.get(3)==null?"":(list.get(3)+ ""));
-                                    putWarehouseDetail.setProcurementPrice(procurementPlanDetail.getProcurementNeedPrice());
-                                    putWarehouseDetail.setProcurementTotalPrice(procurementPlanDetail.getProcurementNeedPrice().multiply(new BigDecimal(putNumUpdate.intValue())));
-                                    putWarehouseDetail.setBoothCost(boothCost);
-                                    putWarehouseDetail.setProcurementName(procurementName);
-                                    putWarehouseDetail.update();
-
-                                    // 根据商品规格编号修改商品规格的库存量
-                                    updateProductStandardStore(putWarehouseDetail.getProductStandardId(), differPutNum.intValue(), putWarehouseDetail.getProductStandardName(), putWarehouseDetail.getProductId(), putWarehouseDetail.getProductName());
-
-                                    PutWarehouse putWarehouse = PutWarehouse.dao.getPutWarehouseById(putWarehouseDetail.getPutId());
-                                    putWarehouse.setPutNum(putWarehouse.getPutNum() - differPutNum);
-                                    putWarehouse.setUpdateTime(new Date());
-                                    // 计算修改了之后总价的价格修改
-                                    putWarehouse.setPutTotalPrice((putWarehouse.getPutTotalPrice().subtract(differBoothCost)).subtract(differPutTotalPrice));
-                                    putWarehouse.update();
-                                }
+                            ProcurementPlanDetail procurementPlanDetail = ProcurementPlanDetail.dao.getProcurementPlanDetail(orderCycleDateStr, productStandardId, procurementId);
+                            if (procurementPlanDetail == null) {
+                                excelRenderErrorInfo(tableIndex, rowIndex, "不存在该采购记录信息，无法获取采购价格!");
+                                return false;
                             }
+                            PutWarehouseDetail putWarehouseDetail = addAndUpdatePutWarehouseDetail(putId, productName, productStandardName, productStandardId, product_weight, boothCost, putInNum, procurementName, procurementId, procurementPlanDetail);
+                            if (putWarehouseDetail == null) {
+                                continue;
+                            }
+                            putWarehouse.setPutTime(currentTime);
+                            putWarehouse.setUpdateTime(currentTime);
+                            putWarehouse.setPutNum(putWarehouse.getPutNum() + putWarehouseDetail.getPutNum());
+                            putWarehouse.setPutTypeNum(putWarehouse.getPutTypeNum() + 1);
+                            putWarehouse.setPutTotalPrice(putWarehouse.getPutTotalPrice().add(putWarehouseDetail.getProcurementTotalPrice()).add(boothCost));
                         }
-
+                        putWarehouse.update();
                     }
                     renderNull();
                     return true;
                 } catch (Exception e) {
                     // 弹出错误信息
-                    excelRenderErrorInfo(tableIndex,rowIndex,e.getMessage());
+                    excelRenderErrorInfo(tableIndex, rowIndex, e.getMessage());
                     e.printStackTrace();
                     return false;
                 }
+            }
+
+            private PutWarehouseDetail addAndUpdatePutWarehouseDetail(Integer putId, String productName, String productStandardName, Integer productStandardId, String product_weight, BigDecimal boothCost, Integer putInNum, String procurementName, Integer procurementId, ProcurementPlanDetail procurementPlanDetail) {
+                Date currentTime = new Date();
+                PutWarehouseDetail putWarehouseDetail = PutWarehouseDetail.dao.getPutDetailByPSIDAndProcurementId(productStandardId, procurementId, putId);
+                if (putWarehouseDetail == null) {
+                    //执行新增操作
+
+                    // 计算总价和入库单价
+                    BigDecimal procurementPrice = procurementPlanDetail.getProcurementNeedPrice();
+                    BigDecimal putNum = new BigDecimal(putInNum);
+                    BigDecimal procurementTotalPrice = procurementPrice.multiply(putNum);
+                    if (BigDecimal.ZERO.compareTo(putNum) == 0) {
+                        return null;
+                    }
+                    //入库单价 = （入库总价+摊位费）/ 入库数量
+                    BigDecimal averagePrice = (procurementTotalPrice.add(boothCost)).divide(putNum, 2, BigDecimal.ROUND_HALF_DOWN);
+
+                    // 根据商品规格编号获取商品编号
+                    Integer productId = ProductStandard.dao.getProductIdByPSId(productStandardId);
+                    //给入库详细信息赋值
+                    putWarehouseDetail = new PutWarehouseDetail();
+                    putWarehouseDetail.setProductId(productId);
+                    putWarehouseDetail.setProductName(productName);
+                    putWarehouseDetail.setProductStandardName(productStandardName);
+                    putWarehouseDetail.setProductStandardId(productStandardId);
+                    putWarehouseDetail.setProductWeight(product_weight);
+                    putWarehouseDetail.setProcurementPrice(procurementPrice);
+                    putWarehouseDetail.setProcurementTotalPrice(procurementTotalPrice);
+                    putWarehouseDetail.setBoothCost(boothCost);
+                    putWarehouseDetail.setPutNum(putInNum);
+                    putWarehouseDetail.setProcurementId(procurementId);
+                    putWarehouseDetail.setPutAveragePrice(averagePrice);
+                    putWarehouseDetail.setPutId(putId);
+                    putWarehouseDetail.setCreateTime(currentTime);
+                    putWarehouseDetail.setProcurementName(procurementName);
+                    putWarehouseDetail.save();
+
+                    // 根据商品规格编号修改商品规格的库存量
+                    updateProductStandardStore(putWarehouseDetail.getProductStandardId(), putWarehouseDetail.getPutNum(), putWarehouseDetail.getProductStandardName(), putWarehouseDetail.getProductId(), putWarehouseDetail.getProductName());
+                } else {
+                    // 执行修改操作
+
+                    BigDecimal putNumUpdate = new BigDecimal(putInNum);
+                    if (putNumUpdate != null && putNumUpdate.intValue() <= 0) {
+                        return null;
+                    }
+                    BigDecimal procurementTotalPrice = putNumUpdate.multiply(procurementPlanDetail.getProcurementNeedPrice());
+
+                    putWarehouseDetail.setPutNum(putNumUpdate.intValue());
+                    putWarehouseDetail.setProcurementTotalPrice(procurementTotalPrice);
+                    putWarehouseDetail.setPutAveragePrice((procurementTotalPrice.add(boothCost)).divide(putNumUpdate, 2, BigDecimal.ROUND_HALF_DOWN));
+                    putWarehouseDetail.setUpdateTime(new Date());
+                    putWarehouseDetail.setProcurementId(procurementId);
+                    putWarehouseDetail.setProductWeight(product_weight);
+                    putWarehouseDetail.setProcurementPrice(procurementPlanDetail.getProcurementNeedPrice());
+                    putWarehouseDetail.setProcurementTotalPrice(procurementPlanDetail.getProcurementNeedPrice().multiply(new BigDecimal(putNumUpdate.intValue())));
+                    putWarehouseDetail.setBoothCost(boothCost);
+                    putWarehouseDetail.setProcurementName(procurementName);
+                    putWarehouseDetail.update();
+
+                    // 入库差异值
+                    Integer differPutNum = putWarehouseDetail.getPutNum() - putNumUpdate.intValue();
+
+                    // 根据商品规格编号修改商品规格的库存量
+                    updateProductStandardStore(putWarehouseDetail.getProductStandardId(), differPutNum.intValue(), putWarehouseDetail.getProductStandardName(), putWarehouseDetail.getProductId(), putWarehouseDetail.getProductName());
+                }
+                return putWarehouseDetail;
             }
         });
     }
@@ -253,11 +232,7 @@ public class WarehousePutDetailController extends BaseController {
      * @param errorMsg
      */
     public void excelRenderErrorInfo(Integer tableIndex, Integer rowIndex, String errorMsg) {
-        if (tableIndex == 0) {
-            renderErrorText(errorMsg);
-        } else {
-            renderErrorText("第" + tableIndex + "张表，第" + rowIndex + "行数据出现异常\n异常信息是：" + errorMsg);
-        }
+            renderErrorText("第" + (tableIndex+1) + "张表，第" + (rowIndex+1) + "行数据出现异常，异常信息是：" + errorMsg);
     }
 
     /**
@@ -279,7 +254,7 @@ public class WarehousePutDetailController extends BaseController {
                 ExcelRdTypeEnum.INTEGER
         };
         ExcelRd excelRd = new ExcelRd(filePath);
-        excelRd.setStartRow(1);
+        excelRd.setStartRow(0);
         excelRd.setStartCol(0);
         excelRd.setTypes(types);
         List<List<ExcelRdRow>> lists = null;

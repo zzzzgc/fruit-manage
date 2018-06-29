@@ -4,7 +4,6 @@ import com.fruit.manage.constant.UserTypeConstant;
 import com.fruit.manage.model.CheckInventory;
 import com.fruit.manage.model.CheckInventoryDetail;
 import com.fruit.manage.model.ProductStandard;
-import com.fruit.manage.model.User;
 import com.jfinal.aop.Before;
 import com.jfinal.ext.kit.DateKit;
 import com.jfinal.plugin.activerecord.Db;
@@ -14,6 +13,8 @@ import com.jfinal.plugin.activerecord.tx.Tx;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author partner
@@ -73,7 +74,7 @@ public class WarehouseService {
     }
 
     /**
-     * 更新盘点单详细表 TODO 无库存商品也需要存在盘点单详细表上。便于统计完全出库并包含昨日库存的商品单价
+     * 更新盘点单详细表
      * 无库存商品也需要存在盘点单详细表上。便于统计完全出库并包含昨日库存的商品单价
      * 新增盘点单表的时候调用
      *
@@ -108,6 +109,7 @@ public class WarehouseService {
                 "INNER JOIN b_check_inventory_detail cid ON ci.id = cid.check_inventory_id  " +
                 "WHERE  " +
                 "  ci.order_cycle_date = ?", yesterdayOrderCycleDateStr);
+        Set<Record> collect = records.stream().collect(Collectors.toSet());
 
         // 今日入库商品
         List<Record> records2 = Db.find("SELECT  " +
@@ -121,11 +123,12 @@ public class WarehouseService {
                 "INNER JOIN b_put_warehouse_detail pwd ON pwd.put_id = pw.id  " +
                 "WHERE  " +
                 "  pw.order_cycle_date = ?", orderCycleDateStr);
+        Set<Record> collect2 = records2.stream().collect(Collectors.toSet());
 
-        records.addAll(records2);
+        collect.addAll(collect2);
 
-        if (records != null && records.size() > 0) {
-            for (Record record : records) {
+        if (collect != null && collect.size() > 0) {
+            for (Record record : collect) {
                 Integer product_standard_id = record.get("product_standard_id");
                 String product_standard_name = record.get("product_standard_name");
                 Integer product_id = record.get("product_id");

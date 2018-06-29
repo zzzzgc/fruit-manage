@@ -3,10 +3,11 @@ package com.fruit.manage.controller.common;
 import com.fruit.manage.base.BaseController;
 import com.fruit.manage.constant.*;
 import com.fruit.manage.model.*;
+import com.fruit.manage.service.WarehouseService;
 import com.fruit.manage.util.Constant;
-import com.fruit.manage.util.DateUtils;
+import com.fruit.manage.util.ZhioDateUtils;
 import com.fruit.manage.util.ExcelCommon;
-import com.fruit.manage.util.IdUtil;
+import com.fruit.manage.util.ZhioIdUtil;
 import com.fruit.manage.util.excel.ExcelStyle;
 import com.fruit.manage.util.excelRd.ExcelRdTypeEnum;
 import com.jfinal.ext.kit.DateKit;
@@ -14,14 +15,10 @@ import com.jfinal.ext2.kit.RandomKit;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.IAtom;
 import com.jfinal.plugin.activerecord.Record;
-import com.jfinal.upload.UploadFile;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.log4j.Logger;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellType;
-import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.*;
 
@@ -250,7 +247,7 @@ public class ExcelController extends BaseController {
 //            String endDateStr = DateTimeKit.formatDateToStyle("yyyy-MM-dd", calendar.getTime()) + " 12:00:00";
             final Date createTime = getParaToDate("createTime") == null ? new Date() : getParaToDate("createTime");
 
-            String[] createTimes = DateUtils.getOrderCycleDateStrings(createTime);
+            String[] createTimes = ZhioDateUtils.getOrderCycleDateStrings(createTime);
 
             StringBuilder sql = new StringBuilder("SELECT " +
                     "o.order_id, " +
@@ -565,7 +562,7 @@ public class ExcelController extends BaseController {
 //        String endDateStr = DateTimeKit.formatDateToStyle("yyyy-MM-dd", calendar.getTime()) + " 12:00:00";
         final Date createTime = getParaToDate("createTime") == null ? new Date() : getParaToDate("createTime");
 
-        String[] createTimes = DateUtils.getOrderCycleDateStrings(createTime);
+        String[] createTimes = ZhioDateUtils.getOrderCycleDateStrings(createTime);
 
         String sql = "SELECT " +
                 "o.order_id, " +
@@ -663,6 +660,12 @@ public class ExcelController extends BaseController {
             // 表样式
             XSSFCellStyle styleTable = ExcelStyle.getStyleTableByTwo(wb, 3);
             int tableHeight = 30;
+
+            // 红字体表格样式
+            XSSFCellStyle XSSFCellStyleIsRed = (XSSFCellStyle) styleTable.clone();
+            XSSFFont xssfFont = wb.createFont();
+            xssfFont.setColor(IndexedColors.RED.index);
+            XSSFCellStyleIsRed.setFont(xssfFont);
 
             // 规范: 设置为1-3合并 ?-6合并 ?-9合并的单元格名称.
             XSSFCell c3;
@@ -776,21 +779,39 @@ public class ExcelController extends BaseController {
             c7.setCellValue("单品总额");
             c8.setCellValue("商品备注");
 
-            sql = "SELECT " +
-                    "od.product_name, " +
-                    "od.product_standard_name, " +
-                    "ps.weight_price, " +
-                    "ps.sub_title, " +
-                    "od.num, " +
-                    "od.actual_send_goods_num, " +
-                    "od.sell_price, " +
-                    "o.pay_reality_need_money, " +
-                    "od.buy_remark " +
-                    "FROM " +
-                    "b_order AS o " +
-                    "INNER JOIN b_order_detail AS od ON o.order_id = od.order_id " +
-                    "INNER JOIN b_product_standard AS ps ON od.product_standard_id = ps.id " +
-                    "WHERE o.order_id = ? ";
+            sql = "SELECT  " +
+                    "  od.product_name,  " +
+                    "  od.product_standard_name,  " +
+                    "  ps.weight_price,  " +
+                    "  ps.sub_title,  " +
+                    "  od.num,  " +
+                    "  od.actual_send_goods_num,  " +
+                    "  od.sell_price,  " +
+                    "  ppInfo.procurement_need_price,  " +
+                    "  (  " +
+                    "    od.sell_price - ppInfo.procurement_need_price  " +
+                    "  ) > 0,  " +
+                    "  o.pay_reality_need_money,  " +
+                    "  od.buy_remark  " +
+                    "FROM  " +
+                    "  b_order AS o  " +
+                    "INNER JOIN b_order_detail AS od ON o.order_id = od.order_id  " +
+                    "INNER JOIN b_product_standard AS ps ON od.product_standard_id = ps.id  " +
+                    "LEFT JOIN (  " +
+                    "  SELECT  " +
+                    "    pp.order_cycle_date,  " +
+                    "    ppd.product_standard_id,  " +
+                    "    GROUP_CONCAT(ppd.procurement_need_price) AS procurement_need_price  " +
+                    "  FROM  " +
+                    "    b_procurement_plan pp  " +
+                    "  JOIN b_procurement_plan_detail ppd ON ppd.procurement_plan_id = pp.id  " +
+                    "  GROUP BY  " +
+                    "    pp.order_cycle_date,  " +
+                    "    ppd.product_standard_id  " +
+                    ") AS ppInfo ON ppInfo.order_cycle_date = o.order_cycle_date  " +
+                    "AND ppInfo.product_standard_id = od.product_standard_id  " +
+                    "WHERE  " +
+                    "  o.order_id = ? ";
             List<OrderDetail> orderDetails = OrderDetail.dao.find(sql, orderId);
             for (OrderDetail orderDetail : orderDetails) {
                 row = sheet.createRow(rowCount++);
@@ -808,7 +829,14 @@ public class ExcelController extends BaseController {
                 c3.setCellStyle(styleTable);
                 c4.setCellStyle(styleTable);
                 c5.setCellStyle(styleTable);
-                c6.setCellStyle(styleTable);
+                BigDecimal procurementNeedPrice = new BigDecimal(orderDetail.get("procurement_need_price") + "");
+                BigDecimal sellPrice = new BigDecimal(orderDetail.get("sell_price") + "");
+                // 订单金额大于成本,做出提示
+                if (sellPrice.subtract(procurementNeedPrice).compareTo(BigDecimal.ZERO) == -1) {
+                    c6.setCellStyle(XSSFCellStyleIsRed);
+                } else {
+                    c6.setCellStyle(styleTable);
+                }
                 c7.setCellStyle(styleTable);
                 c8.setCellStyle(styleTable);
 
@@ -1035,7 +1063,7 @@ public class ExcelController extends BaseController {
 
         final Date createTime = getParaToDate("createTime") == null ? new Date() : getParaToDate("createTime");
 
-        String[] createTimes = DateUtils.getOrderCycleDateStrings(createTime);
+        String[] createTimes = ZhioDateUtils.getOrderCycleDateStrings(createTime);
 //        if (createTime != null) {
 //            // 使用指定时间导出采购计划
 //            String createTimeStr = DateAndStringFormat.getStringDateShort(createTime);
@@ -1210,7 +1238,7 @@ public class ExcelController extends BaseController {
                 ArrayList<String> errorRow = new ArrayList<>();
                 try {
                     // 这里从第5行开始取,所以计算行数需要加多4行
-                    List<Object[]> excel = ExcelCommon.excelRd(file, 5, 1, new ExcelRdTypeEnum[]{
+                    List<Object[]> excel = ExcelCommon.excelRd(file, 4, 1, new ExcelRdTypeEnum[]{
                             ExcelRdTypeEnum.STRING,
                             ExcelRdTypeEnum.STRING,
                             ExcelRdTypeEnum.STRING,
@@ -1234,7 +1262,7 @@ public class ExcelController extends BaseController {
                     Db.update("DELETE FROM b_product_type");
 
                     List<Product> finalProducts = Product.dao.find("select * from b_product ");
-                    List<ProductStandard> productStandardAllInfo = ProductStandard.dao.find("select * from b_product_standard ");
+                    List<ProductStandard> productStandardAllInfo = ProductStandard.dao.find("select p.`name` as productName, ps.* from b_product p join b_product_standard ps on ps.product_id = p.id");
                     List<Type> types = Type.dao.find("select * from b_type ");
                     List<TypeGroup> typeGroups = TypeGroup.dao.find("select * from b_type_group ");
                     List<ProductType> productTypes = ProductType.dao.find("select * from b_product_type");
@@ -1250,13 +1278,16 @@ public class ExcelController extends BaseController {
                     Map<String, ProductType> productTypeMap = productTypes.stream().collect(Collectors.toMap(pt -> pt.getProductId() + "-" + pt.getTypeId(), Function.identity()));
 
                     // 1.商品名相同,商品id不同,排查重复数据的缓存
-                    Map<String, Integer> duplicationCheckProductMap = finalProducts.stream().collect(Collectors.toMap(Product::getName, Product::getId));
+                    Map<String, Integer> KeyForProductValueForProductId = finalProducts.stream().collect(Collectors.toMap(Product::getName, Product::getId));
                     // 2.規格名相同,psId不同,排查重复数据的缓存
-                    Map<String, Integer> duplicationCheckProductStandardMap = new HashMap<>();
+//                    Map<String, Integer> duplicationCheckProductStandardMap = productStandardAllInfo.stream().collect(Collectors.toMap(ps -> ps.get("productName") +""+ ps.getName(),ProductStandard::getId));
                     // 3.psId相同,内容不相同,排查重复数据的缓存(不包含数据库内容,因为有可能需要覆盖数据库数据[使用唯一标识作为key])
-                    Map<Integer, Object[]> duplicationCheckProductStandardMapbyAll = new HashMap<>();
+                    Map<Integer, Object[]> duplicationCheckProductStandardMapByAll = new HashMap<>();
+//                    Map<Integer, Object[]> duplicationCheckProductStandardMapByAll = productStandardAllInfo.stream().collect(Collectors.toMap(ProductStandard::getId,ps -> new Object[]{ps.getCostPrice()}));
                     // 4.相同商品id,相同规格名称,不同规格id,排查重复数据的缓存
-                    Map<String, Integer> duplicationCheckProductMap2 = productStandardAllInfo.stream().collect(Collectors.toMap(ps -> ps.getProductId() + "-" + ps.getName(), ProductStandard::getId));
+                    Map<String, Integer> keyProductIdProductStandardNameValueProductStandardId = productStandardAllInfo.stream().collect(Collectors.toMap(ps -> ps.getProductId() + "-" + ps.getName(), ProductStandard::getId));
+
+//                    Map<String, BigDecimal> keyProductIdProductStandardNameValuePrice = productStandardAllInfo.stream().collect(Collectors.toMap(ps -> ps.getProductId() + "-" + ps.getName(), ProductStandard::getSellPrice));
 
                     // 异常检测,容错提升
                     for (int i = 0; i < excel.size(); i++) {
@@ -1294,35 +1325,37 @@ public class ExcelController extends BaseController {
                                 productStandardId = Integer.parseInt(idInfo[1]);
 
                                 if (productId == null) {
+                                    System.out.println("不应该出现的");
                                     continue;
                                 }
 
                                 if (productStandardId == null) {
+                                    System.out.println("不应该出现的");
                                     continue;
                                 }
 
                                 // 1.商品名相同,商品id不同
-                                Integer pId = duplicationCheckProductMap.get(productName);
+                                Integer pId = KeyForProductValueForProductId.get(productName);
                                 if (pId != null) {
                                     if (!productId.equals(pId)) {
                                         renderErrorText("存在相同商品名称和不同的商品id，商品名：" + productName + "，在第" + (i + 5) + "行");
                                         return false;
                                     }
                                 }
-                                duplicationCheckProductMap.put(productName, productId);
+                                KeyForProductValueForProductId.put(productName, productId);
 
                                 // 2.規格名相同,psId不同
-                                Integer psId = duplicationCheckProductStandardMap.get(productId + productStandardName);
+                                Integer psId = keyProductIdProductStandardNameValueProductStandardId.get(productId + "-" + productStandardName);
                                 if (psId != null) {
                                     if (!productStandardId.equals(psId)) {
-                                        renderErrorText("存在相同商品规格名称和不同的id的商品：" + productId + "，规格：" + productStandardName + "，在第" + (i + 5) + "行");
+                                        renderErrorText("存在相同商品规格名称和不同的规格id的商品：" + productId + "，规格：" + productStandardName + "，在第" + (i + 5) + "行");
                                         return false;
                                     }
                                 }
-                                duplicationCheckProductStandardMap.put(productName + productStandardName, productStandardId);
+                                keyProductIdProductStandardNameValueProductStandardId.put(productId + "-" + productStandardName, productStandardId);
 
                                 // 3.psId相同,内容不相同
-                                Object[] duplicationCheckRow = duplicationCheckProductStandardMapbyAll.get(productStandardId);
+                                Object[] duplicationCheckRow = duplicationCheckProductStandardMapByAll.get(productStandardId);
                                 if (duplicationCheckRow != null) {
                                     for (int j = 0; j < duplicationCheckRow.length; j++) {
                                         if (j == 10) {
@@ -1334,20 +1367,23 @@ public class ExcelController extends BaseController {
                                             renderErrorText("存在相同商品规格编号和不同的信息的商品：" + productName + "，规格：" + productStandardName +
 //                                                    "，---------------上一行row:"+rowStr + "," +
 //                                                    "---------------下一行" +newRowStr +
-                                                    "|--->差异值：" + row[j] + "和" + duplicationCheckRow[j] + "，在第" + (i + 5) + "行");
+                                                    "|--->差异值：" + row[j] + "和" + duplicationCheckRow[j] + "，在第" + (i + 4) + "行");
                                             return false;
                                         }
                                     }
                                 }
+                                duplicationCheckProductStandardMapByAll.put(productStandardId, row);
+
+
                                 // 4.相同商品id,相同规格名称,不同规格id
-                                Integer psId2 = duplicationCheckProductMap2.get(productId + "-" + productStandardName);
-                                if (psId2 != null) {
-                                    if (!psId2.equals(productStandardId)) {
-                                        renderErrorText("存在相同商品id，相同规格名称，不同规格id的商品，商品id：" + productId + "，规格名称：" + productStandardName + "，在第" + (i + 5) + "行");
-                                        return false;
-                                    }
-                                }
-                                duplicationCheckProductMap2.put(productId + "-" + productStandardName, productStandardId);
+//                                Integer psId2 = keyProductIdProductStandardNameValueProductStandardId.get(productId + "-" + productStandardName);
+//                                if (psId2 != null) {
+//                                    if (!psId2.equals(productStandardId)) {
+//                                        renderErrorText("存在相同商品id，相同规格名称，不同规格id的商品，商品id：" + productId + "，规格名称：" + productStandardName + "，在第" + (i + 5) + "行");
+//                                        return false;
+//                                    }
+//                                }
+//                                keyProductIdProductStandardNameValueProductStandardId.put(productId + "-" + productStandardName, productStandardId);
                             }
                         }
                     }
@@ -1999,6 +2035,8 @@ public class ExcelController extends BaseController {
         renderErrorText(sb.toString());
     }
 
+    private static final WarehouseService warehouseService = new WarehouseService();
+
     /**
      * 通过自定义出货单导入订单信息
      * <p>
@@ -2011,11 +2049,70 @@ public class ExcelController extends BaseController {
             public boolean run() throws SQLException {
                 int rowCount = 0;
                 int sheetCount = 0;
-                int userAddCount = 0;
-                Date now = new Date();
+
                 Integer uid = getSessionAttr(Constant.SESSION_UID);
+                User user = User.dao.findById(uid);
 
                 String fileName = getPara("fileName");
+                String orderCycleDateStr = getPara("order_cycle_date");
+                if ("".equals(orderCycleDateStr)) {
+                    renderErrorText("请输入导入的订单时间");
+                    return false;
+                }
+                Date orderCycleDate = getParaToDate("order_cycle_date");
+
+                // 初始化各个表的id
+                String ppId = ZhioIdUtil.getProrementPlanId(orderCycleDate);
+                String cId = ZhioIdUtil.getCheckInventoryId(orderCycleDate);
+
+
+                // 初始化采购计划表
+                ProcurementPlan procurementPlan = ProcurementPlan.dao.getProcurementPlanByOrderCycleDate(orderCycleDateStr);
+                if (procurementPlan == null) {
+                    procurementPlan = ProcurementPlan.dao.addProcurementPlan(ppId, 0, uid, 0, orderCycleDate, 0, 0);
+                }
+
+                // 初始化采购计划详细表集合 基于 (采购人id - 规格id) 做区分
+                HashMap<String, ProcurementPlanDetail> ppdMap = new HashMap<>();
+
+                // 初始化入库单
+                PutWarehouse putWarehouse = PutWarehouse.dao.getPutWarehouseByOrderCycleDate(orderCycleDate);
+                if (putWarehouse == null) {
+                    putWarehouse = PutWarehouse.dao.addPutWarehouse("江南市场", 0, 0, orderCycleDate, 0, orderCycleDate, new BigDecimal(0));
+                }
+
+                // 初始化入库单详细表集合 基于 规格id 做区分
+                HashMap<String, PutWarehouseDetail> putMap = new HashMap<>();
+
+                // 初始化出库单
+                OutWarehouse outWarehouse = OutWarehouse.dao.getOutWarehouseByOrderCycleDate(orderCycleDateStr);
+                if (outWarehouse == null) {
+                    outWarehouse = OutWarehouse.dao.addOutWarehouse("江南市场", 0, orderCycleDate, 0, orderCycleDate, new BigDecimal(0), 0);
+                }
+
+                // 初始化盘点单
+                CheckInventory checkInventory = CheckInventory.dao.getCheckInventoryByOrderCycleDate(orderCycleDateStr);
+                if (checkInventory == null) {
+                    checkInventory = CheckInventory.dao.addCheckInventory(cId, new BigDecimal(0), 0, orderCycleDate, orderCycleDate, null, null);
+                }
+
+                // 初始化盘点单详细表集合  key = 商品规格
+                HashMap<Integer, CheckInventoryDetail> ciMap = new HashMap<>();
+
+
+                // 初始化出库类型数量
+                Integer typeNum = outWarehouse.getOutTypeNum() == null ? 0 : outWarehouse.getOutTypeNum();
+                HashMap<Integer, Integer> outTypeMap = new HashMap<>();
+                // 初始化出库数量
+                Integer num = outWarehouse.getOutNum() == null ? 0 : outWarehouse.getOutNum();
+                // 初始化出库总额
+                BigDecimal outTotalPrice = outWarehouse.getOutTotalPrice() == null ? new BigDecimal(0) : outWarehouse.getOutTotalPrice();
+                // 初始化入库总额
+                BigDecimal putTotalPrice = outWarehouse.getOutTotalPrice() == null ? new BigDecimal(0) : putWarehouse.getPutTotalPrice();
+                // 初始化采购订单数量
+                Integer orderTotalNum = procurementPlan.getOrderTotal() == null ? 0 : procurementPlan.getOrderTotal();
+
+
                 String fileUrl = CommonController.FILE_PATH + File.separator + fileName;
                 File file = new File(fileUrl);
                 ArrayList<String> errorRow = new ArrayList<>();
@@ -2024,23 +2121,6 @@ public class ExcelController extends BaseController {
                     // excel 多表
                     XSSFWorkbook excel = new XSSFWorkbook(file);
 
-                    // 多表
-//                    List<List<Object[]>> sheets = ExcelCommon.excelRdList("C:\\Users\\Administrator\\Desktop\\05-04出货单汇总.xlsx", 1, 1, new ExcelRdTypeEnum[]{
-//                            ExcelRdTypeEnum.STRING,
-//                            ExcelRdTypeEnum.STRING,
-//                            ExcelRdTypeEnum.STRING,
-//                            ExcelRdTypeEnum.STRING,
-//                            ExcelRdTypeEnum.STRING,
-//
-//                            ExcelRdTypeEnum.STRING,
-//                            ExcelRdTypeEnum.STRING,
-//                            ExcelRdTypeEnum.STRING,
-//                            ExcelRdTypeEnum.STRING,
-//                            ExcelRdTypeEnum.STRING,
-//
-//                            ExcelRdTypeEnum.STRING,
-//                            ExcelRdTypeEnum.STRING,
-//                    });
 
                     // 单表
                     for (sheetCount = 0; sheetCount < excel.getNumberOfSheets(); sheetCount++) {
@@ -2118,27 +2198,34 @@ public class ExcelController extends BaseController {
                         }
                         userId = businessUser.getId();
 
-                        // 添加订单
-                        Date createDate = DateKit.toDate((sheet.getRow(0).getCell(0).getStringCellValue()).substring(0, 10));
-                        Date orderCycleDate = DateUtils.getOrderCycleDate(createDate);
-                        // --这里添加了订单和物流信息
-                        String orderId = IdUtil.getOrderId(createDate, userId);
+
+                        // 订单数
+                        orderTotalNum++;
+
+                        // 初始化订单id
+                        String orderId = ZhioIdUtil.getOrderId(orderCycleDate, userId);
+
+                        // 初始化订单表
                         Order order = Order.dao.getOrder(orderId);
-                        LogisticsInfo logisticsInfo = LogisticsInfo.dao.getLogisticsDetailInfoByOrderID(orderId);
                         if (order == null) {
-                            order = Order.dao.addOrder(userId, createDate);
+                            order = Order.dao.addOrder(userId, orderCycleDate);
+                        }
+
+                        // 初始化物流信息表
+                        LogisticsInfo logisticsInfo = LogisticsInfo.dao.getLogisticsDetailInfoByOrderID(orderId);
+                        if (logisticsInfo == null) {
                             logisticsInfo = LogisticsInfo.dao.addLogisticsInfo(userId, order.getOrderId());
                         }
 
+                        // 初始化需要支付金额
                         BigDecimal payNeedMoney = order.getPayNeedMoney() == null ? new BigDecimal(0) : order.getPayNeedMoney();
+                        // 初始化实际需要支付金额
                         BigDecimal payRealityNeedMoney = order.getPayRealityNeedMoney() == null ? new BigDecimal(0) : order.getPayRealityNeedMoney();
-                        BigDecimal payLogisticsMoney = order.getPayLogisticsMoney() == null ? new BigDecimal(0) : order.getPayLogisticsMoney();
+                        // 初始化总物流费用
+                        BigDecimal sendgoodstotalCost = order.getPayLogisticsMoney() == null ? new BigDecimal(0) : order.getPayLogisticsMoney();
+                        // 初始化总货款
                         BigDecimal payAllMoney = order.getPayAllMoney() == null ? new BigDecimal(0) : order.getPayAllMoney();
-//                        BigDecimal payNeedMoney = new BigDecimal(0);
-//                        BigDecimal payRealityNeedMoney = new BigDecimal(0);
-//                        BigDecimal payLogisticsMoney = new BigDecimal(0);
-//                        BigDecimal payAllMoney = new BigDecimal(0);
-//                        BigDecimal pay_total_money = new BigDecimal(0);
+
 
                         // 第9行是订单的开始,20行结束
                         for (rowCount = 8; rowCount < 19; rowCount++) {
@@ -2148,6 +2235,7 @@ public class ExcelController extends BaseController {
                                 // 跳过空行
                                 break;
                             }
+
                             Integer psId = "".equals(orderRow.getCell(0) + "") ? null : Double.valueOf(orderRow.getCell(0) + "").intValue();
                             String psName = orderRow.getCell(2) + "";
                             String weight = orderRow.getCell(3) + "";
@@ -2159,6 +2247,7 @@ public class ExcelController extends BaseController {
                             BigDecimal sellPrice = BigDecimal.valueOf(Double.valueOf(orderRow.getCell(7) + ""));
                             BigDecimal totalPrice = BigDecimal.valueOf(Double.valueOf(orderRow.getCell(8).getRawValue() + ""));
                             String buyRemark = orderRow.getCell(9) + "";
+                            BigDecimal procurementNeedPrice = BigDecimal.valueOf(Double.valueOf(orderRow.getCell(10) + ""));
 
                             // 订单详细添加
                             ProductStandard productStandard = null;
@@ -2170,11 +2259,11 @@ public class ExcelController extends BaseController {
                                     errorRow.add("跳过第" + (sheetCount + 1) + "张名为《" + sheet.getSheetName() + "》的第" + (rowCount + 1) + "行,商品名称和规格编码都为空");
                                     continue;
                                 }
+
                                 product = Product.dao.findFirst("select * from b_product p where p.`name` like CONCAT('%',?,'%')", pName);
                                 if (product == null) {
                                     // 新增商品和规格
                                     product = Product.dao.addProduct(pName, "中国", 0L, "待添加", "件", 0, "", "");
-
                                 }
 
                                 productStandard = ProductStandard.dao.findFirst("select * from b_product_standard ps WHERE ps.product_id = ? AND ps.`name` = ?", product.getId(), psName);
@@ -2182,6 +2271,7 @@ public class ExcelController extends BaseController {
                                     // 新增规格
                                     productStandard = ProductStandard.dao.addProductStandard(product.getId(), psName, weight, sellPrice, new BigDecimal(0), new BigDecimal(0), 0.00, 0.00, 0.00, 0, 10000, null, null, 50, 50, 50, 0, 0, 0, procurementId);
                                 }
+
                                 psId = productStandard.getId();
 
                             } else {
@@ -2197,14 +2287,119 @@ public class ExcelController extends BaseController {
                             OrderDetail orderDetail = OrderDetail.dao.addOrderDetail(uid, orderCycleDate, userId, order.getOrderId(), product.getId(), productStandard.getId(), product.getName(), productStandard.getName(), productStandard.getSellPrice(), sellPrice, orderNum, sellPrice.multiply(new BigDecimal(orderNum)), buyRemark);
                             orderDetail.setActualSendGoodsNum(actualSendGoodsNum);
                             orderDetail.setActualDeliverNum(actualSendGoodsNum);
-                            orderDetail.update(UserTypeConstant.A_USER,uid,orderCycleDate);
+                            orderDetail.update(UserTypeConstant.A_USER, uid, orderCycleDate);
 
-                            payNeedMoney = payNeedMoney.add(new BigDecimal(orderDetail.getNum()).multiply(orderDetail.getSellPrice()));
+                            // 订单表需要的数据
+                            BigDecimal ProductTotalPrice = new BigDecimal(orderDetail.getNum()).multiply(orderDetail.getSellPrice());
+                            payNeedMoney = payNeedMoney.add(ProductTotalPrice);
                             payRealityNeedMoney = payRealityNeedMoney.add(new BigDecimal(actualSendGoodsNum).multiply(orderDetail.getSellPrice()));
+
+                            // 出库单需要的数据
+                            num += actualSendGoodsNum;
+                            Integer isOk = outTypeMap.get(psId);
+                            if (isOk == null) {
+                                typeNum++;
+                                outTypeMap.put(psId, psId);
+                            }
+                            outTotalPrice = outTotalPrice.add(ProductTotalPrice);
+
+                            // 入库单需要的数据
+                            putTotalPrice = new BigDecimal(actualSendGoodsNum).multiply(procurementNeedPrice);
 
                             // 新增采购配额
                             ProcurementQuota procurementQuota = _saveProcurementQuota(product.getId(), product.getName(), productStandard.getName(), productStandard.getId(), procurementName);
 
+                            // 成本均价 默认等于表格中的成本价
+                            BigDecimal procurementTotalPrice = procurementNeedPrice;
+
+                            // 新增或修改采购单和入库单
+                            ProcurementPlanDetail procurementPlanDetail = ppdMap.get(procurementId + "-" + psId);
+                            if (procurementPlanDetail == null) {
+                                // 新增采购计划
+                                procurementPlanDetail = ProcurementPlanDetail.dao.addProcurementPlanDetail(
+                                        psId,
+                                        sellPrice,
+                                        product.getName(),
+                                        productStandard.getName(),
+                                        ppId,
+                                        product.getId(),
+                                        procurementNeedPrice,
+                                        null,
+                                        buyRemark,
+                                        procurementNeedPrice.multiply(new BigDecimal(actualSendGoodsNum)),
+                                        procurementId,
+                                        orderDetail.getNum(),
+                                        actualSendGoodsNum,
+                                        0
+                                );
+                                // 新增入库
+                                PutWarehouseDetail putWarehouseDetail = PutWarehouseDetail.dao.addPutWarehouseDetail(
+                                        psId,
+                                        product.getName(),
+                                        productStandard.getName(),
+                                        product.getId(),
+                                        procurementName,
+                                        procurementNeedPrice,
+                                        actualSendGoodsNum,
+                                        buyRemark,
+                                        procurementNeedPrice,
+                                        procurementTotalPrice,
+                                        procurementId,
+                                        BigDecimal.ZERO,
+                                        productStandard.getSubTitle(),
+                                        putWarehouse.getId()
+                                );
+                                ppdMap.put(procurementId + "-" + psId, procurementPlanDetail);
+                                putMap.put(procurementId + "-" + psId, putWarehouseDetail);
+                            } else {
+                                // 追加并求出均价
+
+                                // 之前的数量
+                                Integer oldProcurementNum = procurementPlanDetail.getProcurementNum();
+                                // 之前的成本价
+                                BigDecimal oldProcurementNeedPrice = procurementPlanDetail.getProcurementNeedPrice();
+                                // 追加后的数量
+                                Integer procurementNum = procurementPlanDetail.getProcurementNum() + actualSendGoodsNum;
+                                // 商品总值
+                                procurementTotalPrice = new BigDecimal(oldProcurementNum).multiply(oldProcurementNeedPrice).add(new BigDecimal(actualSendGoodsNum).multiply(procurementNeedPrice));
+                                // 商品均价
+                                BigDecimal avgProcurementPrice = procurementTotalPrice.divide(new BigDecimal(procurementNum),2);
+
+                                procurementPlanDetail.setProcurementNum(procurementNum);
+                                procurementPlanDetail.setProcurementNeedPrice(avgProcurementPrice);
+                                procurementPlanDetail.setProcurementTotalPrice(procurementTotalPrice);
+                                procurementPlanDetail.update();
+
+                                PutWarehouseDetail putWarehouseDetail = putMap.get(procurementId + "-" + psId);
+                                putWarehouseDetail.setProcurementPrice(avgProcurementPrice);
+                                putWarehouseDetail.setPutAveragePrice(avgProcurementPrice);
+                                putWarehouseDetail.setPutNum(procurementNum);
+                                putWarehouseDetail.setProcurementTotalPrice(procurementTotalPrice);
+                                putWarehouseDetail.update();
+                            }
+
+                            // 新增出库详细表
+                            OutWarehouseDetail outWarehouseDetail = OutWarehouseDetail.dao.addOutWarehouseDetail(
+                                    psId,
+                                    product.getName(),
+                                    null,
+                                    productStandard.getName(),
+                                    orderCycleDate,
+                                    product.getId(),
+                                    1,
+                                    orderCycleDate,
+                                    orderDetail.getSellPrice().multiply(new BigDecimal(orderDetail.getActualSendGoodsNum())),
+                                    orderDetail.getActualSendGoodsNum(),
+                                    orderDetail.getNum(),
+                                    outWarehouse.getId(),
+                                    orderDetail.getSellPrice(),
+                                    productStandard.getSubTitle(),
+                                    businessUser.getName(),
+                                    userId,
+                                    orderDetail.getId(),
+                                    orderDetail.getSellPrice(),
+                                    null
+                            );
                         }
                         XSSFCell cell1 = sheet.getRow(19).getCell(8);
                         XSSFCell cell2 = sheet.getRow(20).getCell(8);
@@ -2220,7 +2415,11 @@ public class ExcelController extends BaseController {
                         // 短途费/中转费
                         BigDecimal transshipmentCost = cell4 == null || (cell4 + "").equals("") ? new BigDecimal(0) : new BigDecimal(cell4.getRawValue());
 
-                        BigDecimal sendgoodstotalCost = new BigDecimal(0).add(freightCost).add(tricycleCost).add(packageCost).add(transshipmentCost);
+                        // 总物流费用
+                        sendgoodstotalCost = new BigDecimal(0).add(freightCost).add(tricycleCost).add(packageCost).add(transshipmentCost);
+
+                        // 订单总金额
+                        payAllMoney = payRealityNeedMoney.add(sendgoodstotalCost);
 
                         // 物流信息修正
                         logisticsInfo.setFreightCost(freightCost);
@@ -2234,18 +2433,34 @@ public class ExcelController extends BaseController {
                         order.setPayNeedMoney(payNeedMoney);
                         order.setPayLogisticsMoney(sendgoodstotalCost);
                         order.setPayRealityNeedMoney(payRealityNeedMoney);
-                        order.setPayAllMoney(payRealityNeedMoney.add(sendgoodstotalCost));
-                        order.setPayTotalMoney(payRealityNeedMoney);
+                        order.setPayAllMoney(payAllMoney);
+                        order.setPayTotalMoney(payAllMoney);
                         order.setPayStatus(OrderPayStatusCode.IS_OK.getStatus());
                         order.setOrderStatus(OrderStatusCode.IS_OK.getStatus());
                         order.update();
 
-                        // 采购计划信息
+                        // 采购计划修正
+                        procurementPlan.setNum(num);
+                        procurementPlan.setProductStandardNum(typeNum);
+                        procurementPlan.setOrderTotal(orderTotalNum);
+                        procurementPlan.update();
 
-                        // 入库信息
+                        // 入库单修正
+                        putWarehouse.setPutTypeNum(typeNum);
+                        putWarehouse.setPutType(0);
+                        putWarehouse.setPutNum(num);
+                        putWarehouse.setPutTotalPrice(outTotalPrice);
+                        putWarehouse.update();
 
-                        // 出库信息
+                        // 出库单修正
+                        outWarehouse.setOutTypeNum(typeNum);
+                        outWarehouse.setOutType(0);
+                        outWarehouse.setOutNum(num);
+                        outWarehouse.setOutTotalPrice(outTotalPrice);
+                        outWarehouse.update();
 
+                        // 更新盘点单
+                        warehouseService.updateCheckInventoryDetail(orderCycleDateStr,user.getNickName());
                     }
 
                     if (errorRow.size() > 0) {
@@ -2266,7 +2481,7 @@ public class ExcelController extends BaseController {
     }
 
     /**
-     * 导入商品的采购信息,并添加出入库信息
+     * 导入成本单,完成入库出库盘点等操作
      */
     public void saveProductProcurementInfo() {
 
@@ -2285,11 +2500,16 @@ public class ExcelController extends BaseController {
 //        File file = new File(fileUrl);
 
                     ArrayList<String> errorRow = new ArrayList<>();
-                    File file = new File("C:\\Users\\Administrator\\Desktop\\测试2.xlsx");
+                    File file = new File("C:\\Users\\Administrator\\Desktop\\测试.xlsx");
 
                     XSSFWorkbook excel = new XSSFWorkbook(file);
 
-
+                    // 规格编码	商品名	规格	重量斤	"下单
+                    //数量"	"产品
+                    //单价"	"实采
+                    //数量"	"实采
+                    //单价"	"实采
+                    //金额"	采购员	备注	建议报价
                     for (sheetCount = 0; sheetCount < excel.getNumberOfSheets(); sheetCount++) {
                         XSSFSheet sheet = excel.getSheetAt(sheetCount);
 
@@ -2300,10 +2520,19 @@ public class ExcelController extends BaseController {
                         int addProductNum = 0;
                         int addProductStandardNum = 0;
 
+                        XSSFRow oneRow = sheet.getRow(1);
+                        // 2018-05-01
+                        String orderDateStr = "2018-" + oneRow.getCell(0).getStringCellValue().split("嘻果")[0].trim();
+                        Date date = DateKit.toDate(orderDateStr);
+
+                        // 各个仓库数据表的id
+                        String prorementPlanId = ZhioIdUtil.getProrementPlanId(date);
+                        String putId = DateKit.toStr(date, "yyyyMMdd");
+                        String outId = DateKit.toStr(date, "yyyyMMdd");
+                        String checkInventoryId = ZhioIdUtil.getCheckInventoryId(date);
 
                         // 从第二行开始,跳过第一行
                         for (rowCount = 1; rowCount < sheet.getPhysicalNumberOfRows(); rowCount++) {
-                            // 5月16日	钟华	泰国削皮小菠萝	约16袋 4-11个/袋	净重约30斤	91	1	375	2	350	700	700	加单一件
                             XSSFRow row = sheet.getRow(rowCount);
 
                             StringBuilder sb = new StringBuilder();
@@ -2329,34 +2558,33 @@ public class ExcelController extends BaseController {
 
                             System.out.println(sb);
 
-
-                            // 5月16日
-                            String orderDate = row.getCell(0) + "";
-                            // 钟华
-                            String procurementName = row.getCell(1) + "";
-                            // 	泰国削皮小菠萝
-                            String productName = row.getCell(2) + "";
-                            // 约16袋4-11个/袋
-                            String productStandardName = row.getCell(3) + "";
-                            // 净重约30斤
-                            String weightStr = row.getCell(4) + "";
-
-                            // 91
-                            Integer productStandardId = row.getCell(5) == null || "".equals(row.getCell(5) + "") ? null : Double.valueOf(row.getCell(5) + "").intValue();
-                            // 1
-                            Integer productStandardNum = row.getCell(6) == null || "".equals(row.getCell(6) + "") ? 0 : Double.valueOf(row.getCell(6) + "").intValue();
-                            // 375  需要查看当天订单
-                            BigDecimal sellPrice = row.getCell(7) == null || "".equals(row.getCell(7) + "") ? BigDecimal.ZERO : new BigDecimal(Double.valueOf(row.getCell(7) + "").intValue());
-                            // 2
-                            Integer procurementNum = row.getCell(8) == null || "".equals(row.getCell(8) + "") ? 0 : Double.valueOf(row.getCell(8) + "").intValue();
-                            // 350
-                            BigDecimal procurementprice = row.getCell(9) == null || "".equals(row.getCell(9) + "") ? BigDecimal.ZERO : new BigDecimal(Double.valueOf(row.getCell(9) + ""));
-                            // 700
-                            BigDecimal procurementTotalPrice = row.getCell(10) == null || "".equals(row.getCell(10) + "") ? BigDecimal.ZERO : new BigDecimal(Double.valueOf(row.getCell(10) + ""));
-                            // 700
-                            BigDecimal procurementRealityTotalPrice = row.getCell(11) == null || "".equals(row.getCell(11) + "") ? BigDecimal.ZERO : new BigDecimal(Double.valueOf(row.getCell(11) + ""));
-                            // 加单一件
-                            String remark = row.getCell(12) + "";
+                            /**
+                             *     0        1           2       3       4       5       6       7       8     9    10   11
+                             * 规格编码   商品名        规格    重量斤	下单数量 产品单价 实采数量 实采单价 实采金额 采购员 备注 建议报价
+                             *    9    菲诺椰子汁	  180g*16袋		       1	  45	  11	  40.91	 450	 钟华		 45
+                             */
+                            // 9
+                            Integer productStandardId = row.getCell(0) == null || "".equals(row.getCell(0) + "") ? null : Double.valueOf(row.getCell(0) + "").intValue();
+                            //菲诺椰子汁
+                            String productName = row.getCell(1) + "";
+                            //180g*16袋
+                            String productStandardName = row.getCell(2) + "";
+                            //
+                            String weightStr = row.getCell(3) + "";
+                            //1
+                            Integer productStandardNum = row.getCell(4) == null || "".equals(row.getCell(4) + "") ? 0 : Double.valueOf(row.getCell(4) + "").intValue();
+                            // 45
+                            BigDecimal sellPrice = row.getCell(5) == null || "".equals(row.getCell(5) + "") ? BigDecimal.ZERO : new BigDecimal(Double.valueOf(row.getCell(5) + "").intValue());
+                            // 11
+                            Integer procurementNum = row.getCell(6) == null || "".equals(row.getCell(6) + "") ? 0 : Double.valueOf(row.getCell(6) + "").intValue();
+                            //40.91
+                            BigDecimal procurementprice = row.getCell(7) == null || "".equals(row.getCell(7) + "") ? BigDecimal.ZERO : new BigDecimal(Double.valueOf(row.getCell(7) + ""));
+                            //450
+                            BigDecimal procurementTotalPrice = row.getCell(8) == null || "".equals(row.getCell(8) + "") ? BigDecimal.ZERO : new BigDecimal(Double.valueOf(row.getCell(8) + ""));
+                            //钟华
+                            String procurementName = row.getCell(9) + "";
+                            //
+                            String remark = row.getCell(10) + "";
 
 
                             // 加工参数
@@ -2371,7 +2599,7 @@ public class ExcelController extends BaseController {
 
 
                             // 商品匹配测试
-                            if (productStandardId == null || productStandardId.equals("")) {
+                            if (productStandardId == null || productStandardId == 0) {
                                 // --新增
 
                                 if (productName == null) {
@@ -2401,10 +2629,17 @@ public class ExcelController extends BaseController {
                                 product = Product.dao.findById(productStandard.getProductId());
                             }
 
-                            System.out.println("需要新增商品数量:" + addProductNum);
-                            System.out.println("需要新增商品规格数量:" + addProductStandardNum);
 
-                            ProcurementPlan.dao.addProcurementPlan();
+                            Integer stock = new WarehouseService().getStock(DateKit.toStr(date, "yyyy-MM-dd"), productStandardId);
+
+                            // 添加采购详细
+                            ProcurementPlanDetail procurementPlanDetail = ProcurementPlanDetail.dao.addProcurementPlanDetail(productStandardId, sellPrice, productName, productStandardName, prorementPlanId, productStandard.getProductId(), procurementprice, "", remark, procurementprice.multiply(new BigDecimal(procurementNum)), procurementId, procurementNum, procurementNum, stock);
+
+                            // 添加入库单
+
+
+                            // 盘点不做
+
 
                         }
                     }

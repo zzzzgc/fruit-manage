@@ -6,8 +6,8 @@ import com.fruit.manage.constant.*;
 import com.fruit.manage.model.*;
 import com.fruit.manage.util.Constant;
 import com.fruit.manage.util.DateAndStringFormat;
-import com.fruit.manage.util.DateUtils;
-import com.fruit.manage.util.IdUtil;
+import com.fruit.manage.util.ZhioDateUtils;
+import com.fruit.manage.util.ZhioIdUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.ext.kit.DateKit;
 import com.jfinal.plugin.activerecord.Db;
@@ -351,7 +351,7 @@ public class OrderController extends BaseController {
             // 设置实际支付需要的金额
             order.setPayRealityNeedMoney(payRealityNeedMoney);
             order.setUpdateTime(now);
-//            order.setOrderCycleDate(DateUtils.getOrderCycleDate(now));
+//            order.setOrderCycleDate(ZhioDateUtils.getOrderCycleDate(now));
             // 统计订单总货款pay_all_price
             Order oldOrder = Order.dao.findById(order.getId());
             if (oldOrder.getPayLogisticsMoney() != null) {
@@ -370,7 +370,7 @@ public class OrderController extends BaseController {
                 return;
             }
 
-            String orderId = IdUtil.getOrderId(orderCycle, businessUserId);
+            String orderId = ZhioIdUtil.getOrderId(orderCycle, businessUserId);
             Order nowOrder = Order.dao.getOrder(orderId);
             // 区分该订单周期的订单是否已经被创建
             if (nowOrder == null) {
@@ -393,7 +393,7 @@ public class OrderController extends BaseController {
                 order.setPayNeedMoney(payNeedMoney);
                 order.setPayTotalMoney(new BigDecimal(0));
                 order.setUId(businessUserId);
-                order.setOrderCycleDate(DateUtils.getOrderCycleDate(orderCycle));
+                order.setOrderCycleDate(ZhioDateUtils.getOrderCycleDate(orderCycle));
                 order.setUpdateTime(now);
                 order.setCreateTime(orderCycle);
                 order.save();

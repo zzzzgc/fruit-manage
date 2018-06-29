@@ -1,14 +1,12 @@
 package com.fruit.manage.model;
 
 import com.fruit.manage.model.base.BaseCheckInventoryDetail;
-import com.fruit.manage.service.WarehouseService;
 import com.fruit.manage.util.DateAndStringFormat;
-import com.fruit.manage.util.IdUtil;
+import com.fruit.manage.util.ZhioIdUtil;
 import com.jfinal.ext.kit.DateKit;
 import com.jfinal.kit.StrKit;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Page;
-import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -148,7 +146,6 @@ public class CheckInventoryDetail extends BaseCheckInventoryDetail<CheckInventor
 
     /**
      * 新增盘点详细表记录
-     *
      * @param productStandardId
      * @param productName
      * @param productStandardName
@@ -221,7 +218,7 @@ public class CheckInventoryDetail extends BaseCheckInventoryDetail<CheckInventor
             putInNum = 0;
         }
         // 期中出库数量
-        Integer outPutNum = WarehouseLog.dao.getCountInventorySum(0, orderCycleDate, productStandardId);
+        Integer outPutNum = WarehouseLog.dao.getCountInventorySum(1, orderCycleDate, productStandardId);
         if (outPutNum == null) {
             outPutNum = 0;
         }
@@ -265,7 +262,7 @@ public class CheckInventoryDetail extends BaseCheckInventoryDetail<CheckInventor
             CheckInventory checkInventory = CheckInventory.dao.getCheckInventoryById(nowCID.getCheckInventoryId());
             checkInventory.setUpdateTime(currentTime);
             checkInventory.setProductCount(checkInventory.getProductCount() + inventoryNumDiffer);
-            checkInventory.setProductTotalPrice((new BigDecimal(checkInventory.getProductTotalPrice()).add(changeInventoryTotalPrice)).doubleValue());
+            checkInventory.setProductTotalPrice(checkInventory.getProductTotalPrice().add(changeInventoryTotalPrice));
             checkInventory.update();
         } else {
             // 不存在,需要新增
@@ -273,29 +270,13 @@ public class CheckInventoryDetail extends BaseCheckInventoryDetail<CheckInventor
 //            // 根据商品规格编号获取商品编号
 //            Integer productId = ProductStandard.dao.getProductIdByPSId(productStandardId);
 
-            String checkInventoryDetailId = IdUtil.getCheckInventoryDetailId(DateKit.toDate(orderCycleDate), productStandardId);
+            String checkInventoryDetailId = ZhioIdUtil.getCheckInventoryDetailId(DateKit.toDate(orderCycleDate), productStandardId);
 
             addCheckInventoryDetail(checkInventoryDetailId,productStandardId,productName,productStandardName,productId,remark,checkInventoryId,inventoryTotalPrice,checkInventoryNum,productWeight,userName,null,stock,inventoryAveragePrice);
-//            nowCID = new CheckInventoryDetail();
-//            nowCID.setId(IdUtil.getCheckInventoryDetailId(DateKit.toDate(orderCycleDate), productStandardId));
-//            nowCID.setCheckInventoryId(checkInventoryId);
-//            nowCID.setProductId(productId);
-//            nowCID.setProductName(productName);
-//            nowCID.setProductStandardName(productStandardName);
-//            nowCID.setProductStandardId(productStandardId);
-//            nowCID.setProductWeight(productWeight);
-//            nowCID.setInventoryPrice(inventoryAveragePrice);
-//            nowCID.setInventoryTotalPrice(inventoryTotalPrice);
-//            nowCID.setUserName(userName);
-//            nowCID.setInventoryNum(stock);
-//            nowCID.setCheckInventoryNum(checkInventoryNum);
-//            nowCID.setInventoryRemark(remark);
-//            nowCID.setCreateTime(currentTime);
-//            nowCID.save();
 
             // 根据盘点单的编号获取盘点信息
             CheckInventory checkInventory = CheckInventory.dao.getCheckInventoryById(checkInventoryId);
-            checkInventory.setProductTotalPrice((new BigDecimal(checkInventory.getProductTotalPrice()).add(inventoryTotalPrice)).doubleValue());
+            checkInventory.setProductTotalPrice(checkInventory.getProductTotalPrice().add(inventoryTotalPrice));
             checkInventory.setProductCount(checkInventory.getProductCount() + stock);
             checkInventory.setUpdateTime(currentTime);
             checkInventory.setCheckInventoryTime(currentTime);

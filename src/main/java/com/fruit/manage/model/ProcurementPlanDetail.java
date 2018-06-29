@@ -7,7 +7,9 @@ import com.jfinal.log.Logger;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Page;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -393,5 +395,27 @@ public class ProcurementPlanDetail extends BaseProcurementPlanDetail<Procurement
 				"\tand ppd.product_standard_id = ? \n" +
 				"\tand ppd.procurement_id = ?";
 		return findFirst(sql,createTime,productStandardId,procurementId);
+	}
+
+	public ProcurementPlanDetail addProcurementPlanDetail(Integer productStandardId, BigDecimal sellPrice, String productName, String productStandardName, String procurementPlanId, Integer productId, BigDecimal procurementNeedPrice, String procurementRemark, String orderRemark, BigDecimal procurementTotalPrice, Integer procurementId, Integer productStandardNum, Integer procurementNum, Integer inventoryNum) {
+		ProcurementPlanDetail procurementPlanDetail = new ProcurementPlanDetail();
+		procurementPlanDetail.setProcurementId(procurementId);
+		procurementPlanDetail.setProductName(productName);
+		procurementPlanDetail.setProductId(productId);
+		procurementPlanDetail.setSellPrice(sellPrice);
+		procurementPlanDetail.setProductStandardId(productStandardId);
+		procurementPlanDetail.setProcurementPlanId(procurementPlanId);
+		procurementPlanDetail.setProcurementRemark(procurementRemark);
+		procurementPlanDetail.setProductStandardNum(productStandardNum);
+		procurementPlanDetail.setProcurementNeedPrice(procurementNeedPrice);
+		procurementPlanDetail.setProcurementTotalPrice(procurementTotalPrice);
+		procurementPlanDetail.setProductStandardName(productStandardName);
+		procurementPlanDetail.setProcurementNum(procurementNum);
+		procurementPlanDetail.setInventoryNum(inventoryNum);
+		procurementPlanDetail.setOrderRemark(orderRemark);
+		procurementPlanDetail.setUpdateTime(new Date());
+		procurementPlanDetail.setCreateTime(new Date());
+		procurementPlanDetail.save();
+		return procurementPlanDetail;
 	}
 }

@@ -25,12 +25,12 @@ public abstract class BaseCheckInventory<M extends BaseCheckInventory<M>> extend
 		return getInt("product_count");
 	}
 
-	public void setProductTotalPrice(java.lang.Double productTotalPrice) {
+	public void setProductTotalPrice(java.math.BigDecimal productTotalPrice) {
 		set("product_total_price", productTotalPrice);
 	}
 
-	public java.lang.Double getProductTotalPrice() {
-		return getDouble("product_total_price");
+	public java.math.BigDecimal getProductTotalPrice() {
+		return get("product_total_price");
 	}
 
 	public void setWarehouseId(java.lang.Integer warehouseId) {

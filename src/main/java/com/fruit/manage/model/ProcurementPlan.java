@@ -29,7 +29,7 @@ public class ProcurementPlan extends BaseProcurementPlan<ProcurementPlan> {
      */
     public Page<ProcurementPlan> getAllProcurementPlan(int pageNum, int pageSize, String orderBy, boolean isASC, Map map) {
         ArrayList<Object> params = new ArrayList<Object>();
-        String selectStr = "select pp.id,pp.procurement_id,pp.product_standard_num,pp.num,pp.wait_statistics_order_total,pp.order_total,pp.create_time \n";
+        String selectStr = "select pp.id,pp.procurement_id,pp.order_cycle_date,pp.product_standard_num,pp.num,pp.wait_statistics_order_total,pp.order_total,pp.create_time \n";
         StringBuilder sql = new StringBuilder();
         sql.append("\tfrom b_procurement_plan pp where 1=1 \n");
         if (org.apache.commons.lang3.ArrayUtils.isNotEmpty((String[]) map.get("createTime")) && ((String[]) map.get("createTime")).length == 2) {
@@ -252,8 +252,18 @@ public class ProcurementPlan extends BaseProcurementPlan<ProcurementPlan> {
     /**
      * 添加采购计划
      */
-    public void addProcurementPlan() {
+    public ProcurementPlan addProcurementPlan(String id,Integer Num, Integer ProcurementId, Integer OrderTotal, Date OrderCycleDate, Integer ProductStandardNum, Integer WaitStatisticsOrderTotal) {
         ProcurementPlan procurementPlan = new ProcurementPlan();
+        procurementPlan.setId(id);
+        procurementPlan.setNum(Num);
+        procurementPlan.setProcurementId(ProcurementId);
+        procurementPlan.setOrderTotal(OrderTotal);
+        procurementPlan.setOrderCycleDate(OrderCycleDate);
+        procurementPlan.setProductStandardNum(ProductStandardNum);
+        procurementPlan.setWaitStatisticsOrderTotal(WaitStatisticsOrderTotal);
+        procurementPlan.setCreateTime(new Date());
+        procurementPlan.save();
+        return procurementPlan;
     }
 
     public List<ProcurementPlan> getExportDataByPPlanID(Date createTime) {
@@ -308,5 +318,14 @@ public class ProcurementPlan extends BaseProcurementPlan<ProcurementPlan> {
                 "  purchaseNum DESC,  " +
                 "  ps.sell_price DESC  ";
         return find(sql, createTime);
+    }
+
+    /**
+     * 根据order_cycle_date获取采购计划
+     * @param orderCycleDateStr
+     * @return
+     */
+    public ProcurementPlan getProcurementPlanByOrderCycleDate(String orderCycleDateStr) {
+        return findFirst("select * from b_procurement_plan pp where pp.order_cycle_date = ? ",orderCycleDateStr);
     }
 }

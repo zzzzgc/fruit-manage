@@ -5,7 +5,9 @@ import com.jfinal.kit.StrKit;
 import com.jfinal.plugin.activerecord.Page;
 import org.apache.commons.lang3.ArrayUtils;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -56,4 +58,31 @@ public class OutWarehouse extends BaseOutWarehouse<OutWarehouse> {
 	}
 
 
+	/**
+	 * 根据orderCycleDate获取当天的出库单
+	 * @param orderCycleDateStr 订单周期时间字符串
+	 * @return 出货单
+	 */
+	public OutWarehouse getOutWarehouseByOrderCycleDate(String orderCycleDateStr) {
+		return findFirst("select * from b_out_warehouse where order_cycle_date = ? ", orderCycleDateStr);
+	}
+
+	/**
+	 * 添加出库表
+	 * @return
+	 */
+	public OutWarehouse addOutWarehouse(String warehouseAddress, Integer outType, Date orderCycleDate, Integer outTypeNum, Date outTime, BigDecimal outTotalPrice, Integer outNum) {
+		OutWarehouse outWarehouse = new OutWarehouse();
+		outWarehouse.setOutType(outType);
+		outWarehouse.setOutTime(outTime);
+		outWarehouse.setOutTotalPrice(outTotalPrice);
+		outWarehouse.setOutNum(outNum);
+		outWarehouse.setOutTypeNum(outTypeNum);
+		outWarehouse.setWarehouseAddress(warehouseAddress);
+		outWarehouse.setOrderCycleDate(orderCycleDate);
+		outWarehouse.setCreateTime(new Date());
+		outWarehouse.setUpdateTime(new Date());
+		outWarehouse.save();
+		return outWarehouse;
+	}
 }

@@ -7,6 +7,7 @@ import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.SqlPara;
 import org.apache.commons.lang3.ArrayUtils;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -66,4 +67,22 @@ public class PutWarehouse extends BasePutWarehouse<PutWarehouse> {
 	}
 
 
+	/**
+	 * 新增入库单
+	 * @return
+	 */
+	public PutWarehouse addPutWarehouse(String warehouseAddress, Integer putType, Integer putTypeNum, Date putTime, Integer putNum, Date orderCycleDate, BigDecimal putTotalPrice) {
+		PutWarehouse putWarehouse = new PutWarehouse();
+		putWarehouse.setWarehouseAddress(warehouseAddress);
+		putWarehouse.setOrderCycleDate(orderCycleDate);
+		putWarehouse.setPutTotalPrice(putTotalPrice);
+		putWarehouse.setPutType(putType);
+		putWarehouse.setPutTime(putTime);
+		putWarehouse.setPutTypeNum(putTypeNum);
+		putWarehouse.setPutNum(putNum);
+		putWarehouse.setCreateTime(new Date());
+		putWarehouse.setUpdateTime(new Date());
+		putWarehouse.save();
+		return putWarehouse;
+	}
 }
