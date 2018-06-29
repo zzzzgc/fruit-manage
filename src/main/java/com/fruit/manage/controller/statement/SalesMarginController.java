@@ -40,7 +40,7 @@ public class SalesMarginController extends BaseController {
 
         String nick_name = getPara("nick_name");
         String business_name = getPara("business_name");
-        String order_cycle_date = getPara("order_cycle_date");
+        String[] order_cycle_date = getParaValues("order_cycle_date");
         String select = _getSelect();
         List<Object> params = new ArrayList<>();
         String sqlExceptSelect = _getSqlExceptSelect(params, nick_name, business_name, order_cycle_date);
@@ -54,7 +54,7 @@ public class SalesMarginController extends BaseController {
     public void exportExcel() {
         String nick_name = getPara("nick_name");
         String business_name = getPara("business_name");
-        String order_cycle_date = getPara("order_cycle_date");
+        String[] order_cycle_date = getParaValues("order_cycle_date");
         String[] headers = {
                 "订单号",
                 "销售名称",
@@ -108,7 +108,7 @@ public class SalesMarginController extends BaseController {
 
         String nick_name = getPara("nick_name");
         String business_name = getPara("business_name");
-        String order_cycle_date = getPara("order_cycle_date");
+        String[] order_cycle_date = getParaValues("order_cycle_date");
         String select = _getSelect();
         List<Object> params = new ArrayList<>();
         String sqlExceptSelect = _getSqlExceptSelect(params, nick_name, business_name, order_cycle_date);
@@ -117,6 +117,10 @@ public class SalesMarginController extends BaseController {
         BigDecimal total_gross_margin = new BigDecimal(0);
         BigDecimal gross_margin = new BigDecimal(0);
         int orderCount = 0;
+
+        if (salesMarginList == null) {
+            renderNull();
+        }
 
         for (Record record : salesMarginList) {
             // 订单总利润
@@ -136,7 +140,7 @@ public class SalesMarginController extends BaseController {
         renderJson(map);
     }
 
-    private String _getSqlExceptSelect(List<Object> params, String nick_name, String business_name, String order_cycle_date) {
+    private String _getSqlExceptSelect(List<Object> params, String nick_name, String business_name, String[] order_cycle_date) {
         StringBuffer sql = new StringBuffer();
         sql.append(" FROM  " +
                 "  b_order AS o  " +
@@ -158,6 +162,12 @@ public class SalesMarginController extends BaseController {
         if (StringUtils.isNotBlank(business_name)) {
             sql.append("AND bi.business_name = ? ");
             params.add(business_name);
+        }
+
+        if (order_cycle_date != null && order_cycle_date.length == 2) {
+            sql.append("AND o.order_cycle_date BETWEEN ? AND ? ");
+            params.add(order_cycle_date[0]);
+            params.add(order_cycle_date[1]);
         }
 
         sql.append("AND ifnull(cid.inventory_price, pwd.put_average_price) GROUP BY o.order_id ORDER BY o.order_id DESC");

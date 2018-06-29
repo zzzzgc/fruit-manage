@@ -56,11 +56,10 @@ public class ProcurementStoreoutController extends BaseController {
         int pageSize = getParaToInt("pageSize", 10);
         String orderBy = getPara("prop");
         boolean isASC = "ascending".equals(getPara("order"));
-        String[] createTimes = new String[2];
         String procurementId = getPara("procurement_id");
         String productName = getPara("product_name");
         String productStandardName = getPara("product_standard_name");
-        String[] createTimes2 = getParaValues("format_create_time");
+        String[] createTimes = getParaValues("format_create_time");
 //        Page<ProcurementPlanDetail> procurementPlanDetailPage = ProcurementPlanDetail.dao.getProcuementStoreout(pageNum, pageSize, orderBy, isASC, procurementId, productName, productStandardName, createTimes2);
         List<Object> prarms = new ArrayList<>();
         String sql = _getSelect();
