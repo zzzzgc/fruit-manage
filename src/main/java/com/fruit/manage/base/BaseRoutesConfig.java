@@ -17,11 +17,7 @@ import com.fruit.manage.controller.login.LoginController;
 import com.fruit.manage.controller.order.OrderController;
 import com.fruit.manage.controller.procurement.PlanDetailController;
 import com.fruit.manage.controller.procurement.QuotaContrller;
-import com.fruit.manage.controller.statement.ArrearsStatisticsController;
-import com.fruit.manage.controller.statement.InventoryStatisticsController;
-import com.fruit.manage.controller.statement.ProcurementStoreoutController;
-import com.fruit.manage.controller.statement.ProductSaleRankListController;
-import com.fruit.manage.controller.statement.SalesMarginController;
+import com.fruit.manage.controller.statement.*;
 import com.fruit.manage.controller.system.MenuController;
 import com.fruit.manage.controller.system.PermissionController;
 import com.fruit.manage.controller.user.RolesController;
@@ -71,10 +67,11 @@ public class BaseRoutesConfig extends Routes {
 		add("/manage/menu", MenuController.class);
 		add("/manage/permission", PermissionController.class);
 		add("/manage/statement/salesMargin", SalesMarginController.class);
-		add("/manage/statement/storeout", ProcurementStoreoutController.class);
+		add("/manage/statement/stockout", ProcurementStockoutController.class);
 		add("/manage/statement/pSRankList", ProductSaleRankListController.class);
 		add("/manage/statement/arrearsStatistics", ArrearsStatisticsController.class);
         add("/manage/statement/inventoryStatistics", InventoryStatisticsController.class);
+        add("/manage/statement/procurementMargin", ProcurementMarginController.class);
 		add("/manage/order/refund", RefundController.class);
 	}
 

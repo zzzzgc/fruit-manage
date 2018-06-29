@@ -22,7 +22,7 @@ import java.util.*;
  * @Description 2.采购缺货报表
  * @date 2018/5/25 13:39
  */
-public class ProcurementStoreoutController extends BaseController {
+public class ProcurementStockoutController extends BaseController {
     /**
      * 获取采购缺货数据列表
      */
@@ -44,7 +44,7 @@ public class ProcurementStoreoutController extends BaseController {
         String sql = _getSelect();
         String sqlExceptSelect = _getSqlExceptSelect(prarms, procurementId, productName, productStandardName, createTimes);
 //        Page<ProcurementPlanDetail> procurementPlanDetailPage= ProcurementPlanDetail.dao.getProcuementStoreout(pageNum,pageSize,orderBy,isASC,procurementId,productName,productStandardName,createTimes2);
-        renderJson(Db.paginate(pageNum, pageSize, sql, sqlExceptSelect.toString(), prarms.toArray()));
+        renderJson(Db.paginate(pageNum, pageSize, sql, sqlExceptSelect, prarms.toArray()));
     }
 
 
@@ -60,11 +60,9 @@ public class ProcurementStoreoutController extends BaseController {
         String productName = getPara("product_name");
         String productStandardName = getPara("product_standard_name");
         String[] createTimes = getParaValues("format_create_time");
-//        Page<ProcurementPlanDetail> procurementPlanDetailPage = ProcurementPlanDetail.dao.getProcuementStoreout(pageNum, pageSize, orderBy, isASC, procurementId, productName, productStandardName, createTimes2);
         List<Object> prarms = new ArrayList<>();
         String sql = _getSelect();
         String sqlExceptSelect = _getSqlExceptSelect(prarms, procurementId, productName, productStandardName, createTimes);
-//        Page<ProcurementPlanDetail> procurementPlanDetailPage= ProcurementPlanDetail.dao.getProcuementStoreout(pageNum,pageSize,orderBy,isASC,procurementId,productName,productStandardName,createTimes2);
         List<Record> procurementPlanDetailPage = Db.find(sql + sqlExceptSelect.toString(), prarms.toArray());
         if (procurementPlanDetailPage != null && procurementPlanDetailPage.size() > 0) {
             List<String[]> lists = new ArrayList<>();
