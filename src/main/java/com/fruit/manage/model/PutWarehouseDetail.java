@@ -57,7 +57,7 @@ public class PutWarehouseDetail extends BasePutWarehouseDetail<PutWarehouseDetai
             sql.append("and pwd.product_standard_id like ? ");
             params.add("%" + map.get("productStandardId") + "%");
         }
-        orderBy = StrKit.isBlank(orderBy) ? "ppd.create_time" : orderBy;
+        orderBy = StrKit.isBlank(orderBy) ? "pwd.put_id" : orderBy;
         sql.append("order by " + orderBy + " " + (isASC ? "" : "desc "));
         return paginate(pageNum, pageSize, selectStr, sql.toString(), params.toArray());
     }

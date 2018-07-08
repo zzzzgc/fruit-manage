@@ -53,9 +53,9 @@ public class WarehouseOutContrller extends BaseController {
         String orderBy = getPara("prop");
 
         // 下单时间
-        String[] createTime = getParaValues("create_time");
+        String[] order_cycle_date = getParaValues("order_cycle_date");
 
-        renderJson(OutWarehouse.dao.getData(pageNum, pageSize, orderBy, isASC, createTime, outWarehouse));
+        renderJson(OutWarehouse.dao.getData(pageNum, pageSize, orderBy, isASC, order_cycle_date, outWarehouse));
     }
 
     /**

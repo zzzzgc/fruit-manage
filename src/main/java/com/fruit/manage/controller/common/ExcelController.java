@@ -1061,12 +1061,12 @@ public class ExcelController extends BaseController {
 
         User user = User.dao.findById(uid);
 
-        final Date createTime = getParaToDate("createTime") == null ? new Date() : getParaToDate("createTime");
+        final Date orderCycleDate = getParaToDate("order_cycle_date") == null ? new Date() : getParaToDate("order_cycle_date");
 
-        String[] createTimes = ZhioDateUtils.getOrderCycleDateStrings(createTime);
-//        if (createTime != null) {
+        String[] createTimes = ZhioDateUtils.getOrderCycleDateStrings(orderCycleDate);
+//        if (orderCycleDate != null) {
 //            // 使用指定时间导出采购计划
-//            String createTimeStr = DateAndStringFormat.getStringDateShort(createTime);
+//            String createTimeStr = DateAndStringFormat.getStringDateShort(orderCycleDate);
 //            createTimes[0] = DateAndStringFormat.getNextDay(createTimeStr, "-1") + " 12:00:00";
 //            createTimes[1] = createTimeStr + " 11:59:59";
 //        } else {
@@ -1076,12 +1076,12 @@ public class ExcelController extends BaseController {
 //            createTimes[0] = DateFormatUtils.format(nowCalendar.getTime(), "yyyy-MM-dd") + " 12:00:00";
 //            nowCalendar.add(Calendar.DAY_OF_MONTH, 1);
 //            createTimes[1] = DateFormatUtils.format(nowCalendar.getTime(), "yyyy-MM-dd") + " 12:00:00";
-//            createTime = nowCalendar.getTime();
+//            orderCycleDate = nowCalendar.getTime();
 //        }
 
         // 获取要导出数据
         List<ProcurementPlan> planList = ProcurementPlan.dao.getExportDataByPPlanID(createTimes);
-//        List<ProcurementPlan> planList = ProcurementPlan.dao.getExportDataByPPlanID(createTime);
+//        List<ProcurementPlan> planList = ProcurementPlan.dao.getExportDataByPPlanID(orderCycleDate);
 
         if (planList.size() < 1) {
             renderText("没有可导出的采购计划");
@@ -1138,7 +1138,7 @@ public class ExcelController extends BaseController {
                         XSSFCell nowTime = row.createCell(0);
                         XSSFCell createBy = row.createCell(3);
                         nowTime.setCellStyle(styleText);
-                        nowTime.setCellValue("创建时间: " + DateFormatUtils.format(createTime, "yyyy-MM-dd hh:ss:mm"));
+                        nowTime.setCellValue("创建时间: " + DateFormatUtils.format(orderCycleDate, "yyyy-MM-dd hh:ss:mm"));
                         createBy.setCellStyle(styleText);
                         createBy.setCellValue("采购人:" + productStandardName);
 
@@ -1213,7 +1213,7 @@ public class ExcelController extends BaseController {
             HttpServletResponse response = getResponse();
             OutputStream output = response.getOutputStream();
             response.reset();
-            response.setHeader("Content-disposition", "attachment; filename=" + URLEncoder.encode(DateFormatUtils.format(createTime, "yyyy年MM月dd日") + "采购计划.xlsx", "UTF-8"));
+            response.setHeader("Content-disposition", "attachment; filename=" + URLEncoder.encode(DateFormatUtils.format(orderCycleDate, "yyyy年MM月dd日") + "采购计划.xlsx", "UTF-8"));
             response.setContentType("application/excel");
             wb.write(output);
             output.flush();
@@ -1230,6 +1230,8 @@ public class ExcelController extends BaseController {
     public void importProductAllInfo() {
 
         Db.tx(new IAtom() {
+            int rowIndex = 0;
+            int excelIndex = 0;
             @Override
             public boolean run() throws SQLException {
                 String fileName = getPara("fileName");
@@ -1290,8 +1292,8 @@ public class ExcelController extends BaseController {
 //                    Map<String, BigDecimal> keyProductIdProductStandardNameValuePrice = productStandardAllInfo.stream().collect(Collectors.toMap(ps -> ps.getProductId() + "-" + ps.getName(), ProductStandard::getSellPrice));
 
                     // 异常检测,容错提升
-                    for (int i = 0; i < excel.size(); i++) {
-                        Object[] row = excel.get(i);
+                    for (excelIndex = 0; excelIndex < excel.size(); excelIndex++) {
+                        Object[] row = excel.get(excelIndex);
 
                         String typeName = (String) row[1];
                         if (!StringUtils.isNotBlank(typeName)) {
@@ -1338,7 +1340,7 @@ public class ExcelController extends BaseController {
                                 Integer pId = KeyForProductValueForProductId.get(productName);
                                 if (pId != null) {
                                     if (!productId.equals(pId)) {
-                                        renderErrorText("存在相同商品名称和不同的商品id，商品名：" + productName + "，在第" + (i + 5) + "行");
+                                        renderErrorText("存在相同商品名称和不同的商品id，商品名：" + productName + "，在第" + (excelIndex + 5) + "行");
                                         return false;
                                     }
                                 }
@@ -1348,7 +1350,7 @@ public class ExcelController extends BaseController {
                                 Integer psId = keyProductIdProductStandardNameValueProductStandardId.get(productId + "-" + productStandardName);
                                 if (psId != null) {
                                     if (!productStandardId.equals(psId)) {
-                                        renderErrorText("存在相同商品规格名称和不同的规格id的商品：" + productId + "，规格：" + productStandardName + "，在第" + (i + 5) + "行");
+                                        renderErrorText("存在相同商品规格名称和不同的规格id的商品：" + productId + "，规格：" + productStandardName + "，在第" + (excelIndex + 5) + "行");
                                         return false;
                                     }
                                 }
@@ -1367,7 +1369,7 @@ public class ExcelController extends BaseController {
                                             renderErrorText("存在相同商品规格编号和不同的信息的商品：" + productName + "，规格：" + productStandardName +
 //                                                    "，---------------上一行row:"+rowStr + "," +
 //                                                    "---------------下一行" +newRowStr +
-                                                    "|--->差异值：" + row[j] + "和" + duplicationCheckRow[j] + "，在第" + (i + 4) + "行");
+                                                    "|--->差异值：" + row[j] + "和" + duplicationCheckRow[j] + "，在第" + (excelIndex + 4) + "行");
                                             return false;
                                         }
                                     }
@@ -1388,7 +1390,8 @@ public class ExcelController extends BaseController {
                         }
                     }
 
-                    for (Object[] row : excel) {
+                    for (rowIndex = 0; rowIndex < excel.size(); rowIndex++) {
+                        Object[] row = excel.get(rowIndex);
 
                         Arrays.stream(row).forEach(System.out::print);
                         System.out.println();
@@ -2287,7 +2290,7 @@ public class ExcelController extends BaseController {
                             OrderDetail orderDetail = OrderDetail.dao.addOrderDetail(uid, orderCycleDate, userId, order.getOrderId(), product.getId(), productStandard.getId(), product.getName(), productStandard.getName(), productStandard.getSellPrice(), sellPrice, orderNum, sellPrice.multiply(new BigDecimal(orderNum)), buyRemark);
                             orderDetail.setActualSendGoodsNum(actualSendGoodsNum);
                             orderDetail.setActualDeliverNum(actualSendGoodsNum);
-                            orderDetail.update(UserTypeConstant.A_USER, uid, orderCycleDate);
+                            orderDetail.update(UserTypeConstant.A_USER, uid,orderDetail.getOrderId(),orderDetail.getProductId(),orderDetail.getProductStandardId(),0,orderDetail.getNum(),orderCycleDate);
 
                             // 订单表需要的数据
                             BigDecimal ProductTotalPrice = new BigDecimal(orderDetail.getNum()).multiply(orderDetail.getSellPrice());
@@ -2307,7 +2310,10 @@ public class ExcelController extends BaseController {
                             putTotalPrice = new BigDecimal(actualSendGoodsNum).multiply(procurementNeedPrice);
 
                             // 新增采购配额
-                            ProcurementQuota procurementQuota = _saveProcurementQuota(product.getId(), product.getName(), productStandard.getName(), productStandard.getId(), procurementName);
+                            ProcurementQuota pq = ProcurementQuota.dao.getProcurementQuotaByProductStandardId(psId);
+                            if (pq == null) {
+                                ProcurementQuota procurementQuota = _saveProcurementQuota(product.getId(), product.getName(), productStandard.getName(), productStandard.getId(), procurementName);
+                            }
 
                             // 成本均价 默认等于表格中的成本价
                             BigDecimal procurementTotalPrice = procurementNeedPrice;
@@ -2363,7 +2369,7 @@ public class ExcelController extends BaseController {
                                 // 商品总值
                                 procurementTotalPrice = new BigDecimal(oldProcurementNum).multiply(oldProcurementNeedPrice).add(new BigDecimal(actualSendGoodsNum).multiply(procurementNeedPrice));
                                 // 商品均价
-                                BigDecimal avgProcurementPrice = procurementTotalPrice.divide(new BigDecimal(procurementNum),2);
+                                BigDecimal avgProcurementPrice = procurementTotalPrice.divide(new BigDecimal(procurementNum), 2);
 
                                 procurementPlanDetail.setProcurementNum(procurementNum);
                                 procurementPlanDetail.setProcurementNeedPrice(avgProcurementPrice);
@@ -2460,7 +2466,7 @@ public class ExcelController extends BaseController {
                         outWarehouse.update();
 
                         // 更新盘点单
-                        warehouseService.updateCheckInventoryDetail(orderCycleDateStr,user.getNickName());
+                        warehouseService.updateCheckInventoryDetail(orderCycleDateStr, user.getNickName());
                     }
 
                     if (errorRow.size() > 0) {

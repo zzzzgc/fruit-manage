@@ -6,7 +6,9 @@ import com.fruit.manage.model.ProcurementPlan;
 import com.fruit.manage.model.ProcurementPlanDetail;
 import com.fruit.manage.util.*;
 import com.jfinal.aop.Before;
+import com.jfinal.ext.kit.DateKit;
 import com.jfinal.plugin.activerecord.Page;
+import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import org.apache.log4j.Logger;
 
@@ -21,21 +23,20 @@ public class PlanController extends BaseController {
     public void getPlan() {
         int pageNum = getParaToInt("pageNum", 1);
         int pageSize = getParaToInt("pageSize", 10);
-        Map map = new HashMap();
         String orderBy = getPara("prop");
-        map.put("createTime", getParaValues("format_create_time"));
+        String[] orderCycleDates = getParaValues("order_cycle_date");
         // ascending为升序，其他为降序
         boolean isASC = "ascending".equals(getPara("order"));
-        Page<ProcurementPlan> pPlanPage = ProcurementPlan.dao.getAllProcurementPlan(pageNum, pageSize, orderBy, isASC, map);
-        if (pPlanPage.getList() != null && pPlanPage.getList().size() > 0) {
-            for (int i = 0; i < pPlanPage.getList().size(); i++) {
-                ProcurementPlan procurementPlan = pPlanPage.getList().get(i);
-                String createTime = DateAndStringFormat.getStringDateShort(procurementPlan.getCreateTime());
-                String[] createTimes = new String[2];
-                createTimes[0] = DateAndStringFormat.getNextDay(createTime, "-1") + " 12:00:00";
-                createTimes[1] = createTime + " 11:59:59";
-                ProcurementPlan procurementPlan2 = ProcurementPlan.dao.getWaitStatisticsOrderTotal(createTimes, createTime);
-                procurementPlan.setWaitStatisticsOrderTotal(procurementPlan2.getWaitStatisticsOrderTotal());
+        Page<ProcurementPlan> pPlanPage = ProcurementPlan.dao.getAllProcurementPlan(pageNum, pageSize, orderBy, isASC, orderCycleDates);
+        List<ProcurementPlan> list = pPlanPage.getList();
+        if (list != null && list.size() > 0) {
+            // 重算未统计信息的数量
+            for (int i = 0; i < list.size(); i++) {
+                ProcurementPlan procurementPlan = list.get(i);
+                Date orderCycleDate = procurementPlan.getOrderCycleDate();
+                String orderCycleDateStr = DateKit.toStr(orderCycleDate, "yyyy-MM-dd");
+                Record orderLog = ProcurementPlan.dao.getWaitStatisticsOrderTotal(orderCycleDateStr);
+                procurementPlan.setWaitStatisticsOrderTotal(Integer.parseInt(orderLog.get("wait_statistics_order_total") + ""));
             }
         }
         renderJson(pPlanPage);
@@ -49,16 +50,7 @@ public class PlanController extends BaseController {
         String pPlanId = getPara("pPlanId");
         ProcurementPlan procurementPlan = ProcurementPlan.dao.getPPlanById(pPlanId);
         if (procurementPlan != null && procurementPlan.getCreateTime() != null) {
-            // ccz 2018-5-31 orderCreateTime封装成通用方法
             String[] createTimes = ZhioDateUtils.getOrderCycleDateStrings(procurementPlan.getCreateTime());
-//            String createTimeStr= DateAndStringFormat.getStringDateShort(procurementPlan.getCreateTime());
-//            String[] createTimes = new String[2];
-//            createTimes[0] = DateAndStringFormat.getNextDay(createTimeStr,"-1")+" 12:00:00";
-//            createTimes[1] = createTimeStr+" 11:59:59";
-
-            // 根据采购生成时间删除采购计划详细
-            // ccz 2018-5-25 修改删除采购计划详细的方法由时间判断转换成采购计划编号
-//            ProcurementPlanDetail.dao.delAllPPlanDetailByTime(createTimes);
             ProcurementPlanDetail.dao.delAllPlanDetailByPPlanId(procurementPlan.getId());
             // 根据采购生成时间修改订单日志统计状态为未统计（0）
             OrderLog.dao.updateOrderLog(createTimes);
@@ -72,56 +64,53 @@ public class PlanController extends BaseController {
      * 添加采购计划
      */
     public void addPlan() {
-        Date nowDateStr2 = ZhioDateUtils.getOrderCycleDate(new Date());
-        String[] create_time = ZhioDateUtils.getOrderCycleDateStrings(nowDateStr2);
-        String nowDateStr = DateAndStringFormat.getStringDateShort(nowDateStr2);
 
-        // ccz 2018-5-31 orderCreateTime 封装成通用方法
-//        String[] create_time = new String[2];
-//        if (Integer.parseInt(DateAndStringFormat.getHour()) >= 12) {
-//            //当前时间大于12小时的情况（包括12小时）
-//            create_time[0] = DateAndStringFormat.getStringDateShort(new Date()) + " 12:00:00";
-//            create_time[1] = DateAndStringFormat.getNextDay(DateAndStringFormat.getStringDateShort(new Date()), "1") + " 11:59:59";
-//            nowDateStr = DateAndStringFormat.getNextDay(DateAndStringFormat.getStringDateShort(new Date()), "1");
-//        } else {
-//            //当前时间小于12小时的情况（不包括12小时）
-//            create_time[0] = DateAndStringFormat.getNextDay(DateAndStringFormat.getStringDateShort(new Date()), "-1") + " 12:00:00";
-//            create_time[1] = DateAndStringFormat.getStringDateShort(new Date()) + " 11:59:59";
-//        }
+        Date orderCycleDate = getParaToDate("order_cycle_date");
+        String orderCycleDateStr = getPara("order_cycle_date");
+        if (orderCycleDate == null) {
+            orderCycleDate = ZhioDateUtils.getOrderCycleDate(new Date());
+            orderCycleDateStr = DateKit.toStr(orderCycleDate,"yyyy-MM-dd");
+        }
+        String[] orderCycleDates = ZhioDateUtils.getOrderCycleDateStrings(orderCycleDate);
 
-        ProcurementPlan procurementPlan = ProcurementPlan.dao.getPPlan(create_time);
+
+        Record orderLog = ProcurementPlan.dao.getOrderLogByPPlan(orderCycleDates);
         List<Integer> list = new ArrayList<>();
-        if (procurementPlan.getProductStandardNum() != null && procurementPlan.getProductStandardNum() != 0) {
+        if (orderLog.get("product_standard_num") != null && Integer.parseInt(orderLog.get("product_standard_num") + "") != 0) {
             try {
-                ProcurementPlan procurementPlan2 = ProcurementPlan.dao.getPPlanCreateTime(nowDateStr);
-                if (procurementPlan2 != null && procurementPlan2.getId() != null) {
-                    procurementPlan2.setNum(procurementPlan.getNum());
-                    procurementPlan2.setOrderTotal(procurementPlan.getOrderTotal());
-                    procurementPlan2.setProductStandardNum(procurementPlan.getProductStandardNum());
-                    procurementPlan2.setWaitStatisticsOrderTotal(procurementPlan.getWaitStatisticsOrderTotal());
-                    procurementPlan2.setProcurementId(getSessionAttr(Constant.SESSION_UID));
-                    procurementPlan2.update();
+                ProcurementPlan procurementPlan = ProcurementPlan.dao.getProcurementPlanByOrderCycleDate(orderCycleDateStr);
+                if (procurementPlan != null && procurementPlan.getId() != null) {
+                    procurementPlan.setNum(orderLog.get("num"));
+                    procurementPlan.setOrderTotal(orderLog.get("order_total"));
+                    procurementPlan.setProductStandardNum(orderLog.get("product_standard_num"));
+                    procurementPlan.setWaitStatisticsOrderTotal(orderLog.get("wait_statistics_order_total"));
+                    procurementPlan.setProcurementId(getSessionAttr(Constant.SESSION_UID));
+                    procurementPlan.update();
                     // 此段日期已经有人有人下单，并重新覆盖
                     list.add(0);
                 } else {
-                    procurementPlan.setId(ZhioIdUtil.getProrementPlanId(nowDateStr2));
+                    procurementPlan = new ProcurementPlan();
+                    procurementPlan.setId(ZhioIdUtil.getProrementPlanId(orderCycleDate));
                     procurementPlan.setProcurementId(getSessionAttr(Constant.SESSION_UID));
-                    procurementPlan.setCreateTime(DateAndStringFormat.strToDate(nowDateStr));
-                    // ccz 2018-5-30 添加订单周期时间
-                    procurementPlan.setOrderCycleDate(new Date());
+                    procurementPlan.setOrderCycleDate(orderCycleDate);
+                    procurementPlan.setNum(Integer.parseInt(orderLog.get("num") + ""));
+                    procurementPlan.setOrderTotal(Integer.parseInt(orderLog.get("order_total") + ""));
+                    procurementPlan.setProductStandardNum(Integer.parseInt(orderLog.get("product_standard_num") + ""));
+                    procurementPlan.setWaitStatisticsOrderTotal(Integer.parseInt(orderLog.get("wait_statistics_order_total") + ""));
+                    procurementPlan.setCreateTime(new Date());
                     procurementPlan.save();
                     // 此段日期已经有人有人下单，新添加
                     list.add(1);
                 }
                 // 订单日志修改为1（被统计过）
-                ProcurementPlan.dao.updateOrderLog(create_time);
+                ProcurementPlan.dao.updateOrderLog(orderCycleDateStr);
             } catch (Exception e) {
                 // 异常
                 list.add(-1);
+                e.printStackTrace();
             }
         } else {
             // 此段日期无人下单
-            // TODO 没有订单就不给添加,用户会显示添加失败,会以为系统bug...这里需要优化.给他生成一个没有采购计划详细的采购计划即可
             list.add(2);
         }
         renderJson(list);
@@ -133,22 +122,17 @@ public class PlanController extends BaseController {
     public void updatePPlan() {
 
         try {
-            Date createTime = getParaToDate("createTime");
+            Date orderCycleDate = getParaToDate("order_cycle_date");
+            String orderCycleDateStr = getPara("order_cycle_date");
+            String[] orderCycleDates = ZhioDateUtils.getOrderCycleDateStrings(orderCycleDate);
 
-            String createTimeStr = DateAndStringFormat.getStringDateShort(createTime);
-            String[] create_time = ZhioDateUtils.getOrderCycleDateStrings(createTime);
-            // ccz 2018-5-31 orderCreateTime封装成通用方法
-//            String[] create_time = new String[2];
-//            create_time[0] = DateAndStringFormat.getNextDay(createTimeStr, "-1") + " 12:00:00";
-//            create_time[1] = createTimeStr + " 11:59:59";
-
-            ProcurementPlan procurementPlan = ProcurementPlan.dao.getPPlan(create_time);
-            ProcurementPlan procurementPlan2 = ProcurementPlan.dao.getPPlanCreateTime(createTimeStr);
+            Record procurementPlan = ProcurementPlan.dao.getOrderLogByPPlan(orderCycleDates);
+            ProcurementPlan procurementPlan2 = ProcurementPlan.dao.getProcurementPlanByOrderCycleDate(orderCycleDateStr);
             if (procurementPlan != null && procurementPlan2 != null) {
-                procurementPlan2.setNum(procurementPlan.getNum() == null ? 0 : procurementPlan.getNum());
-                procurementPlan2.setOrderTotal(procurementPlan.getOrderTotal());
-                procurementPlan2.setProductStandardNum(procurementPlan.getProductStandardNum());
-                procurementPlan2.setWaitStatisticsOrderTotal(procurementPlan.getWaitStatisticsOrderTotal() == null ? 0 : procurementPlan.getWaitStatisticsOrderTotal());
+                procurementPlan2.setNum(procurementPlan.get("num") == null ? 0 : procurementPlan.get("num"));
+                procurementPlan2.setOrderTotal(procurementPlan.get("order_total"));
+                procurementPlan2.setProductStandardNum(procurementPlan.get("product_standard_num"));
+                procurementPlan2.setWaitStatisticsOrderTotal(procurementPlan.get("wait_statistics_order_total") == null ? 0 : procurementPlan.get("wait_statistics_order_total"));
                 procurementPlan2.setProcurementId(getSessionAttr(Constant.SESSION_UID));
                 procurementPlan2.update();
             }
@@ -160,203 +144,4 @@ public class PlanController extends BaseController {
         }
     }
 
-//    /**
-//     * 根据采购计划ID导出采购计划单
-//     */
-//    public void exportPPlan() {
-//        Integer uid = getSessionAttr(Constant.SESSION_UID);
-//        // 获取当前操作用户
-//        User user = User.dao.findById(uid);
-//
-//        Date createTime = getParaToDate("createTime");
-//        String createTimeStr = DateAndStringFormat.getStringDateShort(createTime);
-//        String[] createTimes = new String[2];
-//        createTimes[0] = DateAndStringFormat.getNextDay(createTimeStr, "-1") + " 12:00:00";
-//        createTimes[1] = createTimeStr + " 11:59:59";
-//        // 获取要导出数据
-//        List<ProcurementPlan> planList = ProcurementPlan.dao.getExportDataByPPlanID(createTimes);
-//
-//        // 行头
-//        String[] header = {"商品名", "规格名", "规格编码", "重量(斤)", "报价", "下单量", "库存量", "采购量", "采购单价", "下单备注"};
-//        // 先执行删除操作
-//        ProcurementPlanDetail.dao.delPPlanDetail(createTimes);
-//
-//        // excel表格信息
-//        HashMap<Integer, Map<String, Object>> excelInfoList = new HashMap<>(5);
-//
-//
-////        List<String[]> listData = new ArrayList<String[]>();
-//        String zipFileName = createTimeStr+"订单周期的采购计划表.zip";
-//        String zipFolder = CommonController.FILE_PATH + File.separator + zipFileName;
-//        File zipFolderFile = new File(zipFolder);
-//        if (zipFolderFile.exists()) {
-//            zipFolderFile.mkdirs();
-//        }
-//        if (planList.size() <1) {
-//            renderErrorText("一条订单都没有");
-//            return;
-//        }
-//        for (ProcurementPlan procurementPlan : planList) {
-//            // 根据采购人分别保存信息,用来区分不同的采购采购的东西
-//            Map<String, Object> excelInfo = excelInfoList.get(procurementPlan.get("procurement_id"));
-//            List<Object[]> listData = null;
-//            if (excelInfo == null) {
-//                excelInfo = new HashMap<>(20);
-//                excelInfoList.put(procurementPlan.get("procurement_id"),excelInfo);
-//                excelInfo.put("path", zipFolder);
-//                excelInfo.put("fileName", "file_" + UUID.randomUUID().toString().replaceAll("-", "") + ".xlsx");
-//                excelInfo.put("title", "采购计划表");
-//                excelInfo.put("createBy", procurementPlan.get("procurement_name"));
-//                excelInfo.put("header", header);
-//                excelInfo.put("listData", new ArrayList<Object[]>());
-//                listData = (List<Object[]>) excelInfo.get("listData");
-//            } else {
-//                listData = (List<Object[]>) excelInfo.get("listData");
-//            }
-//            Object[] str = new Object[header.length];
-//            Integer productId = procurementPlan.get("productId");
-//            // 商品名
-//            str[0] = procurementPlan.get("productName");
-//            // 规格名
-//            str[1] = procurementPlan.get("productStandardName");
-//            // 规格编号
-//            str[2] = procurementPlan.get("productStandardID");
-//            // 水果重量
-//            str[3] = procurementPlan.get("fruitWeight");
-//            // 报价
-//            str[4] = procurementPlan.get("sellPrice");
-//            str[5] = procurementPlan.get("purchaseNum");
-//            str[6] = procurementPlan.get("inventoryNum");
-//            str[7] = procurementPlan.get("procurementNum");
-//            str[8] = procurementPlan.get("procurementPrice");
-//            // TODO 需要改成订单备注
-//            str[9] = procurementPlan.get("procurementRemark");
-//            listData.add(str);
-//            ProcurementPlanDetail procurementPlanDetail = new ProcurementPlanDetail();
-//            procurementPlanDetail.setProductId(productId);
-//            procurementPlanDetail.setProductStandardId(procurementPlan.get("productStandardID"));
-//            procurementPlanDetail.setProcurementId(uid);
-//            procurementPlanDetail.setProductName(procurementPlan.get("productName"));
-//            procurementPlanDetail.setProductStandardName(procurementPlan.get("productStandardName"));
-//            procurementPlanDetail.setSellPrice(procurementPlan.get("sellPrice"));
-//            procurementPlanDetail.setInventoryNum(Integer.parseInt(procurementPlan.get("inventoryNum") + ""));
-//            procurementPlanDetail.setProcurementNum(Integer.parseInt(procurementPlan.get("procurementNum") + ""));
-//            procurementPlanDetail.setProductStandardNum(Integer.parseInt(procurementPlan.get("productStandardNum") + ""));
-//            procurementPlanDetail.setProcurementNeedPrice(BigDecimal.valueOf(procurementPlan.get("procurementNeedPrice")));
-//            procurementPlanDetail.setProcurementTotalPrice(BigDecimal.valueOf(procurementPlan.get("procurementTotalPrice")));
-//            procurementPlanDetail.setOrderRemark(procurementPlan.get("orderRemark"));
-//            procurementPlanDetail.setProcurementRemark(procurementPlan.get("procurementRemark"));
-//            procurementPlanDetail.setCreateTime(createTime);
-//            procurementPlanDetail.setUpdateTime(new Date());
-//            procurementPlanDetail.save();
-//        }
-//
-//        //保存路径
-////        String savePath = getRequest().getSession().getServletContext().getRealPath("static/excel");
-////        System.out.println("\n" + savePath);
-////        String fpath = getSession().getServletContext().getRealPath("static/excel");
-////        String fileName = "file_" + UUID.randomUUID().toString().replaceAll("-", "") + ".xlsx";
-////        System.out.println(fpath + "\n");
-////        Map map = new HashMap(12);
-////        map.put("path", savePath);
-////        map.put("fileName", fileName);
-////        map.put("title", "采购计划表");
-////        map.put("createBy", user.getName());
-////        map.put("header", header);
-////        map.put("listData", listData);
-//        ArrayList<File> files = new ArrayList<>();
-//        for (Integer integer : excelInfoList.keySet()) {
-//            Map<String, Object> stringObjectMap = excelInfoList.get(integer);
-//            String file = null;
-//            try {
-//                file = ExcelCommon.createExcelModul(stringObjectMap);
-//            } catch (ExcelException e) {
-//                renderErrorText(e.getMessage());
-//            }
-//            files.add(new File(file));
-//        }
-//        String zipName  = zipFileName + ".zip";
-//        boolean b = fileToZip(zipFolder, CommonController.FILE_PATH, zipFileName);
-//        HashMap<Object, Object> objectObjectHashMap = new HashMap<>(1);
-//        objectObjectHashMap.put("zipName",zipName);
-//        renderJson(objectObjectHashMap);
-//    }
-
-    /**
-     * 将存放在sourceFilePath目录下的源文件，打包成fileName名称的zip文件，并存放到zipFilePath路径下
-     *
-     * @param sourceFilePath :待压缩的文件路径
-     * @param zipFilePath    :压缩后存放路径
-     * @param fileName       :压缩后文件的名称
-     * @return
-     */
-    public static boolean fileToZip(String sourceFilePath, String zipFilePath, String fileName) {
-        boolean flag = false;
-        File sourceFile = new File(sourceFilePath);
-        FileInputStream fis = null;
-        BufferedInputStream bis = null;
-        FileOutputStream fos = null;
-        ZipOutputStream zos = null;
-
-        if (sourceFile.exists() == false) {
-            System.out.println("待压缩的文件目录：" + sourceFilePath + "不存在.");
-        } else {
-            try {
-                File zipFile = new File(zipFilePath + "/" + fileName + ".zip");
-                if (zipFile.exists()) {
-                    System.out.println(zipFilePath + "目录下存在名字为:" + fileName + ".zip" + "打包文件.");
-                } else {
-                    File[] sourceFiles = sourceFile.listFiles();
-                    if (null == sourceFiles || sourceFiles.length < 1) {
-                        System.out.println("待压缩的文件目录：" + sourceFilePath + "里面不存在文件，无需压缩.");
-                    } else {
-                        fos = new FileOutputStream(zipFile);
-                        zos = new ZipOutputStream(new BufferedOutputStream(fos));
-                        byte[] bufs = new byte[1024 * 10];
-                        for (int i = 0; i < sourceFiles.length; i++) {
-                            //创建ZIP实体，并添加进压缩包
-                            ZipEntry zipEntry = new ZipEntry(sourceFiles[i].getName());
-                            zos.putNextEntry(zipEntry);
-                            //读取待压缩的文件并写进压缩包里
-                            fis = new FileInputStream(sourceFiles[i]);
-                            bis = new BufferedInputStream(fis, 1024 * 10);
-                            int read = 0;
-                            while ((read = bis.read(bufs, 0, 1024 * 10)) != -1) {
-                                zos.write(bufs, 0, read);
-                            }
-                        }
-                        flag = true;
-                    }
-                }
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-                throw new RuntimeException(e);
-            } catch (IOException e) {
-                e.printStackTrace();
-                throw new RuntimeException(e);
-            } finally {
-                //关闭流
-                try {
-                    if (null != bis) bis.close();
-                    if (null != zos) zos.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    throw new RuntimeException(e);
-                }
-            }
-        }
-        return flag;
-    }
-
-    public static Integer testid = 1;
-
-    public void download() {
-        String path = getPara("path", testid + 1 + "");
-        File file = new File(path);
-        if (file.exists()) {
-            renderFile(file);
-        } else {
-            renderJson();
-        }
-    }
 }

@@ -34,11 +34,11 @@ public class OutWarehouse extends BaseOutWarehouse<OutWarehouse> {
 
 
 		if (ArrayUtils.isNotEmpty(createTime) && createTime.length == 2) {
-			sql.append("and ow.create_time BETWEEN ? and ? ");
-			params.add(createTime[0] + " 00:00:00");
-			params.add(createTime[1] + " 23:59:59");
+			sql.append("and ow.order_cycle_date BETWEEN ? and ? ");
+			params.add(createTime[0]);
+			params.add(createTime[1]);
 		}
-		orderBy = StrKit.isBlank(orderBy) ? "ow.create_time" : orderBy;
+		orderBy = StrKit.isBlank(orderBy) ? "ow.order_cycle_date" : orderBy;
 		sql.append("order by " + orderBy + " " + (isASC ? "" : "desc "));
 
 		String selectStr = "SELECT\n" +

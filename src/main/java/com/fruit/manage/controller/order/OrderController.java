@@ -143,7 +143,7 @@ public class OrderController extends BaseController {
             order.save();
             for (OrderDetail orderDetail : orderDetails) {
                 // ccz 2018-5-18 orderCreateTime
-                orderDetail.delete(UserTypeConstant.A_USER, uid, order.getCreateTime());
+                orderDetail.delete(UserTypeConstant.A_USER, uid, orderId, orderDetail.getProductId(), orderDetail.getProductStandardId(), orderDetail.getNum(), order.getCreateTime());
                 orderDetail.setOrderId(orderId);
                 // 避免写入订单日志被算成一笔订单,所以这里不调用带有订单统计的save
                 orderDetail.save();
@@ -275,8 +275,8 @@ public class OrderController extends BaseController {
                 orderDetail2.setSellPrice(orderDetail.getSellPrice());
                 orderDetail2.setActualDeliverNum(orderDetail.getActualDeliverNum());
                 Integer userId = getSessionAttr(Constant.SESSION_UID);
-                // ccz 2018-5-18 orderCreateTime
-                orderDetail2.update(UserTypeConstant.B_USER, userId, order.getCreateTime());
+                // 订单数量未改变
+                orderDetail2.update(UserTypeConstant.B_USER, (Integer) getSessionAttr(Constant.SESSION_UID), orderDetail2.getOrderId(), orderDetail2.getProductId(), orderDetail2.getProductStandardId(), orderDetail2.getNum(), orderDetail2.getNum(), order.getCreateTime());
 
 
                 // 修改订单实际需要支付的总总金额
@@ -336,8 +336,9 @@ public class OrderController extends BaseController {
                 orderDetail.setTotalPay(totalPay);
                 payNeedMoney = payNeedMoney.add(totalPay);
                 if (orderDetail.getId() != null) {
+                    OrderDetail oldOrderDetail = OrderDetail.dao.findById(orderDetail.getId());
                     // ccz 2018-5-18 orderCreateTime
-                    orderDetail.update(UserTypeConstant.A_USER, uid, order.getCreateTime());
+                    orderDetail.update(UserTypeConstant.A_USER, uid, orderDetail.getOrderId(), orderDetail.getProductId(), orderDetail.getProductStandardId(), oldOrderDetail.getNum(), orderDetail.getNum(), order.getCreateTime());
                 } else {
                     orderDetail.setUId(businessUserId);
                     orderDetail.setOrderId(order.getOrderId());
@@ -548,7 +549,7 @@ public class OrderController extends BaseController {
         String sql = "SELECT o.create_time from b_order o where o.order_id = ? ";
         Date orderCreateTime = Db.queryDate(sql, orderDetail.getOrderId());
         // ccz 2018-5-18 orderCreateTime
-        orderDetail.delete(UserTypeConstant.A_USER, uid, orderCreateTime);
+        orderDetail.delete(UserTypeConstant.A_USER, uid, orderDetail.getOrderId(), orderDetail.getProductId(), orderDetail.getProductStandardId(), orderDetail.getNum(), orderCreateTime);
         renderNull();
     }
 
@@ -627,8 +628,9 @@ public class OrderController extends BaseController {
         }
         if (logisticsInfo != null) {
             BigDecimal orderPayRealityNeedMoney = OrderDetail.dao.getOrderPayRealityNeedMoneyByOrderID(orderId);
-            if (logisticsInfo == null)
+            if (logisticsInfo == null) {
                 logisticsInfo = new LogisticsInfo();
+            }
             if (logisticsInfo.getSendGoodsTotalCost() == null) {
                 logisticsInfo.setSendGoodsTotalCost(new BigDecimal(0));
             }
@@ -667,8 +669,9 @@ public class OrderController extends BaseController {
             LogisticsInfo logisticsInfo = LogisticsInfo.dao.getLogisticeInfoByOrderID(orderId);
 //            BigDecimal orderTotalPay = OrderDetail.dao.getOrderTotalCost(orderId);
             BigDecimal payRealityNeedMoney = OrderDetail.dao.getOrderPayRealityNeedMoneyByOrderID(orderId);
-            if (logisticsInfo == null)
+            if (logisticsInfo == null) {
                 logisticsInfo = new LogisticsInfo();
+            }
             if (logisticsInfo.getSendGoodsTotalCost() == null) {
                 logisticsInfo.setSendGoodsTotalCost(new BigDecimal(0));
             }
@@ -692,8 +695,9 @@ public class OrderController extends BaseController {
             String orderId = getPara("orderId");
             LogisticsInfo logisticsInfo = LogisticsInfo.dao.getLogisticeInfoByOrderID(orderId);
             BigDecimal payRealityNeedMoney = OrderDetail.dao.getOrderPayRealityNeedMoneyByOrderID(orderId);
-            if (logisticsInfo == null)
+            if (logisticsInfo == null) {
                 logisticsInfo = new LogisticsInfo();
+            }
             if (logisticsInfo.getSendGoodsTotalCost() == null) {
                 logisticsInfo.setSendGoodsTotalCost(new BigDecimal(0));
             }

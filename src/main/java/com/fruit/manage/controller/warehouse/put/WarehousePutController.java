@@ -41,9 +41,8 @@ public class WarehousePutController extends BaseController {
         String orderBy = getPara("prop");
         // ascending为升序，其他为降序
         boolean isASC = "ascending".equals(getPara("order"));
-        String[] create_time = getParaValues("format_create_time");
-        map.put("createTime", create_time);
-        renderJson(PutWarehouse.dao.getAllInfo(pageNum, pageSize, orderBy, isASC, map));
+        String[] create_time = getParaValues("order_cycle_date");
+        renderJson(PutWarehouse.dao.getAllInfo(pageNum, pageSize, orderBy, isASC, create_time));
     }
 
     /**

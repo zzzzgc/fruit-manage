@@ -164,6 +164,16 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
     }
 
 
+    /**
+     * 非特殊情况不可用
+     * 生成订单流水
+     * @param orderId
+     * @param productId
+     * @param productStandardId
+     * @param changeNum
+     * @param orderCreateTime
+     * @return
+     */
     private boolean getOrderLog(String orderId, Integer productId, Integer productStandardId, Integer changeNum, Date orderCreateTime) {
         OrderLog orderLog = new OrderLog();
         // 未知用户
@@ -178,6 +188,17 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
         return orderLog.save();
     }
 
+    /**
+     * 生成订单流水
+     * @param type
+     * @param uid
+     * @param orderId
+     * @param productId
+     * @param productStandardId
+     * @param changeNum
+     * @param orderCreateTime
+     * @return
+     */
     private boolean getOrderLog(UserTypeConstant type, Integer uid, String orderId, Integer productId, Integer productStandardId, Integer changeNum, Date orderCreateTime) {
         OrderLog orderLog = new OrderLog();
         orderLog.setUId(uid);
@@ -210,6 +231,10 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
 //        return orderLog.save();
 //    }
 
+    /**
+     * 非特殊情况不可用
+     * @return 是否成功
+     */
     @Deprecated
     @Override
     @Before(Tx.class)
@@ -218,6 +243,11 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
         return super.save();
     }
 
+
+    /**
+     * 非特殊情况不可用
+     * @return 是否成功
+     */
     @Deprecated
     @Override
     @Before(Tx.class)
@@ -228,6 +258,10 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
         return getOrderLog(super.getOrderId(), super.getProductId(), super.getProductStandardId(), ~super.getNum() + 1, orderCreateTime);
     }
 
+    /**
+     * 非特殊情况不可用
+     * @return 是否成功
+     */
     @Deprecated
     @Override
     @Before(Tx.class)
@@ -241,7 +275,10 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
 
 
     /**
-     * 推荐
+     * @param type 用户类型
+     * @param uid  操作人id
+     * @param orderCreateTime 订单创建时间
+     * @return 是否成功
      */
     @Before(Tx.class)
     public boolean save(UserTypeConstant type, Integer uid, Date orderCreateTime) {
@@ -251,28 +288,16 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
         return getOrderLog(type, uid, super.getOrderId(), super.getProductId(), super.getProductStandardId(), super.getNum(), orderCreateTime);
     }
 
-    @Before(Tx.class)
-    public boolean delete(UserTypeConstant type, Integer uid, Date orderCreateTime) {
-        super.delete();
-        return getOrderLog(type, uid, super.getOrderId(), super.getProductId(), super.getProductStandardId(), ~super.getNum() + 1, orderCreateTime);
-    }
-
-    @Before(Tx.class)
-    public boolean update(UserTypeConstant type, Integer uid, Date orderCreateTime) {
-        OrderDetail orderDetail = OrderDetail.dao.findById(super.getId());
-        super.update();
-        return getOrderLog(type, uid, orderDetail.getOrderId(), orderDetail.getProductId(), orderDetail.getProductStandardId(), super.getNum() - orderDetail.getNum(), orderCreateTime);
-    }
-
-
-    @Before(Tx.class)
-    public boolean save(UserTypeConstant type, Integer uid, String orderId, Integer productId, Integer productStandardId, Integer num, Date orderCreateTime) {
-        super.save();
-        return getOrderLog(type, uid, orderId, productId, productStandardId, num, orderCreateTime);
-    }
-
     /**
-     * 推荐
+     *
+     * @param type 用户类型
+     * @param uid  操作人id
+     * @param orderId   订单号
+     * @param productId 商品id
+     * @param productStandardId 商品规格id
+     * @param num   删除数量
+     * @param orderCreateTime 订单创建时间
+     * @return 是否成功
      */
     @Before(Tx.class)
     public boolean delete(UserTypeConstant type, Integer uid, String orderId, Integer productId, Integer productStandardId, Integer num, Date orderCreateTime) {
@@ -281,7 +306,15 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
     }
 
     /**
-     * 推荐
+     * @param type 用户类型
+     * @param uid  操作人id
+     * @param orderId   订单号
+     * @param productId 商品id
+     * @param productStandardId 商品规格id
+     * @param beforeNum 原来的数量
+     * @param afterNum 现在的数量
+     * @param orderCreateTime 订单创建时间
+     * @return 是否成功
      */
     @Before(Tx.class)
     public boolean update(UserTypeConstant type, Integer uid, String orderId, Integer productId, Integer productStandardId, Integer beforeNum, Integer afterNum, Date orderCreateTime) {

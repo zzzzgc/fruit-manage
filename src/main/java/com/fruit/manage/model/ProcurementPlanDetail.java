@@ -391,7 +391,7 @@ public class ProcurementPlanDetail extends BaseProcurementPlanDetail<Procurement
 				"\tfrom b_procurement_plan pp\n" +
 				"\tINNER JOIN b_procurement_plan_detail ppd on pp.id = ppd.procurement_plan_id\n" +
 				"\twhere 1=1\n" +
-				"\tand DATE_FORMAT(pp.create_time,'%Y-%m-%d')  = ? \n" +
+				"\tand pp.order_cycle_date = ? \n" +
 				"\tand ppd.product_standard_id = ? \n" +
 				"\tand ppd.procurement_id = ?";
 		return findFirst(sql,createTime,productStandardId,procurementId);

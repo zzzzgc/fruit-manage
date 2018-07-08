@@ -26,22 +26,20 @@ public class PutWarehouse extends BasePutWarehouse<PutWarehouse> {
 	 * @param pageSize 每页显示几行
 	 * @param orderBy 根据什么字段排序
 	 * @param isASC 是否升序
-	 * @param map 参数集合
+	 * @param orderCycleDates 业务周期时间
 	 * @return 返回一个带条件的分页数据集合
 	 */
-	public Page<PutWarehouse> getAllInfo(int pageNum, int pageSize, String orderBy, boolean isASC, Map map){
+	public Page<PutWarehouse> getAllInfo(int pageNum, int pageSize, String orderBy, boolean isASC, String[] orderCycleDates){
 		ArrayList<Object> params = new ArrayList<Object>();
 		String selectStr = "select pw.id,pw.put_num,pw.put_type_num,pw.put_total_price,pw.put_type,pw.warehouse_address,pw.create_time,pw.put_time,pw.order_cycle_date ";
 		StringBuilder sql=new StringBuilder();
 		sql.append("from b_put_warehouse pw where 1=1 ");
-		if (ArrayUtils.isNotEmpty((String[]) map.get("createTime")) && ((String[]) map.get("createTime")).length == 2) {
-			sql.append("and pw.create_time BETWEEN ? and ? ");
-			String startDate = ((String[]) map.get("createTime"))[0] + " 00:00:00";
-			String endDate = ((String[]) map.get("createTime"))[1] + " 23:59:59";
-			params.add(startDate);
-			params.add(endDate);
+		if (orderCycleDates != null && orderCycleDates.length == 2) {
+			sql.append("and pw.order_cycle_date BETWEEN ? and ? ");
+			params.add(orderCycleDates[0]);
+			params.add(orderCycleDates[1]);
 		}
-		orderBy = StrKit.isBlank(orderBy) ? "pw.create_time" : orderBy;
+		orderBy = StrKit.isBlank(orderBy) ? "pw.order_cycle_date" : orderBy;
 		sql.append("order by " + orderBy + " " + (isASC ? "" : "desc "));
 		return paginate(pageNum, pageSize, selectStr, sql.toString(), params.toArray());
 	}
