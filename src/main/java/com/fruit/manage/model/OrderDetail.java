@@ -32,6 +32,7 @@ public class OrderDetail extends BaseOrderDetail<OrderDetail> {
         // 实发数量默认等于应发数量,再由用户修改
         String sql = "SELECT\n" +
                 "\to.product_name,\n" +
+                "\to.product_id,\n" +
                 "\to.id,\n" +
                 "\to.product_standard_name,\n" +
                 "\to.num,\n" +

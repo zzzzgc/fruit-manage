@@ -338,7 +338,7 @@ public class OrderController extends BaseController {
                 if (orderDetail.getId() != null) {
                     OrderDetail oldOrderDetail = OrderDetail.dao.findById(orderDetail.getId());
                     // ccz 2018-5-18 orderCreateTime
-                    orderDetail.update(UserTypeConstant.A_USER, uid, orderDetail.getOrderId(), orderDetail.getProductId(), orderDetail.getProductStandardId(), oldOrderDetail.getNum(), orderDetail.getNum(), order.getCreateTime());
+                    orderDetail.update(UserTypeConstant.A_USER, uid, order.getOrderId(), orderDetail.getProductId(), orderDetail.getProductStandardId(), oldOrderDetail.getNum(), orderDetail.getNum(), order.getCreateTime());
                 } else {
                     orderDetail.setUId(businessUserId);
                     orderDetail.setOrderId(order.getOrderId());
